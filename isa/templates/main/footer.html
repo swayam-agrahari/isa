@@ -1,0 +1,43 @@
+<!-- templates/includes/footer.html -->
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/components/header.css') }}"
+/>
+
+<footer class="footer">
+  <div class="container">
+    <p class="mb-0">
+      <a
+        href="https://commons.wikimedia.org/wiki/Commons:ISA_Tool"
+        target="_blank"
+        >{{ _('ISA tool') }}</a
+      >
+      {{ _('was developed as a collaboration between Wiki In Africa, Histropedia
+      and the Structured Data on Commons project') }}. {{ _('Further development
+      supported by') }}
+      <a href="https://wikimedia.se" target="_blank">Wikimedia Sverige</a>,
+      <a href="https://www.switch.ch" target="_blank">SWITCH</a> {{ _('and') }}
+      <a href="https://www.bfh.ch" target="_blank"
+        >Bern University of Applied Sciences</a
+      >. {{ _('It is running on') }}
+      <a href="https://tools.wmflabs.org" target="_blank">tools.wmflabs.org</a>,
+      {{ _('and is subject to the') }}
+      <a
+        href="https://wikitech.wikimedia.org/wiki/Wikitech:Cloud_Services_Terms_of_use"
+        target="_blank"
+        >Wikimedia Cloud Services Terms of use</a
+      >. {{ _('ISA is published under') }}
+      <a
+        href="https://www.gnu.org/licenses/quick-guide-gplv3.en.html"
+        target="_blank"
+        >GPLv3</a
+      >. {{ _('Content added through the tool to Wikimedia Commons is released
+      under') }}
+      <a
+        href="https://creativecommons.org/publicdomain/zero/1.0/deed.en"
+        target="_blank"
+        >CC0</a
+      >.
+    </p>
+  </div>
+</footer>

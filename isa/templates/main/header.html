@@ -1,0 +1,111 @@
+<!-- isa/templates/main/header.html -->
+<!DOCTYPE html>
+<html lang="{{ session_language }}" dir="{% if is_rtl %}rtl{% else %}ltr{% endif %}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if title %}ISA - {{ title }}{% else %}ISA{% endif %}</title>
+    
+    <!-- Bootstrap CSS -->
+    {% if is_rtl %}
+        <link rel="stylesheet" href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap-v4-rtl/4.3.1-0/css/bootstrap-rtl.css">
+    {% else %}
+        <link rel="stylesheet" href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    {% endif %}
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/font-awesome/5.8.2/css/all.css" integrity="sha256-39jKbsb/ty7s7+4WzbtELS4vq9udJ+MDjGTD5mtxHZ0=" crossorigin="anonymous">
+    
+    <!-- DataTables -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.18/r-2.2.2/datatables.min.css"/>
+    
+    <!-- Select2 -->
+    <link href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/select2/4.0.7/css/select2.css" rel="stylesheet" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}" />
+    {% if is_rtl %}
+        <link rel="stylesheet" href="{{url_for('static', filename='css/main-rtl.css')}}" />
+    {% endif %}
+    
+    <!-- Block for additional styles from child templates -->
+    {% block styles %}{% endblock %}
+    
+</head>
+<body class="{% if is_rtl %}rtl{% endif %}">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{url_for('main.home')}}">
+                <img src="{{ url_for('static', filename='ISA-Structured-Data-logo_landscape_white.png') }}" alt="ISA Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('main.home')}}">
+                            <i class="fas fa-home mr-1"></i> {{ _('Home') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('campaigns.getCampaigns')}}">
+                            <i class="fas fa-bell mr-1"></i> {{ _('Campaigns') }}
+                        </a>
+                    </li>
+                    {% if username != 'Guest' and username != None %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('campaigns.CreateCampaign')}}">
+                            <i class="fas fa-plus mr-1"></i> {{ _('Create Campaign') }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('main.help')}}">
+                            <i class="fas fa-book mr-1"></i> {{ _('Help') }}
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <!-- Language Selector - Fixed -->
+                    <li class="nav-item lang">
+                        <select id="language_select" class="custom-select">
+                            {% for language in languages %}
+                            <option value="{{ language }}" {% if session_language==language %}selected="selected"{% endif %}>{{ language }}</option>
+                            {% endfor %}
+                        </select>
+                    </li>
+                    {% if username %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-user-circle mr-1"></i> {{ username }}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right bg-white" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="{{url_for('users.userSettings')}}">
+                                <i class="fas fa-language mr-2"></i> {{ _('Language preferences') }}
+                            </a>
+                            <a class="dropdown-item" href="{{url_for('users.getMyCampaigns', username=username)}}">
+                                <i class="fas fa-list mr-2"></i> {{ _('My campaigns') }}
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('users.logout')}}">
+                            <i class="fas fa-sign-out-alt mr-1"></i> {{ _('Logout') }}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('users.login')}}">
+                            <i class="fab fa-wikipedia-w mr-1"></i> {{ _('Login') }}
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
