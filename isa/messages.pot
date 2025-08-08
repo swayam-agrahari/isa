@@ -33,7 +33,7 @@ msgid "Campaign - %(campaign_name)s"
 msgstr ""
 
 #: campaigns/routes.py:193
-msgid "You need to Login to create a campaign"
+msgid "You need to log in to create a campaign"
 msgstr ""
 
 #: campaigns/routes.py:223
@@ -495,7 +495,7 @@ msgid "Camera Location"
 msgstr ""
 
 #: templates/campaign/campaign_entry.html:38
-msgid "show all metadata from commons"
+msgid "show all metadata from Commons"
 msgstr ""
 
 #: templates/campaign/campaign_entry.html:46
@@ -679,7 +679,7 @@ msgid "Till"
 msgstr ""
 
 #: templates/campaign/campaign_stats.html:71
-msgid "Most improved Countries"
+msgid "Most improved countries"
 msgstr ""
 
 #: templates/campaign/campaign_stats.html:108
@@ -1441,7 +1441,7 @@ msgid "Content added through the tool to Wikimedia Commons is released under"
 msgstr ""
 
 #: templates/users/own_campaigns.html:7
-msgid "Your Campaigns"
+msgid "Your campaigns"
 msgstr ""
 
 #: templates/users/own_campaigns.html:16
