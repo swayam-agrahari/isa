@@ -1,59 +1,60 @@
-name: Deploy via  SSH
+# GitLab CI/CD Pipeline for Deploy to Server
+stages:
+  - test
+  - deploy
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+test:
+  script:
+    - flake 8 .
 
-jobs:
-  configure_build:
-    name: Run Tests
-    runs-on: ubuntu-latest
+# Deploy template for Toolforge
+.deploy_template: &deploy_template
+  image: alpine:latest
+  script:
+    - apk add --no-cache curl openssh-client git bash
+    - mkdir -p ~/.ssh
+    - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer"  | bash
+    - mv $SECURE_FILES_DOWNLOAD_PATH/$PRIVATE_KEY_NAME ~/.ssh
+    - chmod 600 ~/.ssh/$PRIVATE_KEY_NAME
+    - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
+    - git config --global user.name "GitLab CI"
+    # Push to build branch (GitLab equivalent of git-publish-subdir-action)
+    - git checkout -b $BRANCH || git checkout $BRANCH
+    - echo "Pushing to branch $BRANCH"
+    # Initialize git repository with branch
+    - git init -b $BRANCH
+    - git remote add gitlab_origin https://GITLAB_ACCESS_TOKEN:$ACCESS_TOKEN@$CI_SERVER_HOST/$CI_PROJECT_PATH.git
+    - git add .
+    - git commit -m "Build from commit $CI_COMMIT_SHA - $CI_COMMIT_MESSAGE" || echo "No changes to commit"
+    - git log -1
+    - git status
+    - git push gitlab_origin $BRANCH --force
+    - echo "Restart service on Toolforge"
+    # Restart service on Toolforge
+    - |
+      ssh -i "~/.ssh/$PRIVATE_KEY_NAME" "$SSH_USER@$SSH_HOST" <<EOF
+      become $TOOLNAME
+      webservice python3.11 start\
+      source $HOME/www/python/venv/bin/activate
+      pip install -r $HOME/www/python/src/requirements.txt
+      exit
+      webservice python3.11 restart
+      EOF
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run tests
-        run: |
-          flake8 .
-
-  deploy:
-    name: Deploy to SSH Server
-    needs: configure_build
-    if: ${{ github.ref == 'refs/heads/main' }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Run deployment script
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: login.toolforge.org
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
-          port: 22
-          request_pty: true
-          script_stop: true
-          script: |
-            become translatetagger git -C '$HOME/www/python/src' fetch origin
-            become translatetagger git -C '$HOME/www/python/src' reset --hard origin/main
-            become translatetagger git -C '$HOME/www/python/src' pull origin main
-            become translatetagger webservice python3.11 shell -- webservice-python-bootstrap
-            become translatetagger webservice python3.11 restart
-            become translatetagger webservice python3.11 status
+deploy-dev:
+  stage: deploy
+  variables:
+    environment: dev
+    variables:
+      SSH_HOST: "login.tools.wmflabs.org"
+      SSH_USER: "eugene233"
+      TOOLNAME: $TOOLNAME
+      BRANCH: main
+      ACCESS_TOKEN: $TOOL_ACCESS_TOKEN
+      SECURE_FILES_DOWNLOAD_PATH: .
+      PRIVATE_KEY_NAME: "id_rsa.toolforge"
+    
+    <<: *deploy_template
+    
