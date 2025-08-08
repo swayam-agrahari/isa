@@ -1,4 +1,4 @@
-# Define a single 'deploy' stage for the pipeline testing
+# Define a single 'deploy' stage for the pipeline
 stages:
   - deploy
 
@@ -20,29 +20,30 @@ deploy-job:
     - chmod 700 ~/.ssh
 
     # Use the SSH_PRIVATE_KEY CI/CD variable to create a key file
-    # You must set this variable in your GitLab project settings
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
 
     # Add the host's public key to known_hosts to avoid a host key verification prompt
-    # Replace 'ssh.toolforge.org' with the actual SSH host if different
     - ssh-keyscan -H ssh.toolforge.org >> ~/.ssh/known_hosts
 
   # The main script that executes the deployment commands
   script:
-    # First, test if the SSH connection can be established successfully
-    - ssh isa-dev@ssh.toolforge.org "echo 'Successfully connected to Toolforge!'"
-    
-    # Next, test if you can navigate to your project directory
-    - ssh isa-dev@ssh.toolforge.org "cd /data/project/isa-dev/www/python/src && pwd"
+    - echo "Attempting to connect to Toolforge..."
 
+    # Use SSH with verbose logging (-v) to get more information about the failure.
+    # Replace 'your-tool-user' with your actual Toolforge username
+    # Replace 'your-tool-name' with your actual Toolforge tool name
+    # We will simply list the home directory to test the connection without running the webservice
+    - ssh -v isa-dev@ssh.toolforge.org "ls -a ~"
+
+    # You can add the full deployment command here after you have a successful connection.
+    # - ssh your-tool-user@ssh.toolforge.org "cd /data/project/your-tool-name/www/python/src && webservice python3.11 start"
+  
   # This specifies the deployment environment and provides a URL
   environment:
     name: production
-    # Replace with your tool's URL
     url: https://isa-dev.toolforge.org
 
   # This job will only run on the main branch (e.g., 'main' or 'master')
-  # You can change this to 'develop' or another branch if needed
   only:
     - main
