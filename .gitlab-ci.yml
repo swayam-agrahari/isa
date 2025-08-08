@@ -51,6 +51,6 @@ deploy-test:
     BRANCH: main
     ACCESS_TOKEN: $TOOL_ACCESS_TOKEN
     SECURE_FILES_DOWNLOAD_PATH: .
-    PRIVATE_KEY_NAME: "id_rsa.toolforge"
+    PRIVATE_KEY_NAME: "~/.ssh/id_ed25519"
   
   <<: *deploy_template
