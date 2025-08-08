@@ -1,4 +1,4 @@
-# GitLab CI/CD Pipeline for Deploy to Server
+# GitLabCI/CD Pipeline for Deploy to Server
 stages:
   - test
   - deploy
