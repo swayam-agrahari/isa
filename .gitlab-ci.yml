@@ -30,12 +30,11 @@ deploy-job:
 
   # The main script that executes the deployment commands
   script:
-    # Use SSH to connect to the Toolforge bastion server
-    # 'cd' into your project directory and then run the webservice start command
-    # Replace 'your-tool-user' with your actual Toolforge username
-    # Replace 'your-tool-name' with your actual Toolforge tool name
-    # Ensure the path '/data/project/your-tool-name/www/python/src' is correct
-    - ssh isa-dev@ssh.toolforge.org "cd /data/project/isa-dev/www/python/src && webservice python3.11 start"
+    # First, test if the SSH connection can be established successfully
+    - ssh isa-dev@ssh.toolforge.org "echo 'Successfully connected to Toolforge!'"
+    
+    # Next, test if you can navigate to your project directory
+    - ssh isa-dev@ssh.toolforge.org "cd /data/project/isa-dev/www/python/src && pwd"
 
   # This specifies the deployment environment and provides a URL
   environment:
