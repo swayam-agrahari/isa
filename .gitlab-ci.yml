@@ -1,49 +1,59 @@
-# Define a single 'deploy' stage for the pipeline
-stages:
-  - deploy
+name: Deploy via SSH
 
-# Job to deploy the application to Toolforge via SSH
-deploy-job:
-  # This job runs in the 'deploy' stage
-  stage: deploy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-  # We use a lightweight Alpine image with an SSH client
-  image: alpine:latest
+jobs:
+  configure_build:
+    name: Run Tests
+    runs-on: ubuntu-latest
 
-  # This script runs before the main 'script' section to set up SSH access
-  before_script:
-    # Install the OpenSSH client, which is not included in Alpine by default
-    - apk add --no-cache openssh-client
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # Create the .ssh directory and set permissions
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    # Use the SSH_PRIVATE_KEY CI/CD variable to create a key file
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    # Add the host's public key to known_hosts to avoid a host key verification prompt
-    - ssh-keyscan -H ssh.toolforge.org >> ~/.ssh/known_hosts
+      - name: Run tests
+        run: |
+          flake8 .
 
-  # The main script that executes the deployment commands
-  script:
-    - echo "Attempting to connect to Toolforge..."
+  deploy:
+    name: Deploy to SSH Server
+    needs: configure_build
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
 
-    # Use SSH with verbose logging (-v) to get more information about the failure.
-    # Replace 'your-tool-user' with your actual Toolforge username
-    # Replace 'your-tool-name' with your actual Toolforge tool name
-    # We will simply list the home directory to test the connection without running the webservice
-    - ssh -v isa-dev@ssh.toolforge.org "ls -a ~"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # You can add the full deployment command here after you have a successful connection.
-    # - ssh your-tool-user@ssh.toolforge.org "cd /data/project/your-tool-name/www/python/src && webservice python3.11 start"
-  
-  # This specifies the deployment environment and provides a URL
-  environment:
-    name: production
-    url: https://isa-dev.toolforge.org
-
-  # This job will only run on the main branch (e.g., 'main' or 'master')
-  only:
-    - main
+      - name: Run deployment script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: login.toolforge.org
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: 22
+          request_pty: true
+          script_stop: true
+          script: |
+            become translatetagger git -C '$HOME/www/python/src' fetch origin
+            become translatetagger git -C '$HOME/www/python/src' reset --hard origin/main
+            become translatetagger git -C '$HOME/www/python/src' pull origin main
+            become translatetagger webservice python3.11 shell -- webservice-python-bootstrap
+            become translatetagger webservice python3.11 restart
+            become translatetagger webservice python3.11 status
