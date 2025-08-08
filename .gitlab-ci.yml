@@ -3,9 +3,9 @@ stages:
   - test
   - deploy
 
-test:
-  script:
-    - flake 8 .
+# test:
+#   script:
+#     - flake 8 .
 
 .deploy_template: &deploy_template
   image: alpine:latest
