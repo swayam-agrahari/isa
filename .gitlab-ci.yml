@@ -26,7 +26,6 @@ stages:
     - git commit -m "Build from commit $CI_COMMIT_SHA - $CI_COMMIT_MESSAGE" || echo "No changes to commit"
     - git log -1
     - git status
-    - git push gitlab_origin $BRANCH --force
     - echo "Restart service on Toolforge"
     # Restart service on Toolforge
     - |
