@@ -14,8 +14,6 @@ stages:
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
     - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
-    - mv $SECURE_FILES_DOWNLOAD_PATH/$PRIVATE_KEY_NAME ~/.ssh
-    - chmod 600 ~/.ssh/$PRIVATE_KEY_NAME
     - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
     - git config --global user.name "GitLab CI"
     # Push to build branch (GitLab equivalent of git-publish-subdir-action)
