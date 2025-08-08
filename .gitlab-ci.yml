@@ -29,7 +29,7 @@ stages:
     - echo "Restart service on Toolforge"
     # Restart service on Toolforge
     - |
-      ssh "$SSH_USER@$SSH_HOST" <<EOF
+      ssh -t -t "$SSH_USER@$SSH_HOST" <<EOF
       become $TOOLNAME
       webservice python3.11 start\
       source $HOME/www/python/venv/bin/activate
