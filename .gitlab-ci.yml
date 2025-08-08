@@ -43,10 +43,10 @@ test:
       EOF
 
 
-deploy-dev:
+deploy-test:
   stage: deploy
   variables:
-    environment: dev
+    environment: test
     variables:
       SSH_HOST: "login.tools.wmflabs.org"
       SSH_USER: "eugene233"
@@ -55,6 +55,6 @@ deploy-dev:
       ACCESS_TOKEN: $TOOL_ACCESS_TOKEN
       SECURE_FILES_DOWNLOAD_PATH: .
       PRIVATE_KEY_NAME: "id_rsa.toolforge"
-    
+
     <<: *deploy_template
     
