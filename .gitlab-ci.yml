@@ -1,0 +1,49 @@
+# Define a single 'deploy' stage for the pipeline testing
+stages:
+  - deploy
+
+# Job to deploy the application to Toolforge via SSH
+deploy-job:
+  # This job runs in the 'deploy' stage
+  stage: deploy
+
+  # We use a lightweight Alpine image with an SSH client
+  image: alpine:latest
+
+  # This script runs before the main 'script' section to set up SSH access
+  before_script:
+    # Install the OpenSSH client, which is not included in Alpine by default
+    - apk add --no-cache openssh-client
+
+    # Create the .ssh directory and set permissions
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+
+    # Use the SSH_PRIVATE_KEY CI/CD variable to create a key file
+    # You must set this variable in your GitLab project settings
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+
+    # Add the host's public key to known_hosts to avoid a host key verification prompt
+    # Replace 'ssh.toolforge.org' with the actual SSH host if different
+    - ssh-keyscan -H ssh.toolforge.org >> ~/.ssh/known_hosts
+
+  # The main script that executes the deployment commands
+  script:
+    # Use SSH to connect to the Toolforge bastion server
+    # 'cd' into your project directory and then run the webservice start command
+    # Replace 'your-tool-user' with your actual Toolforge username
+    # Replace 'your-tool-name' with your actual Toolforge tool name
+    # Ensure the path '/data/project/your-tool-name/www/python/src' is correct
+    - ssh isa-dev@ssh.toolforge.org "cd /data/project/isa-dev/www/python/src && webservice python3.11 start"
+
+  # This specifies the deployment environment and provides a URL
+  environment:
+    name: production
+    # Replace with your tool's URL
+    url: https://isa-dev.toolforge.org
+
+  # This job will only run on the main branch (e.g., 'main' or 'master')
+  # You can change this to 'develop' or another branch if needed
+  only:
+    - main
