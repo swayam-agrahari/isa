@@ -50,12 +50,12 @@ msgstr "Kuna buƙatar Shiga don ƙirƙirar kamfen"
 #: campaigns/routes.py:223
 #, fuzzy, python-format
 msgid "Sorry, %(campaign_name)s could not be created"
-msgstr "Sorry %(campaign_name)s Could not be created"
+msgstr "Sorry %(campaign_name)s could not be created"
 
 #: campaigns/routes.py:231
 #, fuzzy, python-format
 msgid "%(campaign_name)s campaign created!"
-msgstr "%(campaign_name)s Campaign created!"
+msgstr "%(campaign_name)s campaign created!"
 
 #: campaigns/routes.py:234
 msgid "Create a campaign"

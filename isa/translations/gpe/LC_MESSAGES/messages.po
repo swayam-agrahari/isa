@@ -1302,7 +1302,7 @@ msgstr "Your Campaigns"
 #: templates/users/own_campaigns.html:16
 #, fuzzy
 msgid "Below is a list of your campaigns"
-msgstr "Below be sam list of your Campaigns"
+msgstr "Below be sam list of your campaigns"
 
 #: templates/users/own_campaigns.html:18
 msgid "You do not have any campaigns"
@@ -1328,7 +1328,7 @@ msgstr "Make you Select upto 6 languages for captions"
 #: templates/users/user_settings.html:19
 #, fuzzy
 msgid "Caption languages"
-msgstr "Caption Languages"
+msgstr "Caption languages"
 
 #: templates/users/user_settings.html:19
 msgid "Captions can be added in multiple languages for each image."
@@ -1355,7 +1355,7 @@ msgstr "Make you Undo changes give language settings"
 #: templates/users/user_settings.html:57
 #, fuzzy
 msgid "Undo changes"
-msgstr "Make you Undo Changes"
+msgstr "Make you Undo changes"
 
 #: users/forms.py:26
 msgid "Same as interface"
