@@ -36,7 +36,7 @@ from isa.models import *
 db.create_all()
 ```
 
-Then set the config variable in config.yaml, e.g.:
+Then set the config variable in isa/config.yaml, e.g.:
 
 ```
 SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://localhost/isa'
