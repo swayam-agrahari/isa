@@ -204,7 +204,7 @@ def CreateCampaign():
     form = CampaignForm()
     if not username:
         session['next_url'] = request.url
-        flash(gettext('You need to Login to create a campaign'), 'info')
+        flash(gettext('You need to log in to create a campaign'), 'info')
         return redirect(url_for('campaigns.getCampaigns'))
     else:
         if form.is_submitted():
