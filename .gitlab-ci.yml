@@ -15,7 +15,7 @@ stages:
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
     - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
-    - download-secure-files # <-- This is the missing command!
+    - download-secure-files
     - mv "$SECURE_FILES_DOWNLOAD_PATH/$CI_SECURE_FILES" ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
