@@ -2,13 +2,13 @@ var i18nStrings = JSON.parse($('.hidden-i18n-text').text());
 var isWikiLovesCampaign = $('#campaign_type')[0].checked;
 var categoriesAreValid = false;
 
-$('#start_date_datepicker').attr({'data-toggle': 'datetimepicker', 'data-target': '#start_date_datepicker'});
+$('#start_date_datepicker').attr({ 'data-toggle': 'datetimepicker', 'data-target': '#start_date_datepicker' });
 $('#start_date_datepicker').datetimepicker({
     format: 'YYYY-MM-DD',
     useCurrent: false
 });
 
-$('#end_date_datepicker').attr({'data-toggle': 'datetimepicker', 'data-target': '#end_date_datepicker'});
+$('#end_date_datepicker').attr({ 'data-toggle': 'datetimepicker', 'data-target': '#end_date_datepicker' });
 $('#end_date_datepicker').datetimepicker({
     format: 'YYYY-MM-DD',
     useCurrent: false
@@ -16,9 +16,9 @@ $('#end_date_datepicker').datetimepicker({
 
 // Populate existing categories in the UI if data present in hidden field (on update route)
 var initialCategoryData = $('#categories-data').val();
-if ( initialCategoryData ) {
+if (initialCategoryData) {
     var categories = JSON.parse(initialCategoryData);
-    for (var i=0; i < categories.length; i++) {
+    for (var i = 0; i < categories.length; i++) {
         addSelectedCategory(categories[i].name, categories[i].depth);
     }
 }
@@ -26,49 +26,49 @@ if ( initialCategoryData ) {
 // Setup category search box
 function categorySearchResultsFormat(state) {
     if (!state.id) {
-      return state.text;
+        return state.text;
     }
-    var $state = $( '<span class="search-result-label">' + state.text + '</span>');
+    var $state = $('<span class="search-result-label">' + state.text + '</span>');
     return $state;
 }
 
-$( '#category-search' ).select2( {
+$('#category-search').select2({
     placeholder: '',
     delay: 250,
     minimumResultsForSearch: 1,
     ajax: {
         type: 'GET',
-            dataType:'json',
-            url: WIKI_URL + 'w/api.php',
-            data: function (params) {
-                var query = {
-                    search: params.term,
-                    action: 'opensearch',
-                    namespace: 14,
-                    format: 'json',
-                    origin: '*'
-                }
-                return query
-            },
-            processResults: function (data) {
-                var processedResults = [],
-                    results = data[1];
-                for (var i=0; i < results.length; i++) {
-                    var result = results[i];
-                    processedResults.push({
-                        id: result,
-                        text: result
-                    });
-                }
-                return {
-                    results: processedResults
-                };
+        dataType: 'json',
+        url: WIKI_URL + 'w/api.php',
+        data: function (params) {
+            var query = {
+                search: params.term,
+                action: 'opensearch',
+                namespace: 14,
+                format: 'json',
+                origin: '*'
             }
+            return query
         },
+        processResults: function (data) {
+            var processedResults = [],
+                results = data[1];
+            for (var i = 0; i < results.length; i++) {
+                var result = results[i];
+                processedResults.push({
+                    id: result,
+                    text: result
+                });
+            }
+            return {
+                results: processedResults
+            };
+        }
+    },
     templateResult: categorySearchResultsFormat,
 });
 
-$( '#category-search' ).on('select2:select', function(ev) {
+$('#category-search').on('select2:select', function (ev) {
     var category = $(this).val();
     addSelectedCategory(category);
     $(this).val(null).trigger('change'); // clear the search selection
@@ -84,7 +84,7 @@ $(".category-depth-input").change(function () {
 // Used when category is added via search, or populating from existing campaign categories
 function addSelectedCategory(name, depth) {
     var depth = depth || 0;
-    var shortName = name.replace("Category:","");
+    var shortName = name.replace("Category:", "");
     $('#selected-categories-content').append(getCategoryRowHtml(shortName, depth))
     // show the table header if it's not visible already
     $('#selected-categories-header').show();
@@ -92,14 +92,14 @@ function addSelectedCategory(name, depth) {
 }
 
 // Click event for removing categories
-$('#selected-categories-content').on("click", "button.close", function(event) {
+$('#selected-categories-content').on("click", "button.close", function (event) {
     // remove the .selected-category parent container the button is within
     $(this).closest(".selected-category").remove();
 
     if (isWikiLovesCampaign) validateWikiLovesCategories();
 
     // after removing the element, we must hide the table header if there are no rows left
-    if ( $('.selected-category').length < 1 ) {
+    if ($('.selected-category').length < 1) {
         $('#selected-categories-header').hide();
     }
     $("#update_images").prop("checked", true);
@@ -117,7 +117,7 @@ function getCategoryRowHtml(name, depth) {
 // Returns category data that can be submitted to the server
 function getCategoryData() {
     var categoryData = [];
-    $('.selected-category').each(function(index, element) {
+    $('.selected-category').each(function (index, element) {
         var name = $(element).find('.category-name').text();
         var depth = $(element).find('.category-depth-input').val();
         categoryData.push({
@@ -133,7 +133,7 @@ function getCategoryData() {
 function validateWikiLovesCategories() {
     var hasValidationErrors = false;
     var isValid;
-    $('.selected-category').each(function() {
+    $('.selected-category').each(function () {
         isValid = validateWikiLovesCategory(this);
         if (!isValid) hasValidationErrors = true;
     })
@@ -163,7 +163,7 @@ function isValidWikiLovesSyntax(categoryName) {
 }
 
 function clearWikiLovesValidation() {
-    $('.selected-category').each(function() {
+    $('.selected-category').each(function () {
         $(this).removeClass('invalid-category').removeClass('valid-category');
         $('.invalid-wiki-loves-warning').hide();
     })
@@ -179,7 +179,7 @@ function clearWikiLovesValidation() {
 // Todo: Setup custom validation for all fields as separate function
 var categoriesChecked = false,
     formIsValid = false;
-$('#submit').click(function(ev) {
+$('#submit').click(function (ev) {
 
     // Checks the simple "required" form fileds
     formIsValid = $('form')[0].checkValidity();
@@ -194,10 +194,10 @@ $('#submit').click(function(ev) {
         }
         if (isWikiLovesCampaign && !categoriesAreValid) {
             return alert(i18nStrings['Some of the categories you have chosen do not have the correct syntax for a Wiki Loves Campaign.']) + '\n' +
-            i18nStrings['Please check your selections and try again.'];
+                i18nStrings['Please check your selections and try again.'];
         }
 
-        var metadataTypesAreValid = $.makeArray($('.metadata-type-checkbox')).some(function(element) {
+        var metadataTypesAreValid = $.makeArray($('.metadata-type-checkbox')).some(function (element) {
             return element.checked;
         })
         if (!metadataTypesAreValid) return alert(i18nStrings['Please select at least one type from the Metadata to collect section']);
@@ -212,7 +212,7 @@ $('#submit').click(function(ev) {
 })
 
 
-$('#campaign_type').on("change", function() {
+$('#campaign_type').on("change", function () {
     isWikiLovesCampaign = this.checked;
 
     if (isWikiLovesCampaign) {
