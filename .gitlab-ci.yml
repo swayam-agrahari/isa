@@ -30,7 +30,7 @@ stages:
     - git status
     - echo "Restart service on Toolforge"
     - |
-      ssh -tt -i "~/.ssh/id_rsa" "$SSH_USER@$SSH_HOST" <<EOF
+      ssh -vtt -i "~/.ssh/id_rsa" "$SSH_USER@$SSH_HOST" <<EOF
       become $TOOLNAME
       webservice python3.11 start
       source $HOME/www/python/venv/bin/activate
