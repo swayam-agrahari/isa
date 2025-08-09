@@ -15,6 +15,8 @@ stages:
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
     - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+    - mv "$SECURE_FILES_DOWNLOAD_PATH/$CI_SECURE_FILES" ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
     - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
     - git config --global user.name "GitLab CI"
     # Push to build branch (GitLab equivalent of git-publish-subdir-action)
@@ -30,9 +32,9 @@ stages:
     - echo "Restart service on Toolforge"
     # Restart service on Toolforge
     - |
-      ssh -tt -i "~/.ssh/$PRIVATE_KEY_NAME" "$SSH_USER@$SSH_HOST" <<EOF
+      ssh -tt -i "~/.ssh/id_rsa" "$SSH_USER@$SSH_HOST" <<EOF
       become $TOOLNAME
-      webservice python3.11 start\
+      webservice python3.11 start
       source $HOME/www/python/venv/bin/activate
       pip install -r $HOME/www/python/src/requirements.txt
       exit
@@ -48,7 +50,7 @@ deploy-test:
     TOOLNAME: $TOOLNAME
     BRANCH: main
     ACCESS_TOKEN: $TOOL_ACCESS_TOKEN
-    SECURE_FILES_DOWNLOAD_PATH: ~/.ssh
-    PRIVATE_KEY_NAME: "id_rsa"
+    SECURE_FILES_DOWNLOAD_PATH: "."
+    CI_SECURE_FILES: "id_rsa"
   
   <<: *deploy_template
