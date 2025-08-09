@@ -23,7 +23,7 @@ app = Flask(__name__)
 
 # Load configuration from YAML file
 __dir__ = os.path.dirname(__file__)
-config_path = os.path.join(os.path.dirname(__dir__), 'config.yaml')
+config_path = os.path.join(os.path.dirname(__dir__), './isa/config.yaml')
 with open(config_path) as f:
     config = yaml.safe_load(f)
 app.config.update(config)
