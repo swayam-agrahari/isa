@@ -89,7 +89,7 @@
             </thead>
             <tbody>
               {% for campaign in campaigns %}
-              <tr>
+              <tr class="campaign-row" data-href="{{url_for('campaigns.getCampaignById', id=campaign.id) }}" role="link" tabindex="0" style="cursor: pointer;">
                 <td class="ps-4">
                   <div class="d-flex flex-column">
                     <strong class="mb-1">{{ campaign.campaign_name }}</strong>
@@ -239,6 +239,35 @@
         }
       })
       .trigger("change");
+
+    // Make table rows clickable (navigate to campaign page)
+    const $tbody = $("#campaign_table tbody");
+
+    function shouldIgnoreClick(event) {
+      return (
+        $(event.target).closest("a, button, input, label, .form-check-input, .btn").length > 0 ||
+        event.defaultPrevented
+      );
+    }
+
+    $tbody.on("click", "tr", function (event) {
+      if (shouldIgnoreClick(event)) return;
+      const href = $(this).data("href");
+      if (href) {
+        window.location.href = href;
+      }
+    });
+
+    // Keyboard accessibility: Enter/Space to activate row
+    $tbody.on("keydown", "tr", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        const href = $(this).data("href");
+        if (href) {
+          event.preventDefault();
+          window.location.href = href;
+        }
+      }
+    });
   });
 </script>
 {% endblock scripts%}
@@ -366,5 +395,11 @@
     .table td[data-label="Status"] {
       justify-content: flex-end;
     }
+  }
+
+  #campaign_table tbody tr.campaign-row,
+  #campaign_table tbody tr.campaign-row > td,
+  #campaign_table tbody tr.campaign-row td * {
+    cursor: pointer !important;
   }
 </style>
