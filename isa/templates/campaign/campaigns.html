@@ -89,7 +89,13 @@
             </thead>
             <tbody>
               {% for campaign in campaigns %}
-              <tr class="campaign-row" data-href="{{url_for('campaigns.getCampaignById', id=campaign.id) }}" role="link" tabindex="0" style="cursor: pointer;">
+              <tr
+                class="campaign-row"
+                data-href="{{url_for('campaigns.getCampaignById', id=campaign.id) }}"
+                role="link"
+                tabindex="0"
+                style="cursor: pointer"
+              >
                 <td class="ps-4">
                   <div class="d-flex flex-column">
                     <strong class="mb-1">{{ campaign.campaign_name }}</strong>
@@ -194,82 +200,6 @@
 <script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
 <script src="{{url_for('static', filename='js/campaign-directory.js')}}"></script>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Initialize DataTable with search functionality
-    const table = $("#campaign_table").DataTable({
-      language: JSON.parse($(".hidden-i18n-text").text()),
-      dom: '<"top"f>rt<"bottom"lip><"clear">',
-      responsive: true,
-      columnDefs: [
-        { orderable: false, targets: [7] }, // Disable sorting on Actions column
-        { searchable: false, targets: [7] }, // Disable search on Actions column
-      ],
-      initComplete: function () {
-        $(".dataTables_filter input").addClass("form-control form-control-sm");
-      },
-    });
-
-    // Custom search input
-    $("#campaign-search").keyup(function () {
-      table.search($(this).val()).draw();
-    });
-
-    // Add data-label attributes for mobile responsiveness
-    document
-      .querySelectorAll("#campaign_table thead th")
-      .forEach((th, index) => {
-        document
-          .querySelectorAll(
-            "#campaign_table tbody td:nth-child(" + (index + 1) + ")"
-          )
-          .forEach((td) => {
-            td.setAttribute("data-label", th.textContent.trim());
-          });
-      });
-
-    // Show closed campaigns toggle
-    $("#show-closed-campaigns-checkbox")
-      .change(function () {
-        const column = table.column(8); // Hidden status column
-        if (this.checked) {
-          column.search("").draw();
-        } else {
-          column.search("^1$", true, false).draw();
-        }
-      })
-      .trigger("change");
-
-    // Make table rows clickable (navigate to campaign page)
-    const $tbody = $("#campaign_table tbody");
-
-    function shouldIgnoreClick(event) {
-      return (
-        $(event.target).closest("a, button, input, label, .form-check-input, .btn").length > 0 ||
-        event.defaultPrevented
-      );
-    }
-
-    $tbody.on("click", "tr", function (event) {
-      if (shouldIgnoreClick(event)) return;
-      const href = $(this).data("href");
-      if (href) {
-        window.location.href = href;
-      }
-    });
-
-    // Keyboard accessibility: Enter/Space to activate row
-    $tbody.on("keydown", "tr", function (event) {
-      if (event.key === "Enter" || event.key === " ") {
-        const href = $(this).data("href");
-        if (href) {
-          event.preventDefault();
-          window.location.href = href;
-        }
-      }
-    });
-  });
-</script>
 {% endblock scripts%}
 
 <style>
