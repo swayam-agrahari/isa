@@ -17,6 +17,7 @@ stages:
     - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
     - download-secure-files
     - mv "$SECURE_FILES_DOWNLOAD_PATH/$CI_SECURE_FILES" ~/.ssh/id_rsa
+    - ls -l ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
     - git config --global user.name "GitLab CI"
