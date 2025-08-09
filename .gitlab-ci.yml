@@ -14,9 +14,7 @@ stages:
     - apk add --no-cache curl openssh-client git bash
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
-    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
-    - download-secure-files
-    - mv "$SECURE_FILES_DOWNLOAD_PATH/$CI_SECURE_FILES" ~/.ssh/id_rsa
+    - echo "$TF_PRIVATE_KEY" > ~/.ssh/id_rsa
     - ls -l ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
@@ -49,7 +47,6 @@ deploy-test:
     TOOLNAME: $TOOLNAME
     BRANCH: main
     ACCESS_TOKEN: $TOOL_ACCESS_TOKEN
-    SECURE_FILES_DOWNLOAD_PATH: "."
-    CI_SECURE_FILES: "id_rsa"
+
   
   <<: *deploy_template
