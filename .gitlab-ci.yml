@@ -15,14 +15,13 @@ stages:
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
     - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+    - download-secure-files
     - mv "$SECURE_FILES_DOWNLOAD_PATH/$CI_SECURE_FILES" ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
     - git config --global user.name "GitLab CI"
-    # Push to build branch (GitLab equivalent of git-publish-subdir-action)
     - git checkout -b $BRANCH || git checkout $BRANCH
     - echo "Pushing to branch $BRANCH"
-    # Initialize git repository with branch
     - git init -b $BRANCH
     - git remote add gitlab_origin https://GITLAB_ACCESS_TOKEN:$ACCESS_TOKEN@$CI_SERVER_HOST/$CI_PROJECT_PATH.git
     - git add .
@@ -30,7 +29,6 @@ stages:
     - git log -1
     - git status
     - echo "Restart service on Toolforge"
-    # Restart service on Toolforge
     - |
       ssh -tt -i "~/.ssh/id_rsa" "$SSH_USER@$SSH_HOST" <<EOF
       become $TOOLNAME
