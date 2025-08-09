@@ -30,6 +30,12 @@
         <link rel="stylesheet" href="{{url_for('static', filename='css/main-rtl.css')}}" />
     {% endif %}
     
+    <!-- Favicon / Toolbar Icon (SVG with circular bg; PNG fallback from Commons) -->
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.svg') }}" type="image/svg+xml" sizes="any">
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/4/4c/ISA_Structured_Data_logo.png">
+    <link rel="shortcut icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/4/4c/ISA_Structured_Data_logo.png">
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/4/4c/ISA_Structured_Data_logo.png">
+
     <!-- Block for additional styles from child templates -->
     {% block styles %}{% endblock %}
     
