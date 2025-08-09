@@ -1,108 +1,370 @@
-{% extends "main/layout.html" %}
-{% from "campaign/macros.html" import images %}
+{% extends "main/layout.html" %} {% from "campaign/macros.html" import images %}
 {% block content%}
-<header class="container page-header text-center">
 
-        <h1>ISA - {{ _('Campaigns') }}</h1>
- <hr>
-    <p>{{ _('On this page are the curated campaigns that are currently running as part of the ISA tool.')}} {{ _('Click on the name of a campaign to get started and add structured data to an image.') }} {{ _('You can access information on the previous campaigns in the archive section.') }}</p>
+<div class="container-fluid px-0">
+  <!-- Enhanced Hero Section -->
+  <div class="campaign-hero bg-gradient-primary text-black py-6">
+    <div class="container text-center py-3">
+      <div class="d-flex justify-content-center mb-3">
+        <div
+          class="icon-container bg-white bg-opacity-20 rounded-circle p-3 d-inline-flex"
+        >
+          <i class="fas fa-bullhorn fa-2x me-3"></i>
+          <h1 class="display-5 fw-semibold mb-3">ISA - {{ _('Campaigns') }}</h1>
+        </div>
+      </div>
+      <p class="lead mb-4 mx-auto" style="max-width: 700px">
+        {{ _('Discover structured data annotation campaigns and contribute to
+        our community initiatives.')}}
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="#campaigns" class="btn btn-light btn-lg px-4 py-2 rounded-1">
+          <i class="fas fa-search me-2"></i>{{ _('Explore Campaigns') }}
+        </a>
+        {% if username != 'Guest' and username != None %}
+        <a
+          href="{{url_for('campaigns.CreateCampaign')}}"
+          class="btn btn-outline-dark btn-lg px-4 py-2 rounded-1"
+        >
+          <i class="fas fa-plus me-2"></i>{{ _('Create New') }}
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
+  <!-- Main Content -->
+  <div class="container py-5" id="campaigns">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="h4 fw-semibold text-gray-800 mb-1">
+          {{ _('Available Campaigns') }}
+        </h2>
+        <p class="text-muted small mb-0">
+          {{ _('Filter and explore current campaigns') }}
+        </p>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div class="form-check form-switch">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="show-closed-campaigns-checkbox"
+          />
+          <label
+            class="form-check-label small text-muted"
+            for="show-closed-campaigns-checkbox"
+          >
+            {{_('Show archived')}}
+          </label>
+        </div>
+      </div>
+    </div>
 
-</header>
-<div class="container">
-    <section id="campaigns">
-<!--        <div class="section-header">
-            <h3>{{ _('Ongoing Campaigns') }}</h3>
-        </div>-->
-        <br>
-        <table id="campaign_table" class="display table table-bordered" style="width: 100%">
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col" title="{{ _('Campaign name') }}">{{ _('Campaign') }}</th>
-                    <th scope="col" title="{{ _('Total number of images in the campaign') }}">{{ _('Images') }}</th>
-                    <th scope="col" title="{{ _('Number of editors that have contributed to the campaign') }}">{{ _('Participants') }}</th>
-                    <th scope="col" title="{{ _('Total number of contributions to the campaign') }}">{{ _('Contributions') }}</th>
-                    <th scope="col" title="{{ _('Campaign start date') }}">{{ _('Start Date') }}</th>
-                    <th scope="col" title="{{ _('Campaign end date') }}">{{ _('End Date') }}</th>
-                    <th scope="col" title="{{ _('Date the campaign was created') }}">{{ _('Creation Date') }}</th>
-                    <th scope="col" title="{{ _('Campaign status') }}">{{ _('Status') }}</th>
-                    <!-- The next column is hidden and used only for filtering -->
-                    <!-- It stores 1 or 0 to determine open status, so does not depend on UI language -->
-                    <th scope="col"></th>
-                    <th scope="col"></th>
-                    <th scope="col">{{ _('Get Started') }}</th>
-                </tr>
+    <!-- Campaigns Table -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table
+            id="campaign_table"
+            class="table table-hover align-middle mb-0"
+            style="width: 100%"
+          >
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-4">{{ _('Campaign') }}</th>
+                <th scope="col" class="text-center">{{ _('Images') }}</th>
+                <th scope="col" class="text-center">{{ _('Participants') }}</th>
+                <th scope="col" class="text-center">
+                  {{ _('Contributions') }}
+                </th>
+                <th scope="col">{{ _('Start Date') }}</th>
+                <th scope="col">{{ _('End Date') }}</th>
+                <th scope="col" class="text-center">{{ _('Status') }}</th>
+                <th scope="col" class="pe-4 text-end">{{ _('Actions') }}</th>
+                <!-- Hidden columns for filtering -->
+                <th scope="col" class="d-none"></th>
+                <th scope="col" class="d-none"></th>
+              </tr>
             </thead>
             <tbody>
-{% for campaign in campaigns %}
-                <tr>
-                    <td><span class="">{{ campaign.campaign_name }}</span></td>
-                    <td>{{ images(campaign) }}</td>
-                    <td>{{ campaign.campaign_participants }}</td>
-                    <td>{{ campaign.campaign_contributions }}</td>
-                    <td><span class="">{{ campaign.start_date.strftime("%Y-%m-%d") }}</span></td>
-
-                    {% if campaign.end_date is none %}
-                        <td><span class="">{{ _('Not Set') }}</span></td>
-                    {% else %}
-                        <td><span class="">{{ campaign.end_date.strftime("%Y-%m-%d") }}</span></td>
-                    {% endif %}
-
-                    <td><span class="">{{ campaign.creation_date.strftime("%Y-%m-%d") }}</span></td>
-                    <!-- Add status and boolean hidden columns depending on end date -->
-                    {% if campaign.end_date and campaign.end_date < datetime.now().date() %}
-                        <td><span class=""> {{ _('Closed') }} </span></td>
-                        <td>0</td>
-                    {% elif campaign.start_date >= datetime.now().date() %}
-                        <td><span class=""> {{ _('Not Opened') }} </span></td>
-                        <td>1</td>
-                    {% else %}
-                        <td><span class="">{{ _('Open') }}</span></td>
-                        <td>1</td>
-                    {%  endif %}
-
-                    <td>{{ campaign.short_description }} {{ campaign.long_description }}</td>
-
-                    <td><a href="{{url_for('campaigns.getCampaignById', id=campaign.id) }}" title="{{ _('Go to the campaign home page to get started') }}">{{ _('Go to Campaign') }}</a></td>
-                </tr>
-            {% endfor%}
+              {% for campaign in campaigns %}
+              <tr>
+                <td class="ps-4">
+                  <div class="d-flex flex-column">
+                    <strong class="mb-1">{{ campaign.campaign_name }}</strong>
+                    <span class="small text-muted"
+                      >{{ campaign.short_description }}</span
+                    >
+                  </div>
+                </td>
+                <td class="text-center">{{ images(campaign) }}</td>
+                <td class="text-center">
+                  {{ campaign.campaign_participants }}
+                </td>
+                <td class="text-center">
+                  {{ campaign.campaign_contributions }}
+                </td>
+                <td>{{ campaign.start_date.strftime("%Y-%m-%d") }}</td>
+                <td>
+                  {% if campaign.end_date is none %}
+                  <span class="text-muted">{{ _('Ongoing') }}</span>
+                  {% else %} {{ campaign.end_date.strftime("%Y-%m-%d") }} {%
+                  endif %}
+                </td>
+                <td class="text-center">
+                  {% if campaign.end_date and campaign.end_date <
+                  datetime.now().date() %}
+                  <span
+                    class="badge bg-light text-dark border rounded-pill px-3 py-1"
+                  >
+                    <i class="fas fa-archive me-1"></i>{{ _('Archived') }}
+                  </span>
+                  {% elif campaign.start_date >= datetime.now().date() %}
+                  <span
+                    class="badge bg-light text-dark border rounded-pill px-3 py-1"
+                  >
+                    <i class="fas fa-clock me-1"></i>{{ _('Upcoming') }}
+                  </span>
+                  {% else %}
+                  <span
+                    class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1"
+                  >
+                    <i class="fas fa-play-circle me-1"></i>{{ _('Active') }}
+                  </span>
+                  {% endif %}
+                </td>
+                <td class="pe-4 text-end">
+                  <a
+                    href="{{url_for('campaigns.getCampaignById', id=campaign.id) }}"
+                    class="btn btn-sm btn-outline-primary rounded-1 px-3 py-1"
+                  >
+                    {{ _('View') }}
+                  </a>
+                </td>
+                <!-- Hidden columns for filtering -->
+                {% if campaign.end_date and campaign.end_date <
+                datetime.now().date() %}
+                <td class="d-none">0</td>
+                {% elif campaign.start_date >= datetime.now().date() %}
+                <td class="d-none">1</td>
+                {% else %}
+                <td class="d-none">1</td>
+                {% endif %}
+                <td class="d-none">{{ campaign.long_description }}</td>
+              </tr>
+              {% endfor%}
             </tbody>
-        </table>
-    </section>
-<div class="custom-control custom-checkbox show-closed">
-  <input type="checkbox" class="custom-control-input" id="show-closed-campaigns-checkbox">
-  <label class="custom-control-label" for="show-closed-campaigns-checkbox">{{_('Show closed campaigns')}}</label>
-</div>
-</div>
-<div class="container text-center">
+          </table>
+        </div>
+      </div>
+    </div>
+
     {% if username != 'Guest' and username != None %}
-    <a href="{{url_for( 'campaigns.CreateCampaign' )}}" class="btn btn-secondary" title="{{ _('Create your own campaign') }}">{{ _('Create a new campaign using this tool') }}</a>
-    {% else %}
-    <a href="{{url_for( 'campaigns.CreateCampaign' )}}" class="btn btn-secondary disabled" title="{{ _('Create your own campaign') }}">{{ _('Create a new campaign using this tool') }}</a>
-    <p class="text-danger small">{{_('You must be logged in to create a campaign.')}}</p>
+    <div class="text-center mt-5 pt-3">
+      <a
+        href="{{url_for('campaigns.CreateCampaign')}}"
+        class="btn btn-primary px-4 py-2 rounded-1"
+      >
+        <i class="fas fa-plus me-2"></i>{{ _('Create New Campaign') }}
+      </a>
+      <p class="text-muted small mt-2">
+        {{ _('Have an idea for a campaign? Launch your own initiative') }}
+      </p>
+    </div>
     {% endif %}
-
+  </div>
 </div>
 
-<!-- This is ready to use directly as Campaigns DataTable "language" option-->
+<!-- DataTables i18n -->
 <div class="hidden-i18n-text">
-    {
-        "info": {{ _('Showing _START_ to _END_ of _TOTAL_ entries')|tojson }},
-        "infoEmpty": {{ _('No entries')|tojson }},
-        "infoFiltered": "",
-        "search": {{ _('Search:')|tojson }},
-        "zeroRecords": {{ _('No matching records found')|tojson }},
-        "paginate": {
-            "first": {{ _('First')|tojson }},
-            "last": {{ _('Last')|tojson }},
-            "next": {{ _('Next')|tojson }},
-            "previous": {{ _('Previous')|tojson }}
-        }
-    }
+  { "info": {{ _('Showing _START_ to _END_ of _TOTAL_ entries')|tojson }},
+  "infoEmpty": {{ _('No entries')|tojson }}, "infoFiltered": {{ _('(filtered
+  from _MAX_ total entries)')|tojson }}, "search": {{ _('Search:')|tojson }},
+  "zeroRecords": {{ _('No matching records found')|tojson }}, "paginate": {
+  "first": {{ _('First')|tojson }}, "last": {{ _('Last')|tojson }}, "next": {{
+  _('Next')|tojson }}, "previous": {{ _('Previous')|tojson }} } }
 </div>
-{% endblock content%}
-
-{% block scripts %}
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.18/r-2.2.2/datatables.min.js"></script>
+{% endblock content%} {% block scripts %}
+<script
+  type="text/javascript"
+  src="https://cdn.datatables.net/v/bs5/dt-1.11.3/r-2.2.9/datatables.min.js"
+></script>
+<script src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
 <script src="{{url_for('static', filename='js/campaign-directory.js')}}"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Initialize DataTable with search functionality
+    const table = $("#campaign_table").DataTable({
+      language: JSON.parse($(".hidden-i18n-text").text()),
+      dom: '<"top"f>rt<"bottom"lip><"clear">',
+      responsive: true,
+      columnDefs: [
+        { orderable: false, targets: [7] }, // Disable sorting on Actions column
+        { searchable: false, targets: [7] }, // Disable search on Actions column
+      ],
+      initComplete: function () {
+        $(".dataTables_filter input").addClass("form-control form-control-sm");
+      },
+    });
+
+    // Custom search input
+    $("#campaign-search").keyup(function () {
+      table.search($(this).val()).draw();
+    });
+
+    // Add data-label attributes for mobile responsiveness
+    document
+      .querySelectorAll("#campaign_table thead th")
+      .forEach((th, index) => {
+        document
+          .querySelectorAll(
+            "#campaign_table tbody td:nth-child(" + (index + 1) + ")"
+          )
+          .forEach((td) => {
+            td.setAttribute("data-label", th.textContent.trim());
+          });
+      });
+
+    // Show closed campaigns toggle
+    $("#show-closed-campaigns-checkbox")
+      .change(function () {
+        const column = table.column(8); // Hidden status column
+        if (this.checked) {
+          column.search("").draw();
+        } else {
+          column.search("^1$", true, false).draw();
+        }
+      })
+      .trigger("change");
+  });
+</script>
 {% endblock scripts%}
+
+<style>
+  .campaign-hero {
+    background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%);
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%);
+  }
+
+  .icon-container {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: rgba(67, 97, 238, 0.03);
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+  }
+
+  .form-switch .form-check-input {
+    width: 2.5em;
+    height: 1.5em;
+    cursor: pointer;
+  }
+
+  .form-switch .form-check-input:checked {
+    background-color: #4361ee;
+    border-color: #4361ee;
+  }
+
+  .dataTables_filter {
+    display: none;
+  }
+
+  .card {
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: #495057;
+  }
+
+  .table td {
+    vertical-align: middle;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .campaign-hero {
+      padding: 2.5rem 0;
+    }
+
+    .d-flex.justify-content-center.gap-3 {
+      flex-direction: column;
+      gap: 1rem !important;
+    }
+
+    .d-flex.justify-content-between.align-items-center.mb-4 {
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 1rem;
+    }
+
+    .table-responsive {
+      border: 0;
+    }
+
+    .table thead {
+      display: none;
+    }
+
+    .table tr {
+      display: block;
+      margin-bottom: 1.5rem;
+      border: 1px solid #e9ecef;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 0.75rem 0.5rem;
+    }
+
+    .table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      margin-right: 1rem;
+      color: #495057;
+      font-size: 0.8rem;
+      min-width: 100px;
+    }
+
+    .table td:last-child {
+      border-bottom: none;
+      justify-content: flex-end;
+    }
+
+    .table td .btn {
+      width: auto;
+    }
+
+    .table td[data-label="Status"] {
+      justify-content: flex-end;
+    }
+  }
+</style>
