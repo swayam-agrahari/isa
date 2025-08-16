@@ -9,7 +9,7 @@ build:
   stage: build
   image: node:22
   tags:
-    - isa
+    - wmcs
   cache:
     key:
       files:
