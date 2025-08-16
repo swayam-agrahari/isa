@@ -35,7 +35,7 @@ stages:
       source $HOME/www/python/venv/bin/activate
       pip install -r $HOME/www/python/src/requirements.txt
       exit
-      webservice python3.11 resta rt
+      webservice python3.11 restart
       EOF
 
 deploy-test:
