@@ -18,9 +18,22 @@ build:
       - node_modules/
     
   script:
-    - cd /www/python/src
-    - npm install
-    - npm run build
+    - apk update
+    - apk add --no-cache curl openssh-client git bash # No need to install nodejs npm since the image already has it
+    - npm --version
+    - mkdir -p ~/.ssh
+    - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+    - mv $SECURE_FILES_DOWNLOAD_PATH/$PRIVATE_KEY_NAME ~/.ssh
+    - chmod 600 ~/.ssh/$PRIVATE_KEY_NAME
+    - |
+      ssh -i "~/.ssh/id_rsa" "$SSH_USER@$SSH_HOST" <<EOF
+      become $TOOLNAME
+      cd /www/python/src
+      npm install
+      npm run build
+      exit
+
   artifacts:
     paths:
       - /www/python/src/isa/static/js/
