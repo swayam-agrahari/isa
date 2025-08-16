@@ -32,10 +32,8 @@ stages:
       ssh -vtt -i "~/.ssh/id_rsa" "$SSH_USER@$SSH_HOST" <<EOF
       become $TOOLNAME
       webservice stop
-      webservice python3.11 shell
-      source www/python/venv/bin/activate
-      pip install -r www/python/src/requirements.txt
-      exit
+      cd www/python/src
+      git pull origin main
       webservice restart
       exit
       EOF
