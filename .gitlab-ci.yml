@@ -17,6 +17,7 @@ build:
       - node_modules/
 
   script:
+    - pwd
     - cd /www/python/src
     - npm install
     - npm run build
