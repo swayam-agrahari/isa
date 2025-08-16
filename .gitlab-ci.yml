@@ -35,13 +35,12 @@ stages:
       git pull origin main
       cd
       webservice python3.13 shell
-      rm -rf www/python/venv
       source www/python/venv/bin/activate
       pip --version 
       pip install -r www/python/src/requirements.txt
       cd www/js/src
-      npm run build
       exit
+      npm run build
       webservice python3.13 start
       exit
       EOF
