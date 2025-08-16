@@ -4,8 +4,8 @@ stages:
   - build
   - deploy
 
-
 build:
+  # This stage installs dependencies, builds the application, and prepares it for deployment.
   stage: build
   image: node:22
   tags:
@@ -16,28 +16,25 @@ build:
         - package-lock.json
     paths:
       - node_modules/
-
+    
   script:
-    - |
-      ssh -i "~/.ssh/id_rsa" "$SSH_USER@$SSH_HOST" <<EOF
-      become $TOOLNAME
-      webservice python3.13 stop
-      cd www/python/src
-      git pull origin main
-      npm run build
-      exit
-      EOF
-  environment: build
+    - cd /www/python/src
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - /www/python/src/isa/static/js/
+    expire_in: 1 day
 
-# test:
-#   script:
-#     - flake 8 .
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .deploy_template: &deploy_template
-  image: alpine:latest
+  # Using node:22-alpine because the script needs git and ssh for deployment
+  image: node:22-alpine
   script:
     - apk update
-    - apk add --no-cache curl openssh-client git bash # No need to install nodejs npm
+    - apk add --no-cache curl openssh-client git bash # No need to install nodejs npm since the image already has it
+    - npm --version
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
     - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
@@ -60,11 +57,15 @@ build:
       webservice python3.13 stop
       cd www/python/src
       git pull origin main
-      npm run build
+      cd
       exit
       webservice python3.13 start
       exit
       EOF
+  dependencies:
+    - build
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 deploy-test:
   stage: deploy
