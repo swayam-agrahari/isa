@@ -5,7 +5,6 @@ stages:
   - deploy
 
 build:
-  # This stage installs dependencies, builds the application, and prepares it for deployment.
   stage: build
   image: node:22
   tags:
@@ -20,7 +19,7 @@ build:
   script:
     - cd /www/python/src
     - npm install
-    - npm run  build
+    - npm run build
   environment: build
 
 # test:
@@ -28,9 +27,10 @@ build:
 #     - flake 8 .
 
 .deploy_template: &deploy_template
-  image: alpine:latest, node:22-alpine
+  image: node:22-alpine # Changed from `alpine:latest, node:22-alpine`
+  script:
     - apk update
-    - apk add --no-cache curl openssh-client git bash nodejs npm
+    - apk add --no-cache curl openssh-client git bash # No need to install nodejs npm
     - npm --version
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
