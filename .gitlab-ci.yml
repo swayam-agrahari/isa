@@ -18,8 +18,6 @@ build:
       - node_modules/
     
   script:
-    - apk update
-    - apk add --no-cache curl openssh-client git bash # No need to install nodejs npm since the image already has it
     - npm --version
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
