@@ -34,7 +34,7 @@ stages:
       webservice stop
       webservice python3.11 shell
       source www/python/venv/bin/activate
-      pip install -r $HOME/www/python/src/requirements.txt
+      pip install -r www/python/src/requirements.txt
       exit
       webservice restart
       exit
