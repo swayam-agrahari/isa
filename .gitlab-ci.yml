@@ -5,11 +5,6 @@ stages:
   - deploy
 
 build:
-  # Build stage for Next.js application
-  rules:
-    - if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
-      when: on_success
-    - when: never
   # This stage installs dependencies, builds the application, and prepares it for deployment.
   stage: build
   image: node:22
