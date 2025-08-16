@@ -30,7 +30,6 @@ stages:
     - |
       ssh -i "~/.ssh/id_rsa" "$SSH_USER@$SSH_HOST" <<EOF
       become $TOOLNAME
-      webservice python3.13 stop
       cd www/python/src
       git pull origin main
       cd
@@ -38,7 +37,6 @@ stages:
       source www/python/venv/bin/activate
       pip --version 
       pip install -r www/python/src/requirements.txt
-      cd www/js/src
       exit
       npm run build
       webservice python3.13 start
