@@ -18,6 +18,7 @@ build:
 
   script:
     - pwd
+    - ls
     - cd /www/python/src
     - npm install
     - npm run build
