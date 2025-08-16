@@ -1,4 +1,5 @@
 # GitLabCI/CD Pipeline for Deploy to Server
+
 stages:
   - test
   - deploy
@@ -10,10 +11,10 @@ stages:
 .deploy_template: &deploy_template
   image: alpine:latest
   script:
-    - apk add --no-cache curl openssh-client git bash nodejs npm
+    - apk add --no-cache curl openssh-client git bash
     - mkdir -p ~/.ssh
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
-    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer"  | bash
+    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
     - mv $SECURE_FILES_DOWNLOAD_PATH/$PRIVATE_KEY_NAME ~/.ssh
     - chmod 600 ~/.ssh/$PRIVATE_KEY_NAME
     - git config --global user.email "gitlab-ci@$CI_SERVER_HOST"
@@ -30,15 +31,13 @@ stages:
     - |
       ssh -i "~/.ssh/id_rsa" "$SSH_USER@$SSH_HOST" <<EOF
       become $TOOLNAME
+      webservice python3.13 stop
       cd www/python/src
       git pull origin main
-      cd
       webservice python3.13 shell
       source www/python/venv/bin/activate
-      pip --version 
       pip install -r www/python/src/requirements.txt
       exit
-      npm run build
       webservice python3.13 start
       exit
       EOF
@@ -54,6 +53,5 @@ deploy-test:
     ACCESS_TOKEN: $TOOL_ACCESS_TOKEN
     SECURE_FILES_DOWNLOAD_PATH: .
     PRIVATE_KEY_NAME: "id_rsa"
-
   
   <<: *deploy_template
