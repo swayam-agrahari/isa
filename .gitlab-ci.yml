@@ -34,7 +34,10 @@ stages:
       webservice python3.13 stop
       cd www/python/src
       git pull origin main
+      cd
       webservice python3.13 shell
+      rm -rf www/python/venv/
+      python3 -m venv www/python/venv
       source www/python/venv/bin/activate
       pip install -r www/python/src/requirements.txt
       exit
