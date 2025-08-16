@@ -20,7 +20,7 @@ build:
   script:
     - cd /www/python/src
     - npm install
-    - npn run  build
+    - npm run  build
   environment: build
 
 # test:
@@ -28,8 +28,7 @@ build:
 #     - flake 8 .
 
 .deploy_template: &deploy_template
-  image: alpine:latest
-  script:
+  image: alpine:latest, node:22-alpine
     - apk update
     - apk add --no-cache curl openssh-client git bash nodejs npm
     - npm --version
