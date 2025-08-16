@@ -8,7 +8,7 @@ stages:
 #     - flake 8 .
 
 .deploy_template: &deploy_template
-  image: alpine:latest, node:22-alpine `
+  image: node:22-alpine `
   script:
     - apk update
     - apk add --no-cache curl openssh-client git bash # No need to install nodejs npm
