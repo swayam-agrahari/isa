@@ -65,7 +65,7 @@ stages:
     - |
       ssh -i "~/.ssh/id_rsa" "$SSH_USER@$SSH_HOST" <<EOF
       become $TOOLNAME
-      webservice python3.13 stop
+      webservice stop
       cd www/python/src
       git pull origin main
       cd
