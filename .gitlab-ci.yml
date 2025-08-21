@@ -68,8 +68,6 @@ stages:
       webservice stop
       cd www/python/src
       git pull origin main
-      cd
-      exit
       webservice python3.13 start
       exit
       EOF
