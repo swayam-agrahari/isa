@@ -13,6 +13,33 @@ var campaignId = getCampaignId(),
     csrf_token = "{{ csrf_token() }}",
     editSession;
 
+// Pagination state
+let currentPage = 1;
+const perPage = 10;
+let allLoadedImages = [];
+let hasMoreImages = true;
+
+// Helper to load images from backend
+function loadImages(page) {
+    console.log("called in here")
+    let imagesUrl = `../../campaigns/${campaignId}/images?page=${page}&per_page=${perPage}`;
+    if (isWikiLovesCampaign && wikiLovesCountry) {
+        imagesUrl += `/${encodeURIComponent(wikiLovesCountry)}`;
+    }
+    return $.get(imagesUrl).then(data => {
+        // Support both old and new backend formats
+        if (Array.isArray(data)) {
+            if (data.length < perPage) hasMoreImages = false;
+            allLoadedImages = allLoadedImages.concat(data);
+        } else {
+            if (data.images) {
+                allLoadedImages = allLoadedImages.concat(data.images);
+                hasMoreImages = data.has_more;
+            }
+        }
+    });
+}
+
 ///////// Campaign images /////////
 
 // Check if user is logged in
@@ -20,44 +47,29 @@ $.getJSON('../../api/login-test')
     .then(function(response) {
         isUserLoggedIn = response.is_logged_in;
     })
-    .then(function() {
-        // todo: if it's a wiki loves campaign with no country selected, set all depth = 1 (ignore category depth settings)
-
-        var imagesUrl = '../../campaigns/' + campaignId + "/images";
-        if (isWikiLovesCampaign && wikiLovesCountry) {
-            imagesUrl += "/" + wikiLovesCountry;
-        }
-
-        // Get images in categories
-        $.get(imagesUrl).done(function(images) {
-            // Now we have all images from processing each category with depth
-
-            // Randomise image order
-            shuffle(images);
-
-            // Start a new editSession using the Participation Manager
-            editSession = new ParticipationManager(images, campaignId, wikiLovesCountry, isUserLoggedIn);
+    .then(function () {
+        // Initial load
+        loadImages(currentPage).then(() => {
+            shuffle(allLoadedImages);
+            editSession = new ParticipationManager(allLoadedImages, campaignId, wikiLovesCountry, isUserLoggedIn);
 
             if (getUrlParameters().image) {
                 var image = Number.parseInt(getUrlParameters().image);
-                var imageIndex = images.indexOf(image);
+                var imageIndex = allLoadedImages.indexOf(image);
                 if (imageIndex !== -1) {
                     editSession.setImageIndex(imageIndex);
                 }
             } else {
-                // Trigger image changed event to populate the page
                 editSession.imageChanged();
             }
 
-            // Close loading overlay
-            if (images.length > 0) {
+            if (allLoadedImages.length > 0) {
                 hideLoadingOverlay();
             } else {
                 alert(i18nStrings["No images found for this campaign!"]);
                 window.location.href = '../' + campaignId;
             }
-
-        })
+        });
     })
     .fail(function(err) {
         console.log("error retrieving campaign categories", err)
@@ -177,9 +189,17 @@ $('#expand-meta-data').click(function() {
     }
 })
 
-$('.next-image-btn').click(function(ev) {
-    editSession.nextImage();
-})
+$('.next-image-btn').click(function () {
+    if (editSession.imageIndex >= allLoadedImages.length - 1 && hasMoreImages) {
+        currentPage++;
+        loadImages(currentPage).then(() => {
+            editSession.images = allLoadedImages;
+            editSession.nextImage();
+        });
+    } else {
+        editSession.nextImage();
+    }
+});
 
 $('.previous-image-btn').click(function(ev) {
     editSession.previousImage();

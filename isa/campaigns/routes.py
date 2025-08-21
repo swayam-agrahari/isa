@@ -591,6 +591,9 @@ def downloadAllCampaignStats(id):
 @campaigns.route('/campaigns/<int:campaign_id>/images', defaults={'country_name': None})
 @campaigns.route('/campaigns/<int:campaign_id>/images/<string:country_name>')
 def get_images(campaign_id, country_name):
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
     country = None
     if country_name:
         country = Country.query.filter_by(name=country_name).first()
@@ -603,7 +606,15 @@ def get_images(campaign_id, country_name):
     for image in campaign.images:
         if not country or image.country_id == country.id:
             images.append(image.page_id)
-    return jsonify(images)
+
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_images = images[start:end]
+
+    return jsonify({
+        "images": paginated_images,
+        "has_more": end < len(images)
+    })
 
 
 @campaigns.route('/api/reject-suggestion', methods=['POST'])
