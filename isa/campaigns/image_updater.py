@@ -265,13 +265,12 @@ class ImageUpdater:
             response = requests.get(
                 API_URL,
                 params=parameters,
+                headers={'User-Agent': 'ISA/1.0 (contact: https://www.mediawiki.org/wiki/User:IsaBot)'},
                 timeout=API_TIMEOUT
             ).json()
-        except Timeout:
+        except (Timeout,requests.RequestException, ConnectionError) as e:
             if retries > MAX_RETRIES:
-                raise UpdateImageException(
-                    "Maximum retries exceeded for API requests."
-                )
+                raise UpdateImageException(f"API request failed after {MAX_RETRIES} retries: {str(e)}")
 
             time.sleep(RETRY_DELAY)
             return self._api_get(parameters, retries + 1)
