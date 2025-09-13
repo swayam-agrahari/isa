@@ -43,7 +43,9 @@ def help():
                            current_user=current_user)
 
 
-@main.route('/', methods=['GET', 'POST'])
-def set_language(lang):
+@main.route('/set_language', methods=['GET', 'POST'])
+def set_language():
+    lang = request.args.get('language', 'en')
     session['lang'] = lang
-    return redirect(url_for('main.home'))
+    print(f"Language set to: {lang}")
+    return redirect(session.get('next_url', url_for('main.home')))

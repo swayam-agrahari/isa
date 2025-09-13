@@ -13,6 +13,8 @@ from flask_wtf.csrf import CSRFProtect
 from celery import Celery
 from celery import Task
 from flask_migrate import Migrate
+from babel import Locale
+from babel.core import UnknownLocaleError
 
 
 logging.basicConfig(
@@ -41,10 +43,15 @@ app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
 
 
 def get_locale():
-    if request.args.get('lang'):
-        session['lang'] = request.args.get('lang')
-    return session.get('lang', 'en')
-
+    language = session.get('lang', 'en')
+    try:
+        # Check if the language code is valid
+        Locale(language)
+    except UnknownLocaleError:
+        # If the language code is not valid, fall back to English
+        language = 'en'
+        session['lang'] = 'en'
+    return language
 
 babel = Babel(app)
 babel.init_app(app, locale_selector=get_locale)
