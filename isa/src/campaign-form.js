@@ -158,7 +158,7 @@ function validateWikiLovesCategory(element) {
 }
 
 function isValidWikiLovesSyntax(categoryName) {
-    var syntaxReg = /Images from Wiki Loves [\w\s]+ \d{4}$/;
+    var syntaxReg = /Images from Wiki Loves .+? \d{4}(?: in .+)?$/u;;
     return syntaxReg.test(categoryName);
 }
 
