@@ -47,5 +47,4 @@ def help():
 def set_language():
     lang = request.args.get('language', 'en')
     session['lang'] = lang
-    print(f"Language set to: {lang}")
     return redirect(session.get('next_url', url_for('main.home')))
