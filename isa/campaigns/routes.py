@@ -513,6 +513,7 @@ def searchDepicts(id):
                        .all())
 
         query_titles = '|'.join(depict for depict, in top_depicts)
+        headers = {'User-Agent': 'ISA/1.0 (contact: https://www.mediawiki.org/wiki/User:IsaBot)'}
         depict_details = requests.get(
             url=app.config['WIKIDATA_SEARCH_API_URL'],
             params={
@@ -524,6 +525,7 @@ def searchDepicts(id):
                 'languagefallback': '',
                 'origin': '*'
             }
+            , headers=headers
         ).json()
 
         top_depicts_return = []
@@ -543,6 +545,7 @@ def searchDepicts(id):
             top_depicts_return = None
         return jsonify({"results": top_depicts_return})
     else:
+        headers = {'User-Agent': 'ISA/1.0 (contact: https://www.mediawiki.org/wiki/User:IsaBot)'}
         search_return = []
         search_result = requests.get(
             url=app.config['WIKIDATA_SEARCH_API_URL'],
@@ -554,6 +557,7 @@ def searchDepicts(id):
                 'uselang': user_lang,
                 'origin': '*'
             }
+            , headers=headers
         ).json()
         for search_result_item in search_result['search']:
             search_return.append({
