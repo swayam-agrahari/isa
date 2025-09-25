@@ -1,0 +1,562 @@
+{% extends "main/layout.html" %} {% block content %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/components/stat.css') }}"
+/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div class="main-container">
+        <div class="content-wrapper-stats">
+            <div class="header">
+                <h1>Annual Contribution Statistics</h1>
+                <p class="subtitle">The long-term impact of the ISA Tool</p>
+            </div>
+
+            <div class="charts-grid charts-grid-row1">
+                <div class="card col-span-2">
+                    <div class="card-header">
+                        <h3 class="card-title">Growth Trends Over Time</h3>
+                        <div class="button-group">
+                            <button id="toggleContributions" class="button filter-active">
+                                Contributions
+                            </button>
+                            <button id="toggleContributors" class="button">
+                                Contributors
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Year-over-Year Change</h3>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-grid charts-grid-row2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Contribution Distribution</h3>
+                        <select id="yearSelect" class="select-input">
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                            <option value="2019">2019</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="donutChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Average vs Median Contributions</h3>
+                    <div class="chart-container">
+                        <canvas id="avgChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">Table Filters</h3>
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <label class="filter-label">Show Years:</label>
+                        <div class="button-group">
+                            <button class="year-filter button filter-active" data-year="all">All</button>
+                            <button class="year-filter button" data-year="2019-2021">2019-2021</button>
+                            <button class="year-filter button" data-year="2022-2023">2022-2023</button>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Metric Type:</label>
+                        <select id="metricFilter" class="select-input">
+                            <option value="all">All Metrics</option>
+                            <option value="basic">Basic Stats</option>
+                            <option value="distribution">Distribution Stats</option>
+                            <option value="changes">Change Metrics</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <input type="text" id="searchFilter" placeholder="Search metrics..." class="text-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">Detailed Statistics</h3>
+                <div class="table-container">
+                    <table class="stats-table" id="statsTable">
+                        <thead>
+                            <tr>
+                                <th >Metric</th>
+                                <th class="text-center year-col" data-year="2018">2018</th>
+                                <th class="text-center year-col" data-year="2019">2019</th>
+                                <th class="text-center year-col" data-year="2020">2020</th>
+                                <th class="text-center year-col" data-year="2021">2021</th>
+                                <th class="text-center year-col" data-year="2022">2022</th>
+                                <th class="text-center year-col" data-year="2023">2023</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-row" data-metric="basic">
+                                <td class="metric-label">Number of contributions</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">51,640</td>
+                                <td class="text-center year-col" data-year="2020">85,563</td>
+                                <td class="text-center year-col" data-year="2021">150,295</td>
+                                <td class="text-center year-col" data-year="2022">153,094</td>
+                                <td class="text-center year-col" data-year="2023">162,083</td>
+                            </tr>
+                            <tr class="table-row" data-metric="changes">
+                                <td class="metric-label">Change in contributions</td>
+                                <td class="text-center text-muted year-col" data-year="2018">n/a</td>
+                                <td class="text-center text-muted year-col" data-year="2019">n/a</td>
+                                <td class="text-center text-green year-col" data-year="2020">+66%</td>
+                                <td class="text-center text-green year-col" data-year="2021">+76%</td>
+                                <td class="text-center text-green year-col" data-year="2022">+2%</td>
+                                <td class="text-center text-green year-col" data-year="2023">+6%</td>
+                            </tr>
+                            <tr class="table-row" data-metric="basic">
+                                <td class="metric-label">Number of contributors</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">149</td>
+                                <td class="text-center year-col" data-year="2020">237</td>
+                                <td class="text-center year-col" data-year="2021">268</td>
+                                <td class="text-center year-col" data-year="2022">213</td>
+                                <td class="text-center year-col" data-year="2023">265</td>
+                            </tr>
+                            <tr class="table-row" data-metric="changes">
+                                <td class="metric-label">Change in contributors</td>
+                                <td class="text-center text-muted year-col" data-year="2018">n/a</td>
+                                <td class="text-center text-muted year-col" data-year="2019">n/a</td>
+                                <td class="text-center text-green year-col" data-year="2020">+59%</td>
+                                <td class="text-center text-green year-col" data-year="2021">+13%</td>
+                                <td class="text-center text-red year-col" data-year="2022">-21%</td>
+                                <td class="text-center text-green year-col" data-year="2023">+24%</td>
+                            </tr>
+                            <tr class="table-row" data-metric="basic">
+                                <td class="metric-label">Max contributions</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">13,288</td>
+                                <td class="text-center year-col" data-year="2020">25,281</td>
+                                <td class="text-center year-col" data-year="2021">28,872</td>
+                                <td class="text-center year-col" data-year="2022">20,612</td>
+                                <td class="text-center year-col" data-year="2023">18,155</td>
+                            </tr>
+                            <tr class="table-row" data-metric="basic">
+                                <td class="metric-label">Min contributions</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">1</td>
+                                <td class="text-center year-col" data-year="2020">1</td>
+                                <td class="text-center year-col" data-year="2021">1</td>
+                                <td class="text-center year-col" data-year="2022">1</td>
+                                <td class="text-center year-col" data-year="2023">1</td>
+                            </tr>
+                            <tr class="table-row" data-metric="basic">
+                                <td class="metric-label">Average contributions</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">347</td>
+                                <td class="text-center year-col" data-year="2020">361</td>
+                                <td class="text-center year-col" data-year="2021">561</td>
+                                <td class="text-center year-col" data-year="2022">718</td>
+                                <td class="text-center year-col" data-year="2023">611</td>
+                            </tr>
+                            <tr class="table-row" data-metric="basic">
+                                <td class="metric-label">Median contributions</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">27</td>
+                                <td class="text-center year-col" data-year="2020">18</td>
+                                <td class="text-center year-col" data-year="2021">21</td>
+                                <td class="text-center year-col" data-year="2022">29</td>
+                                <td class="text-center year-col" data-year="2023">22</td>
+                            </tr>
+                            <tr class="table-row" data-metric="distribution">
+                                <td class="metric-label">Contributions by top 5%</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">38,530</td>
+                                <td class="text-center year-col" data-year="2020">68,481</td>
+                                <td class="text-center year-col" data-year="2021">108,503</td>
+                                <td class="text-center year-col" data-year="2022">91,961</td>
+                                <td class="text-center year-col" data-year="2023">119,010</td>
+                            </tr>
+                            <tr class="table-row" data-metric="distribution">
+                                <td class="metric-label">Share by top 5%</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">75%</td>
+                                <td class="text-center year-col" data-year="2020">80%</td>
+                                <td class="text-center year-col" data-year="2021">72%</td>
+                                <td class="text-center year-col" data-year="2022">60%</td>
+                                <td class="text-center year-col" data-year="2023">73%</td>
+                            </tr>
+                            <tr class="table-row" data-metric="distribution">
+                                <td class="metric-label">Contributions by top 10%</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">44,032</td>
+                                <td class="text-center year-col" data-year="2020">77,650</td>
+                                <td class="text-center year-col" data-year="2021">131,151</td>
+                                <td class="text-center year-col" data-year="2022">123,920</td>
+                                <td class="text-center year-col" data-year="2023">140,598</td>
+                            </tr>
+                            <tr class="table-row" data-metric="distribution">
+                                <td class="metric-label">Share by top 10%</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">85%</td>
+                                <td class="text-center year-col" data-year="2020">91%</td>
+                                <td class="text-center year-col" data-year="2021">87%</td>
+                                <td class="text-center year-col" data-year="2022">81%</td>
+                                <td class="text-center year-col" data-year="2023">87%</td>
+                            </tr>
+                            <tr class="table-row" data-metric="distribution">
+                                <td class="metric-label">Contributions by top 20%</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">47,635</td>
+                                <td class="text-center year-col" data-year="2020">81,494</td>
+                                <td class="text-center year-col" data-year="2021">144,108</td>
+                                <td class="text-center year-col" data-year="2022">142,903</td>
+                                <td class="text-center year-col" data-year="2023">155,410</td>
+                            </tr>
+                            <tr class="table-row" data-metric="distribution">
+                                <td class="metric-label">Share by top 20%</td>
+                                <td class="text-center year-col" data-year="2018">0</td>
+                                <td class="text-center year-col" data-year="2019">92%</td>
+                                <td class="text-center year-col" data-year="2020">95%</td>
+                                <td class="text-center year-col" data-year="2021">96%</td>
+                                <td class="text-center year-col" data-year="2022">93%</td>
+                                <td class="text-center year-col" data-year="2023">96%</td>
+                            </tr>
+                            <tr class="table-row" data-metric="basic">
+                                <td class="metric-label">Source query used</td>
+                                <td class="text-center text-link year-col" data-year="2018">Data</td>
+                                <td class="text-center text-link year-col" data-year="2019">Data</td>
+                                <td class="text-center text-link year-col" data-year="2020">Data</td>
+                                <td class="text-center text-link year-col" data-year="2021">Data</td>
+                                <td class="text-center text-link year-col" data-year="2022">Data</td>
+                                <td class="text-center text-link year-col" data-year="2023">Data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>Source: ISA Tool internal data</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js default configuration
+        Chart.defaults.color = '#475569';
+        Chart.defaults.scale.grid.color = 'rgba(148, 163, 184, 0.2)';
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+
+        // Data
+        const data = {
+            years: ['2018', '2019', '2020', '2021', '2022', '2023'],
+            contributions: [0, 51640, 85563, 150295, 153094, 162083],
+            contributors: [0, 149, 237, 268, 213, 265],
+            contributionChanges: [null, null, 66, 76, 2, 6],
+            contributorChanges: [null, null, 59, 13, -21, 24],
+            avgContributions: [0, 347, 361, 561, 718, 611],
+            medianContributions: [0, 27, 18, 21, 29, 22],
+            top5Shares: [0, 75, 80, 72, 60, 73],
+            top10Shares: [0, 85, 91, 87, 81, 87],
+            top20Shares: [0, 92, 95, 96, 93, 96]
+        };
+
+        // Line Chart
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: data.years,
+                datasets: [
+                    {
+                        label: 'Contributions',
+                        data: data.contributions,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        yAxisID: 'y',
+                        hidden: false
+                    },
+                    {
+                        label: 'Contributors',
+                        data: data.contributors,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        yAxisID: 'y1',
+                        hidden: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    x: {
+                        border: { color: '#cbd5e1' },
+                        grid: { color: 'rgba(148, 163, 184, 0.2)' }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        border: { color: '#cbd5e1' },
+                        grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                        title: { display: true, text: 'Contributions', color: '#475569' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: false, /* Initially hidden to match dataset */
+                        position: 'right',
+                        border: { color: '#cbd5e1' },
+                        title: { display: true, text: 'Contributors', color: '#475569' },
+                        grid: { drawOnChartArea: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+        
+        // Toggle buttons for line chart
+        const toggleContributionsBtn = document.getElementById('toggleContributions');
+        const toggleContributorsBtn = document.getElementById('toggleContributors');
+
+        function updateLineChartToggles() {
+            // Contributions Button
+            let isContributionsHidden = lineChart.data.datasets[0].hidden;
+            toggleContributionsBtn.classList.toggle('filter-active', !isContributionsHidden);
+
+            // Contributors Button
+            let isContributorsHidden = lineChart.data.datasets[1].hidden;
+            toggleContributorsBtn.classList.toggle('filter-active', !isContributorsHidden);
+        }
+
+        toggleContributionsBtn.addEventListener('click', function() {
+            lineChart.data.datasets[0].hidden = false;
+            lineChart.data.datasets[1].hidden = true;
+            lineChart.options.scales.y.display = true;
+            lineChart.options.scales.y1.display = false;
+            updateLineChartToggles();
+            lineChart.update();
+        });
+
+        toggleContributorsBtn.addEventListener('click', function() {
+            lineChart.data.datasets[0].hidden = true;
+            lineChart.data.datasets[1].hidden = false;
+            lineChart.options.scales.y.display = false;
+            lineChart.options.scales.y1.display = true;
+            updateLineChartToggles();
+            lineChart.update();
+        });
+
+
+        // Bar Chart
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['2020', '2021', '2022', '2023'],
+                datasets: [
+                    {
+                        label: 'Contributions Change (%)',
+                        data: data.contributionChanges.slice(2),
+                        backgroundColor: '#6366f1',
+                        borderColor: '#4f46e5',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Contributors Change (%)',
+                        data: data.contributorChanges.slice(2),
+                        backgroundColor: '#06b6d4',
+                        borderColor: '#0891b2',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        border: { color: '#cbd5e1' },
+                        grid: { color: 'rgba(148, 163, 184, 0.2)' }
+                    },
+                    y: {
+                        border: { color: '#cbd5e1' },
+                        grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                        title: { display: true, text: 'Percentage Change (%)', color: '#475569' }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, position: 'top' }
+                }
+            }
+        });
+
+        // Donut Chart
+        const donutCtx = document.getElementById('donutChart').getContext('2d');
+        const donutChart = new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Top 5%', 'Top 6-10%', 'Top 11-20%', 'Bottom 80%'],
+                datasets: [{
+                    data: [73, 14, 9, 4], // Initial data for 2023
+                    backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6'],
+                    borderColor: ['#d97706', '#2563eb', '#059669', '#7c3aed'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Year selector for donut chart
+        document.getElementById('yearSelect').addEventListener('change', function() {
+            const year = this.value;
+            const yearIndex = data.years.indexOf(year);
+            const top5 = data.top5Shares[yearIndex];
+            const top10 = data.top10Shares[yearIndex];
+            const top20 = data.top20Shares[yearIndex];
+            
+            const top6to10 = top10 - top5;
+            const top11to20 = top20 - top10;
+            const bottom80 = 100 - top20;
+            
+            donutChart.data.datasets[0].data = [top5, top6to10, top11to20, bottom80];
+            donutChart.update();
+        });
+
+        // Average vs Median Chart
+        const avgCtx = document.getElementById('avgChart').getContext('2d');
+        new Chart(avgCtx, {
+            type: 'line',
+            data: {
+                labels: data.years,
+                datasets: [
+                    {
+                        label: 'Average',
+                        data: data.avgContributions,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Median',
+                        data: data.medianContributions,
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        border: { color: '#cbd5e1' },
+                        grid: { color: 'rgba(148, 163, 184, 0.2)' }
+                    },
+                    y: {
+                        border: { color: '#cbd5e1' },
+                        grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                        title: { display: true, text: 'Contributions', color: '#475569' }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, position: 'top' }
+                }
+            }
+        });
+
+        // Table filtering functionality
+        const yearFilters = document.querySelectorAll('.year-filter');
+        const metricFilter = document.getElementById('metricFilter');
+        const searchFilter = document.getElementById('searchFilter');
+        const table = document.getElementById('statsTable');
+
+        function applyFilters() {
+            const activeYearFilter = document.querySelector('.year-filter.filter-active').dataset.year;
+            const activeMetricFilter = metricFilter.value;
+            const searchTerm = searchFilter.value.toLowerCase();
+
+            // Show/hide year columns
+            const yearCols = document.querySelectorAll('.year-col');
+            yearCols.forEach(col => {
+                const year = col.dataset.year;
+                if (activeYearFilter === 'all') {
+                    col.style.display = '';
+                } else if (activeYearFilter === '2019-2021') {
+                    col.style.display = ['2019', '2020', '2021'].includes(year) ? '' : 'none';
+                } else if (activeYearFilter === '2022-2023') {
+                    col.style.display = ['2022', '2023'].includes(year) ? '' : 'none';
+                } else {
+                    // Hide 2018 by default unless 'all' is selected
+                    col.style.display = (year === '2018' && activeYearFilter !== 'all') ? 'none' : '';
+                }
+            });
+
+            // Show/hide metric rows
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const metric = row.dataset.metric;
+                const metricText = row.querySelector('td').textContent.toLowerCase();
+                
+                let showMetric = activeMetricFilter === 'all' || metric === activeMetricFilter;
+                let showSearch = searchTerm === '' || metricText.includes(searchTerm);
+                
+                row.style.display = showMetric && showSearch ? '' : 'none';
+            });
+        }
+
+        // Year filter buttons
+        yearFilters.forEach(button => {
+            button.addEventListener('click', function() {
+                yearFilters.forEach(btn => btn.classList.remove('filter-active'));
+                this.classList.add('filter-active');
+                applyFilters();
+            });
+        });
+
+        // Metric filter dropdown
+        metricFilter.addEventListener('change', applyFilters);
+
+        // Search filter
+        searchFilter.addEventListener('input', applyFilters);
+
+        // Initialize filters on page load
+        applyFilters();
+    </script>
+
+    {% endblock %}
