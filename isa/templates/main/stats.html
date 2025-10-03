@@ -1,0 +1,391 @@
+{% extends "main/layout.html" %} 
+{% block content %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/components/stat.css') }}"
+/>
+<!-- jQuery for AJAX requests -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Chart.js for visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="main-container">
+    <div class="content-wrapper-stats">
+        <!-- Header -->
+        <div class="header">
+            <h1>Annual Contribution Statistics</h1>
+            <p class="subtitle">The long-term impact of the ISA Tool</p>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" style="text-align: center; padding: 4rem;">
+            <p>Loading statistics...</p>
+        </div>
+
+        <!-- Main Dashboard Content (Initially Hidden) -->
+        <div id="dashboardContent" style="display: none;">
+            <!-- Row 1: Line and Bar Charts -->
+            <div class="charts-grid charts-grid-row1">
+                <div class="card col-span-2">
+                    <div class="card-header">
+                        <h3 class="card-title">Growth Trends Over Time</h3>
+                        <div class="button-group">
+                            <button id="toggleContributions" class="button filter-active">Contributions</button>
+                            <button id="toggleContributors" class="button">Contributors</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Year-over-Year Change</h3>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Donut and Average Charts -->
+            <div class="charts-grid charts-grid-row2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Contribution Distribution</h3>
+                        <select id="yearSelect" class="select-input"></select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="donutChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Average vs Median Contributions</h3>
+                    <div class="chart-container">
+                        <canvas id="avgChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card">
+                <h3 class="card-title">Table Filters</h3>
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <label class="filter-label">Show Years:</label>
+                        <div id="yearFilterButtons" class="button-group">
+                            <!-- Year filter buttons will be generated here -->
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Metric Type:</label>
+                        <select id="metricFilter" class="select-input">
+                            <option value="all">All Metrics</option>
+                            <option value="basic">Basic Stats</option>
+                            <option value="distribution">Distribution Stats</option>
+                            <option value="changes">Change Metrics</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <input type="text" id="searchFilter" placeholder="Search metrics..." class="text-input">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Statistics Table -->
+            <div class="card">
+                <h3 class="card-title">Detailed Statistics</h3>
+                <div class="table-container">
+                    <table class="stats-table" id="statsTable">
+                        <thead>
+                            <!-- Header will be generated dynamically -->
+                        </thead>
+                        <tbody>
+                            <!-- Rows will be generated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Footer -->
+        <div class="statfooter">
+            <p>Source: ISA Tool internal data</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // --- Global variables for charts and data ---
+        let lineChart, barChart, donutChart, avgChart;
+        let apiData;
+
+        // --- Chart.js default configuration ---
+        Chart.defaults.color = '#475569';
+        Chart.defaults.scale.grid.color = 'rgba(148, 163, 184, 0.2)';
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+
+        // --- Fetch data from the API ---
+        $.ajax({
+            url: "/api/stats",
+            method: "GET",
+            dataType: "json",
+            success: function(data) {
+                apiData = data;
+                $('#loadingIndicator').hide();
+                $('#dashboardContent').show();
+                initializeDashboard(apiData);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                $('#loadingIndicator').html(`<p style="color: red;">NO Contribution found yet.</p>`);
+            }
+        });
+
+        // --- Main function to initialize all components ---
+        function initializeDashboard(data) {
+            // Dynamically populate filters
+            populateYearFilters(data.growth_trends.years);
+            
+            // Initialize all charts
+            initLineChart(data.growth_trends);
+            initBarChart(data.yoy_change);
+            initDonutChart(data.distribution);
+            initAvgChart(data.averages);
+
+            // Populate the detailed stats table
+            populateTable(data.detailed_stats, data.growth_trends.years);
+
+            // Set up event listeners for filters
+            setupEventListeners();
+        }
+
+        // --- Chart Initialization Functions ---
+        function initLineChart(d) {
+            const ctx = document.getElementById('lineChart').getContext('2d');
+            lineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: d.years,
+                    datasets: [
+                        { label: 'Contributions', data: d.contributions, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.4, fill: true, yAxisID: 'y', hidden: false },
+                        { label: 'Contributors', data: d.contributors, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.4, fill: true, yAxisID: 'y1', hidden: true }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { x: {}, y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Contributions' } }, y1: { type: 'linear', display: false, position: 'right', title: { display: true, text: 'Contributors' }, grid: { drawOnChartArea: false } } }, plugins: { legend: { display: false } } }
+            });
+        }
+        
+        function initBarChart(d) {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: d.years,
+                    datasets: [
+                        { label: 'Contributions Change (%)', data: d.contribution_change, backgroundColor: '#6366f1' },
+                        { label: 'Contributors Change (%)', data: d.contributor_change, backgroundColor: '#06b6d4' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: 'Percentage Change (%)' } } }, plugins: { legend: { position: 'top' } } }
+            });
+        }
+
+        function initDonutChart(d) {
+            const ctx = document.getElementById('donutChart').getContext('2d');
+            donutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Top 5%', 'Top 6-10%', 'Top 11-20%', 'Bottom 80%'],
+                    datasets: [{
+                        data: [], // Will be populated by year selector
+                        backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: (c) => `${c.label}: ${c.parsed}%` } } } }
+            });
+            updateDonutChart($('#yearSelect').val()); // Initial update
+        }
+        
+        function initAvgChart(d) {
+            const ctx = document.getElementById('avgChart').getContext('2d');
+            avgChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: d.years,
+                    datasets: [
+                        { label: 'Average', data: d.average, borderColor: '#ef4444', fill: false, tension: 0.4 },
+                        { label: 'Median', data: d.median, borderColor: '#22c55e', fill: false, tension: 0.4 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: 'Contributions' } } }, plugins: { legend: { position: 'top' } } }
+            });
+        }
+
+        // --- Dynamic Content Population ---
+        function populateYearFilters(years) {
+            const $yearSelect = $('#yearSelect');
+            const $yearFilterButtons = $('#yearFilterButtons');
+            $yearSelect.empty();
+            $yearFilterButtons.empty();
+
+            // Populate dropdown (reverse order for latest first)
+            [...years].reverse().forEach(year => {
+                $yearSelect.append($('<option>', { value: year, text: year }));
+            });
+
+            // Populate table filter buttons
+            $yearFilterButtons.append('<button class="year-filter button filter-active" data-year="all">All</button>');
+            if (years.length >= 4) { // Add range buttons if sensible
+                const mid = Math.floor(years.length / 2);
+                const range1 = `${years[0]}-${years[mid-1]}`;
+                const range2 = `${years[mid]}-${years[years.length-1]}`;
+                $yearFilterButtons.append(`<button class="year-filter button" data-year="${range1}">${range1}</button>`);
+                $yearFilterButtons.append(`<button class="year-filter button" data-year="${range2}">${range2}</button>`);
+            }
+        }
+        
+        function populateTable(stats, years) {
+            const $tableHead = $('#statsTable thead');
+            const $tableBody = $('#statsTable tbody');
+            $tableHead.empty();
+            $tableBody.empty();
+
+            // Create Header
+            let headerHtml = '<tr><th>Metric</th>';
+            years.forEach(year => {
+                headerHtml += `<th class="text-center year-col" data-year="${year}">${year}</th>`;
+            });
+            headerHtml += '</tr>';
+            $tableHead.append(headerHtml);
+
+            // Create Rows
+            const metrics = [
+                { key: 'num_contributions', label: 'Number of contributions', metric: 'basic', format: 'number' },
+                { key: 'change_contributions', label: 'Change in contributions', metric: 'changes', format: 'percent' },
+                { key: 'num_contributors', label: 'Number of contributors', metric: 'basic', format: 'number' },
+                { key: 'change_contributors', label: 'Change in contributors', metric: 'changes', format: 'percent' },
+                { key: 'max_contributions', label: 'Max contributions', metric: 'basic', format: 'number' },
+                { key: 'min_contributions', label: 'Min contributions', metric: 'basic', format: 'number' },
+                { key: 'avg_contributions', label: 'Average contributions', metric: 'basic', format: 'number' },
+                { key: 'median_contributions', label: 'Median contributions', metric: 'basic', format: 'number' },
+                { key: 'top_5_share', label: 'Share by top 5%', metric: 'distribution', format: 'percent_plain' },
+                { key: 'top_10_share', label: 'Share by top 10%', metric: 'distribution', format: 'percent_plain' },
+                { key: 'top_20_share', label: 'Share by top 20%', metric: 'distribution', format: 'percent_plain' },
+            ];
+            
+            metrics.forEach(m => {
+                let rowHtml = `<tr class="table-row" data-metric="${m.metric}"><td class="metric-label">${m.label}</td>`;
+                years.forEach((year, index) => {
+                    let value = stats[year] ? stats[year][m.key] : 0;
+                    let displayValue = 'n/a';
+                    let cellClass = 'text-center year-col';
+
+                    if (m.format === 'percent' || m.format === 'percent_plain') {
+                        if (index > 0) {
+                            let currentVal, prevVal;
+                            if (m.key === 'change_contributions') {
+                                currentVal = stats[year].num_contributions;
+                                prevVal = stats[years[index-1]].num_contributions;
+                            } else if (m.key === 'change_contributors') {
+                                currentVal = stats[year].num_contributors;
+                                prevVal = stats[years[index-1]].num_contributors;
+                            } else {
+                                // For shares
+                                displayValue = `${value}%`;
+                            }
+                            
+                            if (currentVal !== undefined && prevVal > 0) {
+                                const change = Math.round(((currentVal - prevVal) / prevVal) * 100);
+                                displayValue = `${change > 0 ? '+' : ''}${change}%`;
+                                cellClass += change >= 0 ? ' text-green' : ' text-red';
+                            }
+                        }
+                    } else if (m.format === 'number') {
+                        displayValue = value.toLocaleString();
+                    }
+
+                    if (m.format !== 'percent' && m.format !== 'percent_plain') displayValue = value.toLocaleString();
+                    if (displayValue === 'n/a') cellClass += ' text-muted';
+                    
+                    rowHtml += `<td class="${cellClass}" data-year="${year}">${displayValue}</td>`;
+                });
+                rowHtml += '</tr>';
+                $tableBody.append(rowHtml);
+            });
+        }
+
+        // --- Event Listeners and Updaters ---
+        function setupEventListeners() {
+            // Line Chart Toggles
+            $('#toggleContributions').on('click', function() {
+                lineChart.data.datasets[0].hidden = false;
+                lineChart.data.datasets[1].hidden = true;
+                lineChart.options.scales.y.display = true;
+                lineChart.options.scales.y1.display = false;
+                $(this).addClass('filter-active');
+                $('#toggleContributors').removeClass('filter-active');
+                lineChart.update();
+            });
+            $('#toggleContributors').on('click', function() {
+                lineChart.data.datasets[0].hidden = true;
+                lineChart.data.datasets[1].hidden = false;
+                lineChart.options.scales.y.display = false;
+                lineChart.options.scales.y1.display = true;
+                $(this).addClass('filter-active');
+                $('#toggleContributions').removeClass('filter-active');
+                lineChart.update();
+            });
+
+            // Donut Chart Year Selector
+            $('#yearSelect').on('change', function() {
+                updateDonutChart($(this).val());
+            });
+
+            // Table Filters
+            $('#metricFilter, #searchFilter').on('change input', applyFilters);
+            $('body').on('click', '.year-filter', function() {
+                $('.year-filter').removeClass('filter-active');
+                $(this).addClass('filter-active');
+                applyFilters();
+            });
+        }
+
+        function updateDonutChart(year) {
+            const d = apiData.distribution[year];
+            if (!d) return;
+
+            const top6to10 = d.top_10_share - d.top_5_share;
+            const top11to20 = d.top_20_share - d.top_10_share;
+            const bottom80 = 100 - d.top_20_share;
+            
+            donutChart.data.datasets[0].data = [d.top_5_share, top6to10, top11to20, bottom80];
+            donutChart.update();
+        }
+
+        function applyFilters() {
+            const activeYearFilter = $('.year-filter.filter-active').data('year');
+            const activeMetricFilter = $('#metricFilter').val();
+            const searchTerm = $('#searchFilter').val().toLowerCase();
+
+            // Filter Columns
+            $('#statsTable .year-col').show();
+            if (activeYearFilter !== 'all') {
+                const [start, end] = activeYearFilter.split('-').map(Number);
+                 $('#statsTable .year-col').each(function() {
+                    const year = $(this).data('year');
+                    if (year < start || year > end) {
+                        $(this).hide();
+                    }
+                });
+            }
+
+            // Filter Rows
+            $('#statsTable tbody tr').each(function() {
+                const metric = $(this).data('metric');
+                const metricText = $(this).find('td:first').text().toLowerCase();
+                const showMetric = activeMetricFilter === 'all' || metric === activeMetricFilter;
+                const showSearch = searchTerm === '' || metricText.includes(searchTerm);
+                $(this).toggle(showMetric && showSearch);
+            });
+        }
+    });
+</script>
+{% endblock %}
