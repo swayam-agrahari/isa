@@ -1,120 +1,297 @@
 {% extends "main/layout.html" %}
-{% from "campaign/macros.html" import images %}
-{% block content%}
-<a href="{{url_for('campaigns.getCampaignById', id=campaign.id ) }}" class="btn btn-outline-secondary btn-sm close-stats"><i class="fas fa-caret-left"></i> {{ campaign.campaign_name }}: {{ _('Home Page') }}</a> 
-<h6 class="text-center text-muted">{{ _('CONTRIBUTIONS TO A STRUCTURED DATA CAMPAIGN') }}</h6>
-<div class="container page-header stats-page text-center">
-    <h2>{{ campaign.campaign_name }}</h2>
-    <hr>
-<div class="campaign-dates">
-        <h6><strong>{{ _('From')}}: </strong> {{campaign.start_date}}</h6>
-        <h6><strong>{{ _('Till') }}: </strong> {{campaign.end_date}}</h6>	
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/campaign-stats.css') }}" />
+<div class="campaign-stats-wrapper"
+    style="min-height: 100vh; background: linear-gradient(135deg, #f5f7fa 0%, #e8eef3 100%); padding: 2rem 0;">
+    <div class="container position-relative">
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+
+        <div class="campaign-header glass-panel mb-4">
+            <h1 class="campaign-title">{{ campaign.campaign_name }}</h1>
+            <p class="campaign-duration text-muted">
+                <span class="date-label">Duration:</span>
+                {{ campaign.start_date.strftime('%d %b %Y') }} – {{ campaign.end_date.strftime('%d %b %Y') if
+                campaign.end_date else 'Ongoing' }}
+            </p>
+            {% if campaign.short_description %}
+            <p class="campaign-description">{{ campaign.short_description }}</p>
+            {% endif %}
+            <a href="{{ url_for('campaigns.downloadAllCampaignStats', id=campaign.id) }}" class="btn btn-primary mt-3">
+                Download All Contributions (CSV)
+            </a>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="glass-panel stat-card">
+                    <div class="stat-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg></div>
+                    <div class="stat-content">
+                        <h3 class="stat-value" id="total-participants">{{ campaign.campaign_participants }}</h3>
+                        <p class="stat-label">Total Participants</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="glass-panel stat-card">
+                    <div class="stat-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg></div>
+                    <div class="stat-content">
+                        <h3 class="stat-value" id="total-contributions">{{ total_contributions }}</h3>
+                        <p class="stat-label">Total Contributions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="glass-panel mb-4">
+            <h2 class="section-title">Contributions Over Time</h2>
+            <div class="date-filter-container mb-3 d-flex align-items-center gap-2">
+                <input type="text" id="startDate" class="form-control" placeholder="Start Date">
+                <input type="text" id="endDate" class="form-control" placeholder="End Date">
+                <button id="filterBtn" class="btn btn-secondary">Filter</button>
+                <button id="clearBtn" class="btn btn-outline-secondary">Clear</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="dateWiseChart"></canvas>
+                <div id="dateWiseChart-no-data" class="no-data-message"></div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-lg-6 mb-3">
+                <div class="glass-panel">
+                    <h2 class="section-title">Top Contributors</h2>
+                    <div class="table-responsive">
+                        <table class="table contributors-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Username</th>
+                                    <th>Contributions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-contributors-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3">
+                <div class="glass-panel">
+                    <h2 class="section-title">Language Distribution</h2>
+                    <div class="chart-container">
+                        <canvas id="languageChart"></canvas>
+                        <div id="languageChart-no-data" class="no-data-message"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-lg-6 mb-3">
+                <div class="glass-panel">
+                    <h2 class="section-title">Country Distribution</h2>
+                    <div class="chart-container">
+                        <canvas id="countryChart"></canvas>
+                        <div id="countryChart-no-data" class="no-data-message"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3">
+                <div class="glass-panel">
+                    <h2 class="section-title">Contribution Type Distribution</h2>
+                    <div class="chart-container">
+                        <canvas id="contributionTypeChart"></canvas>
+                        <div id="contributionTypeChart-no-data" class="no-data-message"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="campaign-footer glass-panel">
+            <div class="footer-content">
+                <p class="footer-source"><strong>Source:</strong> ISA Tool</p>
+                <p class="footer-license">
+                    <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">
+                        CC BY-SA 4.0
+                    </a>
+                </p>
+            </div>
+        </footer>
     </div>
 </div>
+{% endblock %}
 
-<div class="container campaign-stats stats-page text-center">
-    <div class="campaign-panel pt-4">
+{% block scripts %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const initialData = {
+    datewise: {{ datewise_data|tojson }},
+    language: {{ language_stats|tojson }},
+    country: {{ country_distribution|tojson }},
+    topContributors: {{ top_contributors|tojson }},
+    contributionTypes: {{ contribution_types|tojson }},
+    totalContributions: {{ total_contributions }}
+};
 
-    <div class="main-stats-label-group mx-auto">
-        <div class="stat-label" title="{{ _('Total number of images in this campaign') }}"><strong>{{ _('Images') }}:</strong> {{ images(campaign) }}</div>
-        <div class="stat-label" title="{{ _('Total number of contributions made to this campaign') }}"><strong>{{ _('Contributions') }}:</strong> {{ campaign_contributions }}</div>
+    const chartColors = {
+        primary: '#3366cc',
+        secondary: '#72777d',
+        accent: '#00af89',
+        neutral: ['#3366cc', '#72777d', '#00af89', '#6699cc', '#a2a9b1', '#54595d', '#2a4b8d', '#14866d', '#4285f4', '#5c6c7d']
+    };
 
-    </div>
-    <div class="stats-table mx-auto">
-        <div class="top-user-table mr-md-4">
-            <div id="contributorChartContainer" style="height: 300px; width: 100%;"></div>
-        </div>
+const dateWiseCtx = document.getElementById('dateWiseChart').getContext('2d');
+const dateWiseChart = new Chart(dateWiseCtx, { type: 'line', data: {}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { maxRotation: 45, minRotation: 45 } }, y: { beginAtZero: true, ticks: { precision: 0 } } } } });
+const languageCtx = document.getElementById('languageChart').getContext('2d');
+const languageChart = new Chart(languageCtx, { type: 'doughnut', data: {}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { padding: 12 } } } } });
+const countryCtx = document.getElementById('countryChart').getContext('2d');
+const countryChart = new Chart(countryCtx, { type: 'pie', data: {}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { padding: 12 } } } } });
+const contributionTypeCtx = document.getElementById('contributionTypeChart').getContext('2d');
+const contributionTypeChart = new Chart(contributionTypeCtx, { type: 'doughnut', data: {}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } } });
 
-        {% if is_wiki_loves_campaign %}
-        <div class="top-country-table mr-md-4">
-            <div id="countryChartContainer" style="height: 300px; width: 100%;"></div>
-        </div>
-        {% endif %}
-    </div>
-    <br>
-   
-    <!--<div class="stats-table mx-auto">
-                <div class="top-user-table mr-md-4">				
-            <table class="table table-sm table-light text-center">
-                <h6>{{ _('Top Contributors') }}</h6>
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">{{ _('Contributor') }}</th>
-                        <th scope="col">{{ _('Contributions') }}</th>
-                    </tr>
-                </thead>
-                {% if all_contributors_data %}
-                <tbody>
-                {% for contributor_data in all_contributors_data %}
-                    <tr>
-                        <th scope="row">{{contributor_data['rank']}}</th>
-                        <td>{{contributor_data['username']}}</td>
-                        <td>{{contributor_data['images_improved']}}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-                {% else %}
-                <tbody>
-                    <tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td class="text-center">{{ _('No partcipants has contributed to this campaign') }}</td>
-                    </tr>
-                </tbody>
-                {% endif %}
-            </table>
-        </div>
-        {% if is_wiki_loves_campaign %}
-            <div class="top-country-table mr-md-4">
-                <table class="table table-sm table-light text-center">
-                    <h6>{{ _('Most improved countries') }}</h6>
-                        <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">{{ _('Country') }}</th>
-                                <th scope="col">{{ _('Contributions') }}</th>
-                            </tr>
-                        </thead>
-                        {% if all_campaign_country_statistics_data %}
-                            <tbody>
-                                {% for country_statistics_data in all_campaign_country_statistics_data %}
-                                    <tr>
-                                        <th scope="row">{{country_statistics_data['rank']}}</th>
-                                        <td>{{country_statistics_data['country']}}</td>
-                                        <td>{{country_statistics_data['images_improved']}}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        {% else %}
-                            <tbody>
-                                <tr>
-                                    <th scope="row"></th>
-                                    <td></td>
-                                    <td class="text-center">{{ _('There is no data available yet for this campaign') }}</td>
-                                </tr>
-                            </tbody>
-                        {% endif %}
-                </table>
-            </div>
-        {% endif %}
-    </div>-->
-   
-           <div class="stats-meta mb-3">
-        <p>{{campaign.short_description}}</p>
-        <p>Source: ISA Tool |  <a href="{{url_for('campaigns.getCampaignById', id=campaign.id ) }}"> tools.wmflabs.org{{url_for('campaigns.getCampaignById', id=campaign.id ) }} </a></p>
-         <p>License: CC BY SA 4.0</p>
-        </div>
-        <a  class="btn btn-sm btn-primary" href="{{url_for('campaigns.downloadAllCampaignStats', id=campaign.id) }}">{{ _('Download all stats (CSV)') }}</a>
-    </div></div>
- 
-    <div class="hidden-i18n-text">
-        {
-            "Contributor Stats": {{ _('Contributor Stats')|tojson }},
-            "Country Stats": {{ _('Country Stats')|tojson }}
-        }
-    </div>
-{% endblock content%}
-{% block scripts%}
-    <script src="{{url_for('static', filename='js/stats.js')}}"></script>
-{% endblock scripts%}
+function updatePageStats(data) {
+    document.getElementById('total-contributions').textContent = data.total_contributions;
+    document.getElementById('total-participants').textContent = {{ campaign.campaign_participants }};
+
+    const dateWiseCanvas = document.getElementById('dateWiseChart');
+    const dateWiseNoData = document.getElementById('dateWiseChart-no-data');
+    if (data.datewise_data.length === 0) {
+        dateWiseCanvas.style.display = 'none';
+        dateWiseNoData.style.display = 'flex';
+        dateWiseNoData.textContent = 'No contribution data for this period.';
+    } else {
+        dateWiseCanvas.style.display = 'block';
+        dateWiseNoData.style.display = 'none';
+        dateWiseChart.data = { labels: data.datewise_data.map(d => d.date), datasets: [{ label: 'Contributions', data: data.datewise_data.map(d => d.count), borderColor: chartColors.primary, backgroundColor: 'rgba(51, 102, 204, 0.1)', fill: true, tension: 0.4 }] };
+        dateWiseChart.update();
+    }
+
+    const langCanvas = document.getElementById('languageChart');
+    const langNoData = document.getElementById('languageChart-no-data');
+    if (data.language_stats.length === 0) {
+        langCanvas.style.display = 'none';
+        langNoData.style.display = 'flex';
+        langNoData.textContent = 'No language data for this period.';
+    } else {
+        langCanvas.style.display = 'block';
+        langNoData.style.display = 'none';
+        languageChart.data = { labels: data.language_stats.map(l => l.language), datasets: [{ data: data.language_stats.map(l => l.count), backgroundColor: chartColors.neutral, borderColor: '#fff', borderWidth: 2 }] };
+        languageChart.update();
+    }
+
+    const countryCanvas = document.getElementById('countryChart');
+    const countryNoData = document.getElementById('countryChart-no-data');
+    if (data.country_distribution.length === 0) {
+        countryCanvas.style.display = 'none';
+        countryNoData.style.display = 'flex';
+        countryNoData.textContent = 'No country data for this period.';
+    } else {
+        countryCanvas.style.display = 'block';
+        countryNoData.style.display = 'none';
+        countryChart.data = { labels: data.country_distribution.map(c => c.country), datasets: [{ data: data.country_distribution.map(c => c.count), backgroundColor: chartColors.neutral, borderColor: '#fff', borderWidth: 2 }] };
+        countryChart.update();
+    }
+
+    const typeCanvas = document.getElementById('contributionTypeChart');
+    const typeNoData = document.getElementById('contributionTypeChart-no-data');
+    if (data.contribution_types.length === 0) {
+        typeCanvas.style.display = 'none';
+        typeNoData.style.display = 'flex';
+        typeNoData.textContent = 'No contribution type data for this period.';
+    } else {
+        typeCanvas.style.display = 'block';
+        typeNoData.style.display = 'none';
+        contributionTypeChart.data = { labels: data.contribution_types.map(c => c.type), datasets: [{ data: data.contribution_types.map(c => c.count), backgroundColor: chartColors.neutral, borderColor: '#fff', borderWidth: 2 }] };
+        contributionTypeChart.update();
+    }
+
+    const contributorsBody = document.getElementById('top-contributors-body');
+    contributorsBody.innerHTML = '';
+    if (data.top_contributors.length > 0) {
+        data.top_contributors.forEach((c, index) => {
+            contributorsBody.innerHTML += `<tr><td class="rank-cell">${index + 1}</td><td class="username-cell">${c.username}</td><td class="count-cell">${c.count}</td></tr>`;
+        });
+    } else {
+        contributorsBody.innerHTML = '<tr><td colspan="3" class="text-center">No contributors for this period.</td></tr>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const startDatePicker = flatpickr("#startDate", { dateFormat: "Y-m-d" });
+    const endDatePicker = flatpickr("#endDate", { dateFormat: "Y-m-d" });
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const filterBtn = document.getElementById('filterBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+        const fetchAndUpdateStats = () => {
+            loadingOverlay.classList.add('visible');
+            filterBtn.disabled = true;
+            clearBtn.disabled = true;
+            const startDate = startDatePicker.input.value;
+            const endDate = endDatePicker.input.value;
+            let apiUrl = `/api/campaigns/{{ campaign.id }}/stats_by_date?`;
+            if (startDate) apiUrl += `start_date=${startDate}&`;
+            if (endDate) apiUrl += `end_date=${endDate}`;
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => updatePageStats(data))
+                .catch(error => console.error('Error fetching filtered data:', error))
+                .finally(() => {
+                    loadingOverlay.classList.remove('visible');
+                    filterBtn.disabled = false;
+                    clearBtn.disabled = false;
+                });
+        };
+
+        updatePageStats({
+            total_contributions: initialData.totalContributions,
+            datewise_data: initialData.datewise,
+            language_stats: initialData.language,
+            country_distribution: initialData.country,
+            top_contributors: initialData.topContributors,
+            contribution_types: initialData.contributionTypes,
+        });
+
+        filterBtn.addEventListener('click', () => {
+            const startDate = startDatePicker.input.value;
+            const endDate = endDatePicker.input.value;
+            if (!startDate && !endDate) {
+                alert('Please select a start and end date to apply a filter.');
+                return;
+            }
+            if ((startDate && !endDate) || (!startDate && endDate)) {
+                alert('Please select both a start and end date for the range.');
+                return;
+            }
+            if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                alert('Start date cannot be after the end date.');
+                return;
+            }
+            fetchAndUpdateStats();
+        });
+
+
+        clearBtn.addEventListener('click', () => {
+            if (!startDatePicker.input.value && !endDatePicker.input.value) {
+                alert('No date filters are currently applied.');
+                return;
+            }
+
+            startDatePicker.clear();
+            endDatePicker.clear();
+            fetchAndUpdateStats();
+        });
+    });
+</script>
+{% endblock %}
