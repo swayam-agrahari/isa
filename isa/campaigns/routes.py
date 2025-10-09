@@ -159,7 +159,6 @@ def getCampaignStatsById(id):
         Contribution.date,
         func.count(Contribution.id).label('count')
     ).filter_by(campaign_id=id).group_by(Contribution.date).order_by(Contribution.date).all()
-    # CORRECTED: Convert list of Rows to list of dicts
     datewise_data = [{'date': r.date.strftime('%Y-%m-%d'), 'count': r.count} for r in datewise_data_query]
 
     # 2. Top 10 Contributors
@@ -167,7 +166,6 @@ def getCampaignStatsById(id):
         User.username,
         func.count(Contribution.id).label('count')
     ).join(User, User.id == Contribution.user_id).filter(Contribution.campaign_id == id).group_by(User.username).order_by(func.count(Contribution.id).desc()).limit(5).all()
-    # CORRECTED: Convert list of Rows to list of dicts
     top_contributors = [{'username': r.username, 'count': r.count} for r in top_contributors_query]
 
     # 3. Language Distribution
@@ -179,7 +177,6 @@ def getCampaignStatsById(id):
         Contribution.caption_language.isnot(None),
         Contribution.caption_language != ''
     ).group_by('language').order_by(func.count(Contribution.id).desc()).all()
-    # CORRECTED: Convert list of Rows to list of dicts
     language_stats = [{'language': r.language, 'count': r.count} for r in language_stats_query]
 
     # 4. Country Distribution
@@ -191,10 +188,9 @@ def getCampaignStatsById(id):
         Contribution.country.isnot(None),
         Contribution.country != ''
     ).group_by(Contribution.country).order_by(func.count(Contribution.id).desc()).all()
-    # CORRECTED: Convert list of Rows to list of dicts
     country_distribution = [{'country': r.country, 'count': r.count} for r in country_distribution_query]
 
- # --- NEW: Add this query for Contribution Types ---
+    # 5. Contribution Types
     contribution_types_query = db.session.query(
         Contribution.edit_type,
         func.count(Contribution.id).label('count')
@@ -214,10 +210,8 @@ def getCampaignStatsById(id):
         top_contributors=top_contributors,
         language_stats=language_stats,
         country_distribution=country_distribution,
-        contribution_types=contribution_types # <-- Add the new variable here
+        contribution_types=contribution_types
     )
-
-# In isa/campaigns/routes.py
 
 @campaigns.route('/api/campaigns/<int:campaign_id>/stats_by_date')
 def get_stats_by_date(campaign_id):
@@ -236,7 +230,7 @@ def get_stats_by_date(campaign_id):
         end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
         filters.append(Contribution.date <= end_date)
 
-
+    # Total contributions in the date range
     total_contributions = db.session.query(func.count(Contribution.id)).filter(*filters).scalar()
 
     datewise_data_query = db.session.query(
@@ -244,25 +238,29 @@ def get_stats_by_date(campaign_id):
         func.count(Contribution.id).label('count')
     ).filter(*filters).group_by(Contribution.date).order_by(Contribution.date).all()
     datewise_data = [{'date': r.date.strftime('%Y-%m-%d'), 'count': r.count} for r in datewise_data_query]
-
+    
+    # Top 5 contributors in the date range
     top_contributors_query = db.session.query(
         User.username,
         func.count(Contribution.id).label('count')
     ).join(Contribution, User.id == Contribution.user_id).filter(*filters).group_by(User.username).order_by(func.count(Contribution.id).desc()).limit(5).all()
     top_contributors = [{'username': r.username, 'count': r.count} for r in top_contributors_query]
 
+    # Language stats in the date range
     language_stats_query = db.session.query(
         Contribution.caption_language.label('language'),
         func.count(Contribution.id).label('count')
     ).filter(Contribution.caption_language.isnot(None), Contribution.caption_language != '', *filters).group_by('language').order_by(func.count(Contribution.id).desc()).all()
     language_stats = [{'language': r.language, 'count': r.count} for r in language_stats_query]
 
+    # Country distribution in the date range
     country_distribution_query = db.session.query(
         Contribution.country,
         func.count(Contribution.id).label('count')
     ).filter(Contribution.country.isnot(None), Contribution.country != '', *filters).group_by(Contribution.country).order_by(func.count(Contribution.id).desc()).all()
     country_distribution = [{'country': r.country, 'count': r.count} for r in country_distribution_query]
 
+    # Contribution types in the date range
     contribution_types_query = db.session.query(
         Contribution.edit_type,
         func.count(Contribution.id).label('count')
