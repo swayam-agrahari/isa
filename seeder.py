@@ -111,8 +111,12 @@ def seed_data():
                 edit_type=random.choice(['caption', 'depict']),
                 edit_action=random.choice(['add', 'remove']),
                 country = fake.country()[:50],
-                date=get_random_date(START_DATE, END_DATE)
-            )
+                date=get_random_date(START_DATE, END_DATE),
+                caption_language=random.choice([user.caption_languages, None]),
+                caption_text=fake.sentence(nb_words=6) if random.random() < 0.7 else None,
+                depict_item=fake.word() if random.random() < 0.5 else None,
+                depict_prominent=random.choice([True, False, None])
+            )            
             contributions.append(contribution)
 
         print("Adding contributions to the session (this might take a moment)...")

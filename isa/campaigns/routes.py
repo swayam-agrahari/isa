@@ -145,54 +145,136 @@ def getCampaignTableData(id):
     campaign_table_stats = get_table_stats(id, username, page, per_page)
     return campaign_table_stats
 
-
 @campaigns.route('/campaigns/<int:id>/stats')
 def getCampaignStatsById(id):
-    # We get the current user's user_name
-    username = session.get('username', None)
-    session_language = session.get('lang', None)
-    if not session_language:
-        session_language = 'en'
-    campaign = Campaign.query.filter_by(id=id).first()
-    if not campaign:
-        flash(gettext('Campaign with id %(id)s does not exist', id=id), 'info')
-        return redirect(url_for('campaigns.getCampaigns'))
+    """
+    Endpoint to display the statistics page for a specific campaign.
+    """
+    campaign = Campaign.query.get_or_404(id)
+    base_query = Contribution.query.filter_by(campaign_id=id)
+    total_contributions = base_query.count()
 
-    stats_file_directory = os.getcwd() + '/campaign_stats_files/' + str(campaign.id)
+    # 1. Contributions Over Time (Date-wise)
+    datewise_data_query = db.session.query(
+        Contribution.date,
+        func.count(Contribution.id).label('count')
+    ).filter_by(campaign_id=id).group_by(Contribution.date).order_by(Contribution.date).all()
+    datewise_data = [{'date': r.date.strftime('%Y-%m-%d'), 'count': r.count} for r in datewise_data_query]
 
-    # We create the all_stats download file
-    # The field in the stats file will be as thus
-    all_stats_fields = ['username', 'file', 'edit_type', 'edit_action', 'country', 'depict_item',
-                        'depict_prominent', 'caption_text', 'caption_language', 'date']
-    campaign_all_stats_data = get_all_camapaign_stats_data(id)
+    # 2. Top 10 Contributors
+    top_contributors_query = db.session.query(
+        User.username,
+        func.count(Contribution.id).label('count')
+    ).join(User, User.id == Contribution.user_id).filter(Contribution.campaign_id == id).group_by(User.username).order_by(func.count(Contribution.id).desc()).limit(5).all()
+    top_contributors = [{'username': r.username, 'count': r.count} for r in top_contributors_query]
 
-    # TODO: Move this method or fix to include all campaign data
-    campaign_all_stats_csv_file = create_campaign_all_stats_csv(stats_file_directory,
-                                                                convert_latin_to_english(campaign.campaign_name),
-                                                                all_stats_fields, campaign_all_stats_data)
+    # 3. Language Distribution
+    language_stats_query = db.session.query(
+        Contribution.caption_language.label('language'),
+        func.count(Contribution.id).label('count')
+    ).filter(
+        Contribution.campaign_id == id,
+        Contribution.caption_language.isnot(None),
+        Contribution.caption_language != ''
+    ).group_by('language').order_by(func.count(Contribution.id).desc()).all()
+    language_stats = [{'language': r.language, 'count': r.count} for r in language_stats_query]
 
-    # We prepare the campaign stats data to be sent to the next page (stats route)
-    all_campaign_stats_data = {}
-    all_campaign_stats_data['campaign_editors'] = campaign.campaign_participants
-    all_campaign_stats_data['campaign_contributions'] = campaign.campaign_contributions
-    # all_campaign_stats_data['all_contributors_data'] = campaign_table_stats['all_contributors_data']
-    # all_campaign_stats_data['all_campaign_country_statistics_data'] = campaign_table_stats['all_campaign_country_statistics_data']
-    all_campaign_stats_data['campaign_all_stats_csv_file'] = campaign_all_stats_csv_file
-    session['next_url'] = request.url
+    # 4. Country Distribution
+    country_distribution_query = db.session.query(
+        Contribution.country,
+        func.count(Contribution.id).label('count')
+    ).filter(
+        Contribution.campaign_id == id,
+        Contribution.country.isnot(None),
+        Contribution.country != ''
+    ).group_by(Contribution.country).order_by(func.count(Contribution.id).desc()).all()
+    country_distribution = [{'country': r.country, 'count': r.count} for r in country_distribution_query]
 
-    return render_template('campaign/campaign_stats.html', title=gettext('Campaign - %(campaign_name)s',
-                                                                         campaign_name=campaign.campaign_name),
-                           campaign=campaign,
-                           session_language=session_language,
-                           campaign_editors=all_campaign_stats_data['campaign_editors'],
-                           campaign_contributions=all_campaign_stats_data['campaign_contributions'],
-                           current_user=current_user,
-                           is_wiki_loves_campaign=campaign.campaign_type,
-                           # all_contributors_data=all_campaign_stats_data['all_contributors_data'],
-                           # all_campaign_country_statistics_data=all_campaign_stats_data['all_campaign_country_statistics_data'],
-                           username=username,
-                           campaign_all_stats_csv_file=all_campaign_stats_data['campaign_all_stats_csv_file'])
+    # 5. Contribution Types
+    contribution_types_query = db.session.query(
+        Contribution.edit_type,
+        func.count(Contribution.id).label('count')
+    ).filter(
+        Contribution.campaign_id == id,
+        Contribution.edit_type.isnot(None),
+        Contribution.edit_type != ''
+    ).group_by(Contribution.edit_type).order_by(func.count(Contribution.id).desc()).all()
+    contribution_types = [{'type': r.edit_type, 'count': r.count} for r in contribution_types_query]
 
+    # Render the template with the correctly formatted data
+    return render_template(
+        'campaign/campaign_stats.html',
+        campaign=campaign,
+        total_contributions=total_contributions,
+        datewise_data=datewise_data,
+        top_contributors=top_contributors,
+        language_stats=language_stats,
+        country_distribution=country_distribution,
+        contribution_types=contribution_types
+    )
+
+@campaigns.route('/api/campaigns/<int:campaign_id>/stats_by_date')
+def get_stats_by_date(campaign_id):
+    """
+    API endpoint to deliver all campaign stats within a specific date range.
+    """
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+
+    # Base filter list to be applied to every query
+    filters = [Contribution.campaign_id == campaign_id]
+    if start_date_str:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        filters.append(Contribution.date >= start_date)
+    if end_date_str:
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        filters.append(Contribution.date <= end_date)
+
+    # Total contributions in the date range
+    total_contributions = db.session.query(func.count(Contribution.id)).filter(*filters).scalar()
+
+    datewise_data_query = db.session.query(
+        Contribution.date,
+        func.count(Contribution.id).label('count')
+    ).filter(*filters).group_by(Contribution.date).order_by(Contribution.date).all()
+    datewise_data = [{'date': r.date.strftime('%Y-%m-%d'), 'count': r.count} for r in datewise_data_query]
+    
+    # Top 5 contributors in the date range
+    top_contributors_query = db.session.query(
+        User.username,
+        func.count(Contribution.id).label('count')
+    ).join(Contribution, User.id == Contribution.user_id).filter(*filters).group_by(User.username).order_by(func.count(Contribution.id).desc()).limit(5).all()
+    top_contributors = [{'username': r.username, 'count': r.count} for r in top_contributors_query]
+
+    # Language stats in the date range
+    language_stats_query = db.session.query(
+        Contribution.caption_language.label('language'),
+        func.count(Contribution.id).label('count')
+    ).filter(Contribution.caption_language.isnot(None), Contribution.caption_language != '', *filters).group_by('language').order_by(func.count(Contribution.id).desc()).all()
+    language_stats = [{'language': r.language, 'count': r.count} for r in language_stats_query]
+
+    # Country distribution in the date range
+    country_distribution_query = db.session.query(
+        Contribution.country,
+        func.count(Contribution.id).label('count')
+    ).filter(Contribution.country.isnot(None), Contribution.country != '', *filters).group_by(Contribution.country).order_by(func.count(Contribution.id).desc()).all()
+    country_distribution = [{'country': r.country, 'count': r.count} for r in country_distribution_query]
+
+    # Contribution types in the date range
+    contribution_types_query = db.session.query(
+        Contribution.edit_type,
+        func.count(Contribution.id).label('count')
+    ).filter(Contribution.edit_type.isnot(None), Contribution.edit_type != '', *filters).group_by(Contribution.edit_type).order_by(func.count(Contribution.id).desc()).all()
+    contribution_types = [{'type': r.edit_type, 'count': r.count} for r in contribution_types_query]
+
+    return jsonify({
+        'total_contributions': total_contributions,
+        'datewise_data': datewise_data,
+        'top_contributors': top_contributors,
+        'language_stats': language_stats,
+        'country_distribution': country_distribution,
+        'contribution_types': contribution_types
+    })
 
 @campaigns.route('/campaigns/create', methods=['GET', 'POST'])
 def CreateCampaign():

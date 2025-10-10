@@ -1,0 +1,243 @@
+.campaign-stats-wrapper {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Lato', 'Helvetica', 'Arial', sans-serif;
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-panel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08), 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.campaign-header {
+    text-align: center;
+}
+
+.campaign-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #202122;
+    margin-bottom: 0.5rem;
+}
+
+.campaign-duration {
+    font-size: 1rem;
+    color: #54595d;
+    margin-bottom: 1rem;
+}
+
+.date-label {
+    font-weight: 600;
+}
+
+.campaign-description {
+    font-size: 1rem;
+    color: #54595d;
+    line-height: 1.6;
+    margin-top: 1rem;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.stat-icon {
+    color: #3366cc;
+    flex-shrink: 0;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #202122;
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.95rem;
+    color: #54595d;
+    margin: 0.5rem 0 0 0;
+    font-weight: 500;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #202122;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #eaecf0;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-top: 1rem;
+}
+
+.table {
+    margin-bottom: 0;
+    color: #202122;
+}
+
+.table thead th {
+    background: rgba(234, 236, 240, 0.5);
+    border-bottom: 2px solid #c8ccd1;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #202122;
+    padding: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: rgba(234, 236, 240, 0.3);
+}
+
+.table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #eaecf0;
+}
+
+.rank-cell {
+    font-weight: 600;
+    color: #72777d;
+    width: 60px;
+}
+
+.username-cell {
+    font-weight: 500;
+    color: #202122;
+}
+
+.item-cell a {
+    color: #3366cc;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.item-cell a:hover {
+    color: #447ff5;
+    text-decoration: underline;
+}
+
+.count-cell {
+    font-weight: 600;
+    color: #3366cc;
+    text-align: right;
+}
+
+.campaign-footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding: 1.5rem;
+}
+
+.footer-content {
+    color: #54595d;
+    font-size: 0.9rem;
+}
+
+.footer-source {
+    margin-bottom: 0.5rem;
+}
+
+.footer-license {
+    margin: 0;
+}
+
+.footer-license a {
+    color: #3366cc;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.footer-license a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .campaign-title {
+        font-size: 1.75rem;
+    }
+
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+
+    .glass-panel {
+        padding: 1.25rem;
+    }
+}
+
+/* All your existing CSS styles are correct and remain here */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(2px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #3366cc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
