@@ -680,26 +680,25 @@ def get_images(campaign_id, country_name):
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-    country = None
+    # Start a query on the Image table directly
+    query = Image.query.filter(Image.campaign_id == campaign_id)
+
     if country_name:
         country = Country.query.filter_by(name=country_name).first()
         if not country:
-            # The country is not in this campaign.
             return jsonify([])
+        query = query.filter(Image.country_id == country.id)
 
-    campaign = Campaign.query.get(campaign_id)
-    images = []
-    for image in campaign.images:
-        if not country or image.country_id == country.id:
-            images.append(image.page_id)
-
-    start = (page - 1) * per_page
-    end = start + per_page
-    paginated_images = images[start:end]
+    total_count = query.count()
+    
+    paginated_results = query.order_by(Image.page_id).offset((page - 1) * per_page).limit(per_page).all()
+    
+    # Extract the IDs
+    paginated_images = [img.page_id for img in paginated_results]
 
     return jsonify({
         "images": paginated_images,
-        "has_more": end < len(images)
+        "has_more": ((page - 1) * per_page + len(paginated_images)) < total_count
     })
 
 

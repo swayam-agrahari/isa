@@ -30,6 +30,7 @@ export function ParticipationManager(images, campaignId, wikiLovesCountry, isUse
     this.nextImage = function() {
         if (!this.confirmImageNavigation()) return;
         imageIndex = (imageIndex + 1) % (images.length);
+        this.imageIndex = imageIndex;
         this.imageChanged();
     }
 
@@ -38,8 +39,13 @@ export function ParticipationManager(images, campaignId, wikiLovesCountry, isUse
         imageIndex -= 1;
         // jump to end of list if previous image is called on index=0
         if (imageIndex < 0) imageIndex = images.length - 1;
+        this.imageIndex = imageIndex;
         this.imageChanged();
     }
+
+    this.updateImages = function (newImages) {
+        images = newImages;   // update the closure variable
+    };
 
     this.confirmImageNavigation = function () {
         if (areChangesUnsaved()) {
@@ -54,6 +60,7 @@ export function ParticipationManager(images, campaignId, wikiLovesCountry, isUse
     this.setImageIndex = function(newIndex) {
         if (!this.confirmImageNavigation()) return;
         imageIndex = newIndex % (images.length);
+        this.imageIndex = imageIndex;
         this.imageChanged();
     }
 
@@ -69,6 +76,7 @@ export function ParticipationManager(images, campaignId, wikiLovesCountry, isUse
             me.description = (metadata.ImageDescription) ? getHtmlStripped(metadata.ImageDescription.value) : '';
             me.categories = (metadata.Categories) ? metadata.Categories.value : '';
             me.imagesUrl = imageInfo.url
+            me.imageIndex = imageIndex;
             updateImage(me.imageFileName);
             me.populateMetadata(me.imageFileName);
             me.populateStructuredData(me.imageFileName, /*callbacks*/ {
