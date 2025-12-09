@@ -193,7 +193,7 @@ $('.next-image-btn').click(function () {
     if (editSession.imageIndex >= allLoadedImages.length - 1 && hasMoreImages) {
         currentPage++;
         loadImages(currentPage).then(() => {
-            editSession.images = allLoadedImages;
+            editSession.updateImages(allLoadedImages);
             editSession.nextImage();
         });
     } else {
