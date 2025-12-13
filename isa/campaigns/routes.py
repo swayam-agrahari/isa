@@ -8,6 +8,7 @@ from flask import (make_response, render_template, redirect, url_for, flash, req
                    session, Blueprint, send_file, jsonify, abort)
 from flask_login import current_user
 from sqlalchemy import func
+from sqlalchemy.exc import SQLAlchemyError
 
 from isa import app, db, gettext
 from isa.campaigns.forms import CampaignForm
@@ -70,7 +71,22 @@ def getCampaignById(id):
         if (contrib.campaign_id == campaign.id):
             campaign_contributions += 1
 
-    campaign_table_stats = get_table_stats(id, username, page, per_page)
+    try:
+        campaign_table_stats = get_table_stats(id, username, page, per_page)
+    except SQLAlchemyError:
+        app.logger.exception('Database error while loading campaign table for %s', id)
+        flash(gettext('Database error while loading campaign statistics. Please try again later.'), 'danger')
+        return redirect(url_for('campaigns.getCampaigns'))
+    except Exception:
+        app.logger.exception('Unexpected error while loading campaign table for %s', id)
+        flash(gettext('An internal error occurred while loading campaign statistics'), 'danger')
+        return redirect(url_for('campaigns.getCampaigns'))
+
+    # Validate returned data to avoid raw 500s when downstream code expects a dict
+    if not campaign_table_stats or not isinstance(campaign_table_stats, dict):
+        app.logger.error('Invalid campaign_table_stats returned for %s: %r', id, campaign_table_stats)
+        flash(gettext('Unable to load campaign statistics.'), 'info')
+        return redirect(url_for('campaigns.getCampaigns'))
     # Delete the files in the campaign directory
     stats_path = os.getcwd() + '/campaign_stats_files/' + str(campaign.id)
     files = glob.glob(stats_path + '/*')
@@ -138,12 +154,40 @@ def getCampaignById(id):
 
 @campaigns.route('/campaigns/<int:id>/table')
 def getCampaignTableData(id):
-    # We get the table stats from the campaign itself
-    page = request.args.get('page', None, type=int)
-    per_page = request.args.get('per_page', 30, type=int)
-    username = session.get('username', None)
-    campaign_table_stats = get_table_stats(id, username, page, per_page)
-    return campaign_table_stats
+    # Validate campaign existence and request parameters, then return table stats
+    try:
+        # Ensure campaign exists
+        campaign = Campaign.query.get(id)
+        if not campaign:
+            return make_response(jsonify({'error': gettext('Campaign with id %(id)s does not exist', id=id)}), 404)
+
+        # Parse raw query parameters so we can return 400 on malformed values
+        page_raw = request.args.get('page', None)
+        per_page_raw = request.args.get('per_page', None)
+
+        # page is optional; per_page defaults to 30
+        try:
+            page = int(page_raw) if page_raw is not None else None
+        except (TypeError, ValueError):
+            return make_response(jsonify({'error': gettext('Invalid "page" parameter')}), 400)
+
+        try:
+            per_page = int(per_page_raw) if per_page_raw is not None else 30
+        except (TypeError, ValueError):
+            return make_response(jsonify({'error': gettext('Invalid "per_page" parameter')}), 400)
+
+        # Validate numeric ranges
+        if page is not None and page <= 0:
+            return make_response(jsonify({'error': gettext('Invalid "page" parameter')}), 400)
+        if per_page <= 0:
+            return make_response(jsonify({'error': gettext('Invalid "per_page" parameter')}), 400)
+
+        username = session.get('username', None)
+        campaign_table_stats = get_table_stats(id, username, page, per_page)
+        return jsonify(campaign_table_stats)
+    except Exception:
+        app.logger.exception('Unexpected error while loading campaign table for %s', id)
+        return make_response(jsonify({'error': gettext('An internal error occurred')}), 500)
 
 @campaigns.route('/campaigns/<int:id>/stats')
 def getCampaignStatsById(id):
@@ -221,60 +265,81 @@ def get_stats_by_date(campaign_id):
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
 
-    # Base filter list to be applied to every query
-    filters = [Contribution.campaign_id == campaign_id]
-    if start_date_str:
-        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-        filters.append(Contribution.date >= start_date)
-    if end_date_str:
-        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-        filters.append(Contribution.date <= end_date)
+    # Verify campaign exists
+    campaign = Campaign.query.get(campaign_id)
+    if not campaign:
+        return make_response(jsonify({'error': gettext('Campaign with id %(id)s does not exist', id=campaign_id)}), 404)
 
-    # Total contributions in the date range
-    total_contributions = db.session.query(func.count(Contribution.id)).filter(*filters).scalar()
+    # Parse and validate dates
+    try:
+        start_date = None
+        end_date = None
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        # Ensure start_date is not after end_date
+        if start_date and end_date and start_date > end_date:
+            return make_response(jsonify({'error': gettext('Invalid date range; start_date must be on or before end_date')}), 400)
+    except ValueError:
+        return make_response(jsonify({'error': gettext('Invalid date format; expected YYYY-MM-DD')}), 400)
 
-    datewise_data_query = db.session.query(
-        Contribution.date,
-        func.count(Contribution.id).label('count')
-    ).filter(*filters).group_by(Contribution.date).order_by(Contribution.date).all()
-    datewise_data = [{'date': r.date.strftime('%Y-%m-%d'), 'count': r.count} for r in datewise_data_query]
-    
-    # Top 5 contributors in the date range
-    top_contributors_query = db.session.query(
-        User.username,
-        func.count(Contribution.id).label('count')
-    ).join(Contribution, User.id == Contribution.user_id).filter(*filters).group_by(User.username).order_by(func.count(Contribution.id).desc()).limit(5).all()
-    top_contributors = [{'username': r.username, 'count': r.count} for r in top_contributors_query]
+    try:
+        # Base filter list to be applied to every query
+        filters = [Contribution.campaign_id == campaign_id]
+        if start_date:
+            filters.append(Contribution.date >= start_date)
+        if end_date:
+            filters.append(Contribution.date <= end_date)
 
-    # Language stats in the date range
-    language_stats_query = db.session.query(
-        Contribution.caption_language.label('language'),
-        func.count(Contribution.id).label('count')
-    ).filter(Contribution.caption_language.isnot(None), Contribution.caption_language != '', *filters).group_by('language').order_by(func.count(Contribution.id).desc()).all()
-    language_stats = [{'language': r.language, 'count': r.count} for r in language_stats_query]
+        # Total contributions in the date range
+        total_contributions = db.session.query(func.count(Contribution.id)).filter(*filters).scalar()
 
-    # Country distribution in the date range
-    country_distribution_query = db.session.query(
-        Contribution.country,
-        func.count(Contribution.id).label('count')
-    ).filter(Contribution.country.isnot(None), Contribution.country != '', *filters).group_by(Contribution.country).order_by(func.count(Contribution.id).desc()).all()
-    country_distribution = [{'country': r.country, 'count': r.count} for r in country_distribution_query]
+        datewise_data_query = db.session.query(
+            Contribution.date,
+            func.count(Contribution.id).label('count')
+        ).filter(*filters).group_by(Contribution.date).order_by(Contribution.date).all()
+        datewise_data = [{'date': r.date.strftime('%Y-%m-%d'), 'count': r.count} for r in datewise_data_query]
+        
+        # Top 5 contributors in the date range
+        top_contributors_query = db.session.query(
+            User.username,
+            func.count(Contribution.id).label('count')
+        ).join(Contribution, User.id == Contribution.user_id).filter(*filters).group_by(User.username).order_by(func.count(Contribution.id).desc()).limit(5).all()
+        top_contributors = [{'username': r.username, 'count': r.count} for r in top_contributors_query]
 
-    # Contribution types in the date range
-    contribution_types_query = db.session.query(
-        Contribution.edit_type,
-        func.count(Contribution.id).label('count')
-    ).filter(Contribution.edit_type.isnot(None), Contribution.edit_type != '', *filters).group_by(Contribution.edit_type).order_by(func.count(Contribution.id).desc()).all()
-    contribution_types = [{'type': r.edit_type, 'count': r.count} for r in contribution_types_query]
+        # Language stats in the date range
+        language_stats_query = db.session.query(
+            Contribution.caption_language.label('language'),
+            func.count(Contribution.id).label('count')
+        ).filter(Contribution.caption_language.isnot(None), Contribution.caption_language != '', *filters).group_by('language').order_by(func.count(Contribution.id).desc()).all()
+        language_stats = [{'language': r.language, 'count': r.count} for r in language_stats_query]
 
-    return jsonify({
-        'total_contributions': total_contributions,
-        'datewise_data': datewise_data,
-        'top_contributors': top_contributors,
-        'language_stats': language_stats,
-        'country_distribution': country_distribution,
-        'contribution_types': contribution_types
-    })
+        # Country distribution in the date range
+        country_distribution_query = db.session.query(
+            Contribution.country,
+            func.count(Contribution.id).label('count')
+        ).filter(Contribution.country.isnot(None), Contribution.country != '', *filters).group_by(Contribution.country).order_by(func.count(Contribution.id).desc()).all()
+        country_distribution = [{'country': r.country, 'count': r.count} for r in country_distribution_query]
+
+        # Contribution types in the date range
+        contribution_types_query = db.session.query(
+            Contribution.edit_type,
+            func.count(Contribution.id).label('count')
+        ).filter(Contribution.edit_type.isnot(None), Contribution.edit_type != '', *filters).group_by(Contribution.edit_type).order_by(func.count(Contribution.id).desc()).all()
+        contribution_types = [{'type': r.edit_type, 'count': r.count} for r in contribution_types_query]
+
+        return jsonify({
+            'total_contributions': total_contributions,
+            'datewise_data': datewise_data,
+            'top_contributors': top_contributors,
+            'language_stats': language_stats,
+            'country_distribution': country_distribution,
+            'contribution_types': contribution_types
+        })
+    except Exception:
+        app.logger.exception('Unexpected error while generating stats for campaign %s', campaign_id)
+        return make_response(jsonify({'error': gettext('An internal error occurred')}), 500)
 
 @campaigns.route('/campaigns/create', methods=['GET', 'POST'])
 def CreateCampaign():
@@ -440,9 +505,21 @@ def getCampaignCategories():
     # we get the campaign_id from the route request
     campaign_id = request.args.get('campaign')
 
-    # We get the campaign categories
-    campaign = Campaign.query.filter_by(id=campaign_id).first()
-    return campaign.categories
+    # Validate input
+    if not campaign_id:
+        return make_response(jsonify({'error': gettext('Missing "campaign" parameter')}), 400)
+
+    try:
+        # Ensure campaign exists
+        campaign = Campaign.query.filter_by(id=campaign_id).first()
+        if not campaign:
+            return make_response(jsonify({'error': gettext('Campaign with id %(id)s does not exist', id=campaign_id)}), 404)
+
+        # Return categories as JSON
+        return jsonify({'categories': campaign.categories})
+    except Exception:
+        app.logger.exception('Error while retrieving campaign categories for id %s', campaign_id)
+        return make_response(jsonify({'error': gettext('An internal error occurred')}), 500)
 
 
 @campaigns.route('/api/get-campaign-graph-stats-data')
@@ -451,10 +528,33 @@ def getCampaignGraphStatsData():
     page = request.args.get('page', None, type=int)
     per_page = request.args.get('per_page', 30, type=int)
     campaign_id = request.args.get('campaign')
+    # Validate input
+    if not campaign_id:
+        return make_response(jsonify({'error': gettext('Missing "campaign" parameter')}), 400)
+    try:
+        campaign_id_int = int(campaign_id)
+    except (TypeError, ValueError):
+        return make_response(jsonify({'error': gettext('Invalid "campaign" parameter')}), 400)
+
+    # Validate page/per_page ranges
+    if page is not None and page <= 0:
+        return make_response(jsonify({'error': gettext('Invalid "page" parameter')}), 400)
+    if per_page is not None and per_page <= 0:
+        return make_response(jsonify({'error': gettext('Invalid "per_page" parameter')}), 400)
+
+    # Ensure campaign exists
+    campaign = Campaign.query.get(campaign_id_int)
+    if not campaign:
+        return make_response(jsonify({'error': gettext('Campaign with id %(id)s does not exist', id=campaign_id_int)}), 404)
+
     # We get the current user's username
     username = session.get('username', None)
-    data_points = get_stats_data_points(campaign_id, username, page, per_page)
-    return json.dumps(data_points)
+    try:
+        data_points = get_stats_data_points(campaign_id_int, username, page, per_page)
+        return jsonify(data_points)
+    except Exception:
+        app.logger.exception('Unexpected error while loading graph stats for campaign %s', campaign_id_int)
+        return make_response(jsonify({'error': gettext('An internal error occurred')}), 500)
 
 
 @campaigns.route('/api/post-contribution', methods=['POST'])
@@ -578,6 +678,11 @@ def postContribution():
 
 @campaigns.route('/api/search-depicts/<int:id>')
 def searchDepicts(id):
+    # Ensure campaign exists
+    campaign = Campaign.query.get(id)
+    if not campaign:
+        return make_response(jsonify({'error': gettext('Campaign with id %(id)s does not exist', id=id)}), 404)
+
     search_term = request.args.get('q')
     username = session.get('username', None)
     user = User.query.filter_by(username=username).first()
@@ -585,6 +690,16 @@ def searchDepicts(id):
         user_lang = user.depicts_language
     else:
         user_lang = session.get('lang', 'en')
+
+    # Basic validation for search parameter
+    if search_term is not None and not isinstance(search_term, str):
+        return make_response(jsonify({'error': gettext('Invalid search parameter')}), 400)
+    if search_term and len(search_term) > 200:
+        return make_response(jsonify({'error': gettext('Search term too long')}), 400)
+
+    headers = {'User-Agent': 'ISA/1.0 (contact: https://www.mediawiki.org/wiki/User:IsaBot)'}
+
+    # If no search term provided, return top depicts for campaign
     if search_term is None or search_term == '':
         top_depicts = (Contribution.query
                        .with_entities(Contribution.depict_item)
@@ -594,42 +709,59 @@ def searchDepicts(id):
                        .limit(5)
                        .all())
 
-        query_titles = '|'.join(depict for depict, in top_depicts)
-        headers = {'User-Agent': 'ISA/1.0 (contact: https://www.mediawiki.org/wiki/User:IsaBot)'}
-        depict_details = requests.get(
-            url=app.config['WIKIDATA_SEARCH_API_URL'],
-            params={
-                'action': 'wbgetentities',
-                'format': 'json',
-                'props': 'labels|descriptions',
-                'ids': query_titles,
-                'languages': user_lang,
-                'languagefallback': '',
-                'origin': '*'
-            }
-            , headers=headers
-        ).json()
+        if not top_depicts:
+            return jsonify({"results": None})
+
+        query_titles = '|'.join(depict for depict, in top_depicts if depict)
+        if not query_titles:
+            return jsonify({"results": None})
+
+        try:
+            resp = requests.get(
+                url=app.config['WIKIDATA_SEARCH_API_URL'],
+                params={
+                    'action': 'wbgetentities',
+                    'format': 'json',
+                    'props': 'labels|descriptions',
+                    'ids': query_titles,
+                    'languages': user_lang,
+                    'languagefallback': '',
+                    'origin': '*'
+                },
+                headers=headers,
+                timeout=8
+            )
+            resp.raise_for_status()
+            depict_details = resp.json()
+        except requests.RequestException:
+            app.logger.exception('Wikidata API request failed for campaign %s', id)
+            return make_response(jsonify({'error': gettext('Failed to contact Wikidata API')}), 502)
+        except ValueError:
+            app.logger.exception('Invalid JSON from Wikidata API for campaign %s', id)
+            return make_response(jsonify({'error': gettext('Invalid response from Wikidata API')}), 502)
 
         top_depicts_return = []
-        if 'entities' in depict_details:
-            for item in depict_details['entities']:
-                item_data = depict_details['entities'][item]
-                top_depicts_return.append({
-                    'id': item,
-                    'text': (item_data['labels'][user_lang]['value']
-                             if user_lang in item_data['labels']
-                             else item),
-                    'description': (item_data['descriptions'][user_lang]['value']
-                                    if user_lang in item_data['descriptions']
-                                    else '')
-                })
-        if top_depicts_return == []:
+        entities = depict_details.get('entities', {}) if isinstance(depict_details, dict) else {}
+        for item, item_data in entities.items():
+            if not isinstance(item_data, dict):
+                continue
+            text = item
+            description = ''
+            labels = item_data.get('labels', {})
+            descriptions = item_data.get('descriptions', {})
+            if user_lang in labels:
+                text = labels[user_lang].get('value', text)
+            if user_lang in descriptions:
+                description = descriptions[user_lang].get('value', '')
+            top_depicts_return.append({'id': item, 'text': text, 'description': description})
+
+        if not top_depicts_return:
             top_depicts_return = None
         return jsonify({"results": top_depicts_return})
-    else:
-        headers = {'User-Agent': 'ISA/1.0 (contact: https://www.mediawiki.org/wiki/User:IsaBot)'}
-        search_return = []
-        search_result = requests.get(
+
+    # Otherwise perform a search on Wikidata
+    try:
+        resp = requests.get(
             url=app.config['WIKIDATA_SEARCH_API_URL'],
             params={
                 'search': search_term,
@@ -638,20 +770,36 @@ def searchDepicts(id):
                 'format': 'json',
                 'uselang': user_lang,
                 'origin': '*'
-            }
-            , headers=headers
-        ).json()
-        for search_result_item in search_result['search']:
-            search_return.append({
-                'id': search_result_item['title'],
-                'text': search_result_item['label'],
-                'description': (search_result_item['description']
-                                if 'description' in search_result_item
-                                else '')
-            })
-        if search_return == []:
-            search_return = None
-        return jsonify({"results": search_return})
+            },
+            headers=headers,
+            timeout=8
+        )
+        resp.raise_for_status()
+        search_result = resp.json()
+    except requests.RequestException:
+        app.logger.exception('Wikidata search API request failed for campaign %s', id)
+        return make_response(jsonify({'error': gettext('Failed to contact Wikidata API')}), 502)
+    except ValueError:
+        app.logger.exception('Invalid JSON from Wikidata search API for campaign %s', id)
+        return make_response(jsonify({'error': gettext('Invalid response from Wikidata API')}), 502)
+
+    search_return = []
+    results_list = search_result.get('search') if isinstance(search_result, dict) else None
+    if not results_list:
+        return jsonify({"results": None})
+
+    for search_result_item in results_list:
+        if not isinstance(search_result_item, dict):
+            continue
+        search_return.append({
+            'id': search_result_item.get('title'),
+            'text': search_result_item.get('label'),
+            'description': search_result_item.get('description', '')
+        })
+
+    if not search_return:
+        search_return = None
+    return jsonify({"results": search_return})
 
 
 @campaigns.route('/campaigns/<int:id>/download_csv')
@@ -707,8 +855,13 @@ def save_reject_statements():
     username = session.get('username')
     if not username:
         abort(401)
+    # Require JSON body
+    if not request.is_json:
+        return make_response(jsonify({'error': gettext('Invalid or missing JSON body')}), 400)
 
-    request_keys = set(request.json.keys())
+    rejection_data = request.get_json()
+
+    # Expected keys must be present
     expected_keys = {
         'file',
         'depict_item',
@@ -719,35 +872,65 @@ def save_reject_statements():
         'metadata_to_concept_confidence'
     }
 
-    if request.data and request_keys == expected_keys:
-        rejection_data = request.json
-        file_rejected_suggestions = (Suggestion.query
-                                     .filter_by(depict_item=rejection_data['depict_item'],
-                                                file_name=rejection_data['file'], update_status=0)
-                                     .all())
+    if not expected_keys.issubset(set(rejection_data.keys())):
+        return make_response(jsonify({'error': gettext('Missing required fields')}), 400)
 
-        campaign_id = rejection_data['campaign_id']
-        user = User.query.filter_by(username=username).first()
-        rejected_suggestion = Suggestion(campaign_id=campaign_id,
-                                         file_name=rejection_data['file'],
-                                         depict_item=rejection_data['depict_item'],
-                                         google_vision=rejection_data.get('google_vision'),
-                                         google_vision_confidence=rejection_data['google_vision_confidence'],
-                                         metadata_to_concept=rejection_data.get('metadata_to_concept'),
-                                         metadata_to_concept_confidence=rejection_data['metadata_to_concept_confidence'],
-                                         user_id=user.id)
+    # Validate campaign_id and existence
+    try:
+        campaign_id = int(rejection_data['campaign_id'])
+    except (TypeError, ValueError):
+        return make_response(jsonify({'error': gettext('Invalid campaign id')}), 400)
 
-        if len(file_rejected_suggestions) > 1:
-            rejected_suggestion.google_vision_submitted = rejection_data.get('google_vision')
-            rejected_suggestion.metadata_to_concept_submitted = rejection_data.get('metadata_to_concept')
+    campaign = Campaign.query.get(campaign_id)
+    if not campaign:
+        return make_response(jsonify({'error': gettext('Campaign with id %(id)s does not exist', id=campaign_id)}), 404)
 
-        db.session.add(rejected_suggestion)
+    # Basic validation for file and depict_item
+    if not isinstance(rejection_data.get('file'), str) or not rejection_data.get('file'):
+        return make_response(jsonify({'error': gettext('Invalid file')}), 400)
+    if not isinstance(rejection_data.get('depict_item'), str) or not rejection_data.get('depict_item'):
+        return make_response(jsonify({'error': gettext('Invalid depict_item')}), 400)
 
-        if not commit_changes_to_db():
-            return "error", 400
-        else:
-            return "success", 200
-    abort(400)
+    # Validate confidence values (allow numeric strings too)
+    def _validate_conf(val):
+        if val is None or val == '':
+            return True
+        try:
+            f = float(val)
+            return 0.0 <= f <= 1.0
+        except (TypeError, ValueError):
+            return False
+
+    if not _validate_conf(rejection_data.get('google_vision_confidence')):
+        return make_response(jsonify({'error': gettext('Invalid google_vision_confidence')}), 400)
+    if not _validate_conf(rejection_data.get('metadata_to_concept_confidence')):
+        return make_response(jsonify({'error': gettext('Invalid metadata_to_concept_confidence')}), 400)
+
+    # Find previous rejected suggestions for this file/depict combination
+    file_rejected_suggestions = (Suggestion.query
+                                 .filter_by(depict_item=rejection_data['depict_item'],
+                                            file_name=rejection_data['file'], update_status=0)
+                                 .all())
+
+    user = User.query.filter_by(username=username).first()
+    rejected_suggestion = Suggestion(campaign_id=campaign_id,
+                                     file_name=rejection_data['file'],
+                                     depict_item=rejection_data['depict_item'],
+                                     google_vision=rejection_data.get('google_vision'),
+                                     google_vision_confidence=rejection_data.get('google_vision_confidence'),
+                                     metadata_to_concept=rejection_data.get('metadata_to_concept'),
+                                     metadata_to_concept_confidence=rejection_data.get('metadata_to_concept_confidence'),
+                                     user_id=user.id)
+
+    if len(file_rejected_suggestions) > 1:
+        rejected_suggestion.google_vision_submitted = rejection_data.get('google_vision')
+        rejected_suggestion.metadata_to_concept_submitted = rejection_data.get('metadata_to_concept')
+
+    db.session.add(rejected_suggestion)
+
+    if not commit_changes_to_db():
+        return make_response(jsonify({'error': gettext('Database commit failed')}), 400)
+    return make_response(jsonify({'status': 'success'}), 200)
 
 
 @campaigns.route('/api/get-rejected-statements', methods=['GET'])
@@ -755,13 +938,22 @@ def getRejectedStatements():
     username = session.get('username', None)
     if not username:
         abort(401)
-    else:
-        file_name = request.args.get('file')
-        user = User.query.filter_by(username=username).first()
-        if user and file_name:
-            reject_suggestions = (Suggestion.query
-                                  .filter_by(user_id=user.id, file_name=file_name, update_status=0)
-                                  .all())
-            return jsonify([data.depict_item for data in reject_suggestions])
-        else:
-            abort(400)
+    # Validate file parameter
+    file_name = request.args.get('file')
+    if not file_name:
+        return make_response(jsonify({'error': gettext('Missing "file" parameter')}), 400)
+
+    # Ensure user exists
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return make_response(jsonify({'error': gettext('User not found')}), 404)
+
+    # Query rejected suggestions for this user and file
+    reject_suggestions = (Suggestion.query
+                          .filter_by(user_id=user.id, file_name=file_name, update_status=0)
+                          .all())
+
+    if not reject_suggestions:
+        return make_response(jsonify({'error': gettext('No rejected suggestions found')}), 404)
+
+    return jsonify([data.depict_item for data in reject_suggestions])
