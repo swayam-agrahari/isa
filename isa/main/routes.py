@@ -35,7 +35,19 @@ def _compute_stats_cached():
         ).one()
 
         if not min_max_years[0]:
-            return None
+            # No contributions found — return a structured empty response so
+            # frontend can display a friendly empty-state instead of empty charts.
+            empty_stats = {
+                "has_data": False,
+                "growth_trends": {"years": [], "contributions": [], "contributors": []},
+                "yoy_change": {"years": [], "contribution_change": [], "contributor_change": []},
+                "distribution": {},
+                "averages": {"years": [], "average": [], "median": []},
+                "detailed_stats": {}
+            }
+            _stats_cache['data'] = empty_stats
+            _stats_cache['ts'] = now
+            return empty_stats
 
         start_year = int(min_max_years[0])
         end_year = int(min_max_years[1])
@@ -146,6 +158,9 @@ def _compute_stats_cached():
             "detailed_stats": {str(y): s for y, s in yearly_stats.items()}
         }
 
+        # Mark that we have data so frontend can distinguish empty responses.
+        final_response["has_data"] = True
+
         _stats_cache['data'] = final_response
         _stats_cache['ts'] = now
         return final_response
@@ -204,7 +219,9 @@ def get_all_statistics():
     """
     try:
         stats = _compute_stats_cached()
-        if not stats:
+        # Only treat None as an error. If stats is a valid empty-structure
+        # (has_data=False) return it so frontend can show a friendly message.
+        if stats is None:
             return jsonify({"error": "No contribution data found"}), 404
         return jsonify(stats)
 
@@ -216,7 +233,7 @@ def get_all_statistics():
 @main.route('/api/stats/growth_trends')
 def stats_growth_trends():
     stats = _compute_stats_cached()
-    if not stats:
+    if stats is None:
         return jsonify({"error": "No contribution data found"}), 404
     return jsonify(stats.get('growth_trends', {}))
 
@@ -224,7 +241,7 @@ def stats_growth_trends():
 @main.route('/api/stats/yoy_change')
 def stats_yoy_change():
     stats = _compute_stats_cached()
-    if not stats:
+    if stats is None:
         return jsonify({"error": "No contribution data found"}), 404
     return jsonify(stats.get('yoy_change', {}))
 
@@ -232,7 +249,7 @@ def stats_yoy_change():
 @main.route('/api/stats/distribution')
 def stats_distribution():
     stats = _compute_stats_cached()
-    if not stats:
+    if stats is None:
         return jsonify({"error": "No contribution data found"}), 404
     return jsonify(stats.get('distribution', {}))
 
@@ -240,7 +257,7 @@ def stats_distribution():
 @main.route('/api/stats/averages')
 def stats_averages():
     stats = _compute_stats_cached()
-    if not stats:
+    if stats is None:
         return jsonify({"error": "No contribution data found"}), 404
     return jsonify(stats.get('averages', {}))
 
@@ -248,7 +265,7 @@ def stats_averages():
 @main.route('/api/stats/detailed')
 def stats_detailed():
     stats = _compute_stats_cached()
-    if not stats:
+    if stats is None:
         return jsonify({"error": "No contribution data found"}), 404
     return jsonify(stats.get('detailed_stats', {}))
 

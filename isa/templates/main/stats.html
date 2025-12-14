@@ -149,8 +149,67 @@
           averages: averages,
         };
 
+        // Detect empty/missing datasets per-endpoint and mark flags
+        apiData._empty = {
+          growth: !(
+            apiData.growth_trends &&
+            Array.isArray(apiData.growth_trends.years) &&
+            apiData.growth_trends.years.length > 0
+          ),
+          yoy: !(
+            apiData.yoy_change &&
+            Array.isArray(apiData.yoy_change.years) &&
+            apiData.yoy_change.years.length > 0
+          ),
+          distribution: !(
+            apiData.distribution && Object.keys(apiData.distribution).length > 0
+          ),
+          averages: !(
+            apiData.averages &&
+            Array.isArray(apiData.averages.years) &&
+            apiData.averages.years.length > 0
+          ),
+        };
+
+        // Show dashboard but replace empty charts with friendly messages
         $("#loadingIndicator").hide();
         $("#dashboardContent").show();
+
+        // If a chart has no data, replace its canvas with a placeholder
+        function replaceCanvasWithMessage(canvasId, message) {
+          const $c = $(canvasId);
+          if ($c.length) {
+            $c.replaceWith(
+              `<div class="no-data" style="padding:3rem;text-align:center;color:#6b7280">${message}</div>`
+            );
+          }
+        }
+
+        if (apiData._empty.growth) {
+          replaceCanvasWithMessage(
+            "#lineChart",
+            "No data found for Growth Trends"
+          );
+        }
+        if (apiData._empty.yoy) {
+          replaceCanvasWithMessage(
+            "#barChart",
+            "No data found for Year-over-Year Change"
+          );
+        }
+        if (apiData._empty.distribution) {
+          replaceCanvasWithMessage("#donutChart", "No distribution data found");
+          // also disable year selector when distribution missing
+          $("#yearSelect")
+            .prop("disabled", true)
+            .empty()
+            .append($("<option>", { value: "", text: "No data" }));
+        }
+        if (apiData._empty.averages) {
+          replaceCanvasWithMessage("#avgChart", "No average/median data found");
+        }
+
+        // Initialize only the charts that have data
         initializeDashboard(apiData);
 
         // Lazy-load detailed table after charts render
@@ -159,7 +218,16 @@
           .then((detailed) => {
             // attach detailed stats to apiData and populate table
             apiData.detailed_stats = detailed;
-            populateTable(apiData.detailed_stats, apiData.growth_trends.years);
+            if (
+              !apiData._empty.growth &&
+              apiData.growth_trends &&
+              apiData.growth_trends.years
+            ) {
+              populateTable(
+                apiData.detailed_stats,
+                apiData.growth_trends.years
+              );
+            }
           })
           .catch(() => {
             console.warn("Failed to load detailed stats");
