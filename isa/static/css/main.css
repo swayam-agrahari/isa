@@ -418,8 +418,12 @@ select.selectpicker> option, .nav-item.dropdown .dropdown-menu  {
 
 /*allow absolute position for publish btns*/
 .edit-box-header {
-    position:relative
+    position:relative;
     }
+.edit-box-header-nav {
+    margin-bottom: 10px;
+    display: flex;       
+}
 
 /*place publish btn top right of edit box*/
 .edit-publish-btn-group {
