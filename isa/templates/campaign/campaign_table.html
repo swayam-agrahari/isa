@@ -1,91 +1,513 @@
-<div class="stats-table mx-auto">
-    <div class="top-user-table mr-4">
-        <table class="table table-sm table-light text-center">
-            <h6>{{ _('Top Contributors') }}</h6>
-            <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">{{ _('Contributor') }}</th>
-                    <th scope="col">{{ _('Contributions') }}</th>
-                </tr>
-            </thead>
-            {% if all_contributors_data %}
-            <tbody>
-            {% for contributor_data in all_contributors_data %}
-                <tr>
-                    <th scope="row">{{contributor_data['rank']}}</th>
-                    <td><a href="https://commons.wikimedia.org/wiki/User:{{ contributor_data['username'] }}">{{contributor_data['username']}}</a></td>
-                    <td>{{contributor_data['images_improved']}}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-            {% else %}
-            <tbody>
-                <tr>
-                    <th scope="row"></th>
-                    <td></td>
-                    <td class="text-center">{{ _('No partcipants has contributed to this campaign') }}</td>
-                </tr>
-            </tbody>
-            {% endif %}
-        </table>
-    </div>
-    {% if is_wiki_loves_campaign %}
-        <div class="top-country-table">
-            <table class="table table-sm table-light text-center">
-                <h6>{{ _('Most improved countries') }}</h6>
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">{{ _('Country') }}</th>
-                            <th scope="col">{{ _('Contributions') }}</th>
-                        </tr>
-                    </thead>
-                    {% if all_campaign_country_statistics_data %}
-                        <tbody>
-                            {% for country_statistics_data in all_campaign_country_statistics_data %}
-                                <tr>
-                                    <th scope="row">{{country_statistics_data['rank']}}</th>
-                                    <td>{{country_statistics_data['country']}}</td>
-                                    <td>{{country_statistics_data['images_improved']}}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    {% else %}
-                        <tbody>
-                            <tr>
-                                <th scope="row"></th>
-                                <td></td>
-                                <td class="text-center">{{ _('There is no data available yet for this campaign') }}</td>
-                            </tr>
-                        </tbody>
-                    {% endif %}
-            </table>
+<div class="stats-tables-section">
+  <div class="row g-4">
+    <!-- Top Contributors Table -->
+    <div class="col-lg-{% if is_wiki_loves_campaign %}6{% else %}12{% endif %}">
+      <div class="table-card rounded-3 shadow-sm p-3 h-100">
+        <div
+          class="table-header d-flex justify-content-between align-items-center mb-3"
+        >
+          <h5 class="fw-bold mb-0">
+            <i class="fas fa-trophy me-2 text-warning"></i>
+            {{ _('Top Contributors') }}
+          </h5>
+          <span class="badge bg-warning text-dark">
+            <i class="fas fa-crown me-1"></i>
+            Leaderboard
+          </span>
         </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover table-sm align-middle">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-3">
+                  <span class="d-flex align-items-center">
+                    <i class="fas fa-hashtag me-1 text-muted"></i>
+                    {{ _('Rank') }}
+                  </span>
+                </th>
+                <th scope="col">
+                  <span class="d-flex align-items-center">
+                    <i class="fas fa-user me-1 text-muted"></i>
+                    {{ _('Contributor') }}
+                  </span>
+                </th>
+                <th scope="col" class="pe-3 text-end">
+                  <span class="d-flex align-items-center justify-content-end">
+                    <i class="fas fa-chart-line me-1 text-muted"></i>
+                    {{ _('Contributions') }}
+                  </span>
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% if all_contributors_data %} {% for contributor_data in
+              all_contributors_data %}
+              <tr
+                class="{% if contributor_data['username'] == username %}table-info{% endif %}"
+              >
+                {% set per_page = table_data.per_page|default(10) %} {% set
+                display_rank = ((table_data.page - 1) * per_page) + loop.index
+                %}
+                <td class="ps-3">
+                  <div class="rank-indicator d-flex align-items-center">
+                    {% if display_rank == 1 %}
+                    <span class="medal-gold me-2"
+                      ><i class="fas fa-medal text-warning"></i
+                    ></span>
+                    {% elif display_rank == 2 %}
+                    <span class="medal-silver me-2"
+                      ><i class="fas fa-medal text-secondary"></i
+                    ></span>
+                    {% elif display_rank == 3 %}
+                    <span class="medal-bronze me-2"
+                      ><i class="fas fa-medal text-danger"></i
+                    ></span>
+                    {% endif %}
+                    <span
+                      class="fw-bold {% if display_rank <= 3 %}fs-5{% endif %}"
+                    >
+                      {{ display_rank }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <a
+                    href="https://commons.wikimedia.org/wiki/User:{{ contributor_data['username'] }}"
+                    target="_blank"
+                    rel="noopener"
+                    class="text-decoration-none fw-semibold d-flex align-items-center"
+                  >
+                    <i
+                      class="fas fa-external-link-alt me-2 text-primary fa-xs"
+                    ></i>
+                    {{ contributor_data['username'] }}
+                  </a>
+                  {% if contributor_data['username'] == username %}
+                  <span class="badge bg-info bg-opacity-25 text-info ms-2"
+                    >You</span
+                  >
+                  {% endif %}
+                </td>
+                <td class="pe-3 text-end">
+                  <span class="contributions-count fw-bold">
+                    {{ contributor_data['images_improved'] }}
+                  </span>
+                  <span class="text-muted ms-1">
+                    <i class="fas fa-images fa-xs"></i>
+                  </span>
+                </td>
+              </tr>
+              {% endfor %} {% else %}
+              <tr>
+                <td colspan="3" class="text-center py-5">
+                  <div class="empty-state">
+                    <i
+                      class="fas fa-users fa-3x text-muted opacity-25 mb-3"
+                    ></i>
+                    <p class="text-muted mb-0">
+                      {{ _('Be the first contributor!') }}
+                    </p>
+                  </div>
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {% if is_wiki_loves_campaign %}
+    <!-- Most Improved Countries Table -->
+    <div class="col-lg-6">
+      <div class="table-card rounded-3 shadow-sm p-3 h-100">
+        <div
+          class="table-header d-flex justify-content-between align-items-center mb-3"
+        >
+          <h5 class="fw-bold mb-0">
+            <i class="fas fa-globe-americas me-2 text-success"></i>
+            {{ _('Most Improved Countries') }}
+          </h5>
+          <span class="badge bg-success">
+            <i class="fas fa-flag me-1"></i>
+            {{ _('Global') }}
+          </span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover table-sm align-middle">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-3">
+                  <span class="d-flex align-items-center">
+                    <i class="fas fa-hashtag me-1 text-muted"></i>
+                    {{ _('Rank') }}
+                  </span>
+                </th>
+                <th scope="col">
+                  <span class="d-flex align-items-center">
+                    <i class="fas fa-flag me-1 text-muted"></i>
+                    {{ _('Country') }}
+                  </span>
+                </th>
+                <th scope="col" class="pe-3 text-end">
+                  <span class="d-flex align-items-center justify-content-end">
+                    <i class="fas fa-chart-line me-1 text-muted"></i>
+                    {{ _('Improvements') }}
+                  </span>
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% if all_campaign_country_statistics_data %} {% for
+              country_statistics_data in all_campaign_country_statistics_data %}
+              <tr>
+                <td class="ps-3">
+                  <div class="rank-indicator">
+                    <span class="fw-bold"
+                      >{{ country_statistics_data['rank'] }}</span
+                    >
+                  </div>
+                </td>
+                <td>
+                  <div class="country-name d-flex align-items-center">
+                    <span class="country-flag me-2">
+                      <!-- You can add flag emojis or icons here based on country code -->
+                      <!-- <i class="fas fa-map-marker-alt text-danger"></i> -->
+                    </span>
+                    <span class="fw-semibold"
+                      >{{ country_statistics_data['country'] }}</span
+                    >
+                  </div>
+                </td>
+                <td class="pe-3 text-end">
+                  <div
+                    class="country-stats d-flex align-items-center justify-content-end"
+                  >
+                    <span class="contributions-count fw-bold me-2">
+                      {{ country_statistics_data['images_improved'] }}
+                    </span>
+                    <div
+                      class="progress flex-grow-1"
+                      style="height: 6px; max-width: 100px"
+                    >
+                      {% set max_contrib = max_country_contributions|default(0)
+                      %}
+                      <div
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        style="width: {{ (country_statistics_data['images_improved'] / max_contrib) * 100 if max_contrib > 0 else 0 }}%"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %} {% else %}
+              <tr>
+                <td colspan="3" class="text-center py-5">
+                  <div class="empty-state">
+                    <i
+                      class="fas fa-globe fa-3x text-muted opacity-25 mb-3"
+                    ></i>
+                    <p class="text-muted mb-0">
+                      {{ _('Country data coming soon') }}
+                    </p>
+                  </div>
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
     {% endif %}
+  </div>
+
+  <!-- Pagination -->
+  {% if table_data.pages > 1 %}
+  <div class="pagination-section mt-4">
+    <div class="pagination-card rounded-3 p-4 bg-light">
+      <div class="row align-items-center">
+        <div class="col-md-6 mb-3 mb-md-0">
+          <div class="page-info">
+            <p class="mb-0">
+              <span class="fw-semibold">{{ table_data.total }}</span>
+              {{ _('total results') }} •
+              <span class="fw-semibold">{{ table_data.page }}</span>
+              {{ _('of') }}
+              <span class="fw-semibold">{{ table_data.pages }}</span>
+              {{ _('pages') }}
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <nav aria-label="Campaign data navigation">
+            <ul
+              class="pagination justify-content-center justify-content-md-end mb-0"
+            >
+              <!-- First Page -->
+              <li
+                class="page-item {% if table_data.page == 1 %}disabled{% endif %}"
+              >
+                <a
+                  class="page-link rounded-start"
+                  href="{% if table_data.page > 1 %}{{ url_for('campaigns.getCampaignById', id=campaign.id, page=1) }}{% else %}#{% endif %}"
+                  aria-label="First"
+                >
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+              </li>
+
+              <!-- Previous Page -->
+              <li
+                class="page-item {% if table_data.page == 1 %}disabled{% endif %}"
+              >
+                <a
+                  class="page-link"
+                  href="{% if table_data.page > 1 %}{{ url_for('campaigns.getCampaignById', id=campaign.id, page=table_data.page-1) }}{% else %}#{% endif %}"
+                  aria-label="Previous"
+                >
+                  <i class="fas fa-chevron-left"></i>
+                </a>
+              </li>
+
+              <!-- Page Numbers -->
+              {% if table_data.pages <= 7 %} {% for i in range(1,
+              table_data.pages + 1) %}
+              <li
+                class="page-item {% if table_data.page == i %}active{% endif %}"
+              >
+                <a
+                  class="page-link"
+                  href="{{ url_for('campaigns.getCampaignById', id=campaign.id, page=i) }}"
+                >
+                  {{ i }}
+                </a>
+              </li>
+              {% endfor %} {% else %}
+              <!-- First Page -->
+              <li
+                class="page-item {% if table_data.page == 1 %}active{% endif %}"
+              >
+                <a
+                  class="page-link"
+                  href="{{ url_for('campaigns.getCampaignById', id=campaign.id, page=1) }}"
+                >
+                  1
+                </a>
+              </li>
+
+              {% if table_data.page > 4 %}
+              <li class="page-item disabled">
+                <span class="page-link">...</span>
+              </li>
+              {% endif %} {% set start = [2, table_data.page - 2] | max %} {%
+              set end = [table_data.pages - 1, table_data.page + 2] | min %} {%
+              for i in range(start, end + 1) %} {% if i > 1 and i <
+              table_data.pages %}
+              <li
+                class="page-item {% if table_data.page == i %}active{% endif %}"
+              >
+                <a
+                  class="page-link"
+                  href="{{ url_for('campaigns.getCampaignById', id=campaign.id, page=i) }}"
+                >
+                  {{ i }}
+                </a>
+              </li>
+              {% endif %} {% endfor %} {% if table_data.page < table_data.pages
+              - 3 %}
+              <li class="page-item disabled">
+                <span class="page-link">...</span>
+              </li>
+              {% endif %}
+
+              <!-- Last Page -->
+              <li
+                class="page-item {% if table_data.page == table_data.pages %}active{% endif %}"
+              >
+                <a
+                  class="page-link"
+                  href="{{ url_for('campaigns.getCampaignById', id=campaign.id, page=table_data.pages) }}"
+                >
+                  {{ table_data.pages }}
+                </a>
+              </li>
+              {% endif %}
+
+              <!-- Next Page -->
+              <li
+                class="page-item {% if table_data.page == table_data.pages %}disabled{% endif %}"
+              >
+                <a
+                  class="page-link"
+                  href="{% if table_data.page < table_data.pages %}{{ url_for('campaigns.getCampaignById', id=campaign.id, page=table_data.page+1) }}{% else %}#{% endif %}"
+                  aria-label="Next"
+                >
+                  <i class="fas fa-chevron-right"></i>
+                </a>
+              </li>
+
+              <!-- Last Page -->
+              <li
+                class="page-item {% if table_data.page == table_data.pages %}disabled{% endif %}"
+              >
+                <a
+                  class="page-link rounded-end"
+                  href="{% if table_data.page < table_data.pages %}{{ url_for('campaigns.getCampaignById', id=campaign.id, page=table_data.pages) }}{% else %}#{% endif %}"
+                  aria-label="Last"
+                >
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 
-<!-- Fix this wrt the number of pages -->
-<div class="main-stats-label-group mx-auto">
-    <div class="campaign-stats-title">
-        <div class="">
-            <h6>{{ _('Page ') }} {{table_data.page}} of {{table_data.pages}} / {{table_data.total}} {{ _('results') }}</h6>
-        </div>
-        <div class="pagination">
-            <a class="btn btn-secondary btn-sm {% if table_data.page == 1 %}disabled{% endif %}" 
-               href="{% if table_data.page > 1 %}{{ url_for('campaigns.getCampaignById', id=campaign.id, page=table_data.page-1) }}{% else %}#{% endif %}">
-                &laquo;
-            </a>
-            {% for i in range(table_data.pages) %}
-                <a class="btn btn-primary btn-sm {% if table_data.page == i+1 %}active{% endif %}" 
-                   href="{{ url_for('campaigns.getCampaignById', id=campaign.id, page=i+1) }}">
-                    {{ i + 1 }}
-                </a>
-            {% endfor %}
-            <a class="btn btn-secondary btn-sm {% if table_data.page == table_data.pages %}disabled{% endif %}" 
-               href="{% if table_data.page < table_data.pages %}{{ url_for('campaigns.getCampaignById', id=campaign.id, page=table_data.page+1) }}{% else %}#{% endif %}">
-                &raquo;
-            </a>
-          </div>
-    </div>
-</div>
+<!-- Styles -->
+<style>
+  .stats-tables-section {
+    margin-top: 2rem;
+  }
+
+  .table-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+  }
+
+  .table-card:hover {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .table-header {
+    border-bottom: 2px solid #f1f3f4;
+    padding-bottom: 1rem;
+  }
+
+  .table th {
+    font-weight: 600;
+    color: #5f6368;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+  }
+
+  .table td {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .rank-indicator {
+    min-width: 40px;
+  }
+
+  .medal-gold,
+  .medal-silver,
+  .medal-bronze {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .contributions-count {
+    font-size: 1.1rem;
+    color: #1a73e8;
+  }
+
+  .empty-state {
+    padding: 2rem 0;
+  }
+
+  .pagination-card {
+    border: 1px solid #e0e0e0;
+  }
+
+  .page-link {
+    padding: 0.5rem 0.75rem;
+    margin: 0 2px;
+    border: 1px solid #dee2e6;
+    color: #1a73e8;
+    transition: all 0.2s ease;
+  }
+
+  .page-link:hover {
+    background-color: #e8f0fe;
+    border-color: #1a73e8;
+    transform: translateY(-1px);
+  }
+
+  .page-item.active .page-link {
+    background-color: #1a73e8;
+    border-color: #1a73e8;
+    color: white;
+  }
+
+  .page-item.disabled .page-link {
+    color: #9aa0a6;
+    pointer-events: none;
+    background-color: #f8f9fa;
+  }
+
+  .country-name {
+    min-height: 24px;
+  }
+
+  .country-flag i {
+    font-size: 1.2rem;
+  }
+
+  @media (max-width: 768px) {
+    .table-card {
+      margin-bottom: 1rem;
+    }
+
+    .table-responsive {
+      font-size: 0.9rem;
+    }
+
+    .pagination {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .page-link {
+      padding: 0.375rem 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  .table-hover tbody tr {
+    transition: all 0.2s ease;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: rgba(26, 115, 232, 0.04);
+    transform: translateX(4px);
+  }
+
+  .page-info {
+    font-size: 0.9rem;
+    color: #5f6368;
+  }
+</style>

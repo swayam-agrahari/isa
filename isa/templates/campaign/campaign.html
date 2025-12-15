@@ -1,104 +1,600 @@
-{% extends "main/layout.html" %}
-{% from "campaign/macros.html" import images %}
-{% block content%}
-<div class="container page-header text-center">
-    {% if campaign_image is not none %}
-        <img class="campaign-image" src="{{ campaign_image }}" alt=""> <!--Copy the image or use commons link-->
-    {% endif %}
+{% extends "main/layout.html" %} {% from "campaign/macros.html" import images %}
+{% block content %}
 
-    <h2>{{ campaign.campaign_name }}</h2>
-    <hr>
-    <p>{{ campaign.short_description }}</p>
+<!-- Campaign header with modern design -->
+<div class="container page-header mt-4">
+  <div class="campaign-header-card rounded-4 shadow-sm p-4 mb-5">
+    <div class="row align-items-center">
+      <!-- Campaign Image -->
+      <div class="col-lg-3 col-md-4 text-center mb-4 mb-md-0">
+        {% if campaign_image is not none %}
+        <div class="campaign-image-wrapper position-relative">
+          <img
+            class="campaign-image rounded-4 img-fluid shadow"
+            src="{{ campaign_image }}"
+            alt="{{ campaign.campaign_name }}"
+            style="max-height: 200px; object-fit: cover"
+          />
+          {% if campaign.manager.username == username %}
+          <div class="campaign-badge position-absolute top-0 end-0 mt-2 me-2">
+            <span class="badge bg-info">Your Campaign</span>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Campaign Info -->
+      <div class="col-lg-9 col-md-8">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="flex-grow-1">
+            <h1 class="campaign-title mb-2 fw-bold text-primary">
+              {{ campaign.campaign_name }}
+            </h1>
+            <p class="lead text-muted mb-3">{{ campaign.short_description }}</p>
+          </div>
+
+          {% if campaign.manager.username == username %}
+          <div class="ms-3 flex-shrink-0">
+            <a
+              href="{{ url_for('campaigns.updateCampaign', id=campaign.id) }}"
+              class="btn btn-outline-primary btn-sm d-flex align-items-center"
+              title="{{ _('Make changes to this campaign') }}"
+            >
+              <i class="fas fa-edit me-2"></i>
+              {{ _('Edit') }}
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Metadata Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="campaign-meta-card p-3 rounded-3 bg-light">
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-user-circle text-primary me-2"></i>
+                <h6 class="mb-0">{{ _('Campaign Manager') }}</h6>
+              </div>
+              <a
+                href="https://commons.wikimedia.org/wiki/User:{{ campaign.manager.username }}"
+                target="_blank"
+                rel="noopener"
+                class="text-decoration-none fw-semibold"
+              >
+                {{ campaign.manager.username }}
+              </a>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="campaign-meta-card p-3 rounded-3 bg-light">
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-calendar-alt text-success me-2"></i>
+                <h6 class="mb-0">{{ _('Start Date') }}</h6>
+              </div>
+              <span class="fw-semibold">{{ campaign.start_date }}</span>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="campaign-meta-card p-3 rounded-3 bg-light">
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-calendar-times text-warning me-2"></i>
+                <h6 class="mb-0">{{ _('End Date') }}</h6>
+              </div>
+              <span class="fw-semibold">
+                {% if campaign.end_date is none %} {{ _('Ongoing') }} {% else %}
+                {{ campaign.end_date }} {% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Long Description -->
+    <div class="campaign-description mt-4 pt-4 border-top">
+      <h5 class="mb-3 fw-semibold">{{ _('More info') }}</h5>
+      <div class="description-content p-3 bg-light rounded-3">
+        {{ campaign.long_description | safe }}
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="container text-center">
-    <div class="campaign-panel primary-cta pt-3">
-    {% if is_wiki_loves_campaign %}
-        <div class="campaign-country-select">
-            <p>{{_('View images from')}}</p>
-            <select id="campaign_countries" class="fas fa-caret-down custom-select btn-new" data-style="btn-new" title="{{ _('Choose to only view images from a single country') }}">
-                {% for country in countries %}
-                    <option value="{{ country }}">{{ country }}</option>
-                {% endfor %}
+<!-- Primary CTA Section -->
+<div class="container mb-5">
+  <div class="primary-cta-card rounded-4 shadow p-4 bg-gradient-primary">
+    <div class="row align-items-center">
+      <div class="col-lg-8 mb-4 mb-lg-0">
+        <h3 class="fw-bold mb-2">{{ _('Ready to Contribute?') }}</h3>
+        <p class="mb-0">
+          {{ _('Join this campaign and help improve Wikimedia Commons images')
+          }}
+        </p>
+      </div>
+
+      <div class="col-lg-4 text-lg-end">
+        {% if is_wiki_loves_campaign %}
+        <div class="country-select-wrapper mb-3">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-0">
+              <i class="fas fa-globe text-primary"></i>
+            </span>
+            <select
+              id="campaign_countries"
+              class="form-select border-0 shadow-sm"
+              title="{{ _('Filter by country') }}"
+            >
+              <option value="all">{{ _('All Countries') }}</option>
+              {% for country in countries %}
+              <option value="{{ country }}">{{ country }}</option>
+              {% endfor %}
             </select>
+          </div>
         </div>
-    {% endif %}
-        <a id="get_started_btn" href="{{url_for('campaigns.contributeToCampaign', id=campaign.id ) }}" class="btn btn-primary btn-lg px-5" title="{{ _('Start contributing to this campaign') }}">{{ _('Get Started') }}</a>
+        {% endif %}
+
+        <a
+          id="get_started_btn"
+          href="{{ url_for('campaigns.contributeToCampaign', id=campaign.id) }}"
+          class="btn btn-light btn-lg px-5 fw-bold rounded-pill shadow hover-lift"
+          title="{{ _('Start contributing to this campaign') }}"
+        >
+          <i class="fas fa-rocket me-2"></i>
+          {{ _('Get Started Now') }}
+        </a>
+      </div>
     </div>
+  </div>
 </div>
 
-<div class="container campaign-stats text-center">
-    <div class="campaign-panel">
-        <div class="campaign-stats-title">
-            <h4>{{ _('Campaign progress so far') }}</h4>
+<!-- Campaign Statistics -->
+<div class="container">
+  <div class="row g-4">
+    <!-- Main Campaign Stats -->
+    <div class="col-lg-8">
+      <div class="stats-card rounded-4 shadow-sm p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="fw-bold mb-0">
+            <i class="fas fa-chart-line me-2 text-primary"></i>
+            {{ _('Campaign Progress') }}
+          </h4>
+          <div class="text-end">
+            <a
+              href="{{ url_for('campaigns.getCampaignStatsById', id=campaign.id) }}"
+              class="btn btn-outline-primary btn-sm"
+              title="{{ _('View detailed statistics') }}"
+            >
+              <i class="fas fa-chart-bar me-1"></i>
+              {{ _('Full Stats') }}
+            </a>
+          </div>
         </div>
-    <div class="main-stats-label-group mx-auto">
-        <div class="stat-label" title="{{ _('Total number of images in this campaign') }}">{{ _('Images') }}<br>{{ images(campaign) }}</div>
-        <div class="stat-label" title="{{ _('Total number of contributions made to this campaign') }}">{{ _('Contributions') }}<br>{{ campaign_contributions }}</div>
+
+        <!-- Quick Stats -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div
+              class="stat-box text-center p-3 rounded-3 bg-primary bg-opacity-10 border-start border-primary border-4"
+            >
+              <div class="stat-icon mb-2">
+                <i class="fas fa-images fa-2x text-primary"></i>
+              </div>
+              <h3 class="fw-bold mb-1">{{ images(campaign) }}</h3>
+              <p class="text-muted mb-0">{{ _('Total Images') }}</p>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div
+              class="stat-box text-center p-3 rounded-3 bg-success bg-opacity-10 border-start border-success border-4"
+            >
+              <div class="stat-icon mb-2">
+                <i class="fas fa-users fa-2x text-success"></i>
+              </div>
+              <h3 class="fw-bold mb-1">{{ campaign_contributions }}</h3>
+              <p class="text-muted mb-0">{{ _('Total Contributions') }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tables -->
+        {% set table_data = campaign_table_pagination_data %} {% include
+        'campaign/campaign_table.html' %}
+      </div>
     </div>
-    {% with table_data = campaign_table_pagination_data %}
-        {% include 'campaign/campaign_table.html' %}
-    {% endwith %}
-                <a href="{{url_for('campaigns.getCampaignStatsById', id=campaign.id ) }}" class="btn btn-secondary" title="{{ _('View and download more stats for this campaign') }}">{{ _('View full stats') }}</a>
 
-</div>
-</div>
+    <!-- User Contributions Sidebar -->
+    <!-- User Contributions Sidebar -->
+    <div class="col-lg-4">
+      <div class="user-stats-card rounded-4 shadow-sm p-4 h-100">
+        <h4 class="fw-bold mb-4">
+          <i class="fas fa-user-circle me-2 text-info"></i>
+          {{ _('My Contributions') }}
+        </h4>
 
-
-
-<div class="container user-stats text-center">
-    <div class="campaign-panel">
-        <div class="campaign-stats-title">
-            <h4>{{ _('My Contributions') }}</h4>
-        </div>
         {% if username != 'Guest' and username != None %}
-        <div  class="stats-table mx-auto">
-            <table class="table table-sm table-light text-center">
-                <thead>
-                    <tr>
-                        <th scope="col">{{ _('Rank') }}</th>
-                        <th scope="col">{{ _('Contributions') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row">{{current_user_rank}}</th>
-                        <td>{{current_user_images_improved}}</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div
+          class="user-rank-card text-center p-4 mb-4 rounded-3 bg-info bg-opacity-10"
+        >
+          <div
+            class="rank-badge position-relative d-inline-flex align-items-center justify-content-center mb-3"
+          >
+            <!-- Crown container - positioned above the rank circle -->
+            <div
+              class="crown-container position-absolute top-0 translate-middle"
+              style="z-index: 10; {% if current_user_rank > 3 %}display: none;{% endif %}"
+            >
+              {% if current_user_rank == 1 %}
+              <i
+                class="fas fa-crown text-warning fa-2x"
+                style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))"
+              ></i>
+              {% elif current_user_rank == 2 %}
+              <i
+                class="fas fa-crown text-secondary fa-2x"
+                style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))"
+              ></i>
+              {% elif current_user_rank == 3 %}
+              <i
+                class="fas fa-crown text-danger fa-2x"
+                style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))"
+              ></i>
+              {% endif %}
+            </div>
+
+            <!-- Rank circle with rank number -->
+            <div
+              class="rank-circle bg-info text-white rounded-circle d-flex align-items-center justify-content-center position-relative"
+              style="width: 80px; height: 80px; margin-top: {% if current_user_rank <= 3 %}15px{% else %}0{% endif %};"
+            >
+              <h2 class="mb-0 fw-bold" style="position: relative; z-index: 5">
+                {% if current_user_rank > 0 %} #{{ current_user_rank }} {% else
+                %} - {% endif %}
+              </h2>
+            </div>
+
+            <!-- Medal for top 3 ranks -->
+            {% if current_user_rank <= 3 %}
+            <div
+              class="medal-effect position-absolute top-50 start-50 translate-middle"
+            >
+              <div class="pulse-ring" style="width: 100px; height: 100px"></div>
+            </div>
+            {% endif %}
+          </div>
+
+          <h3 class="fw-bold mb-2">{{ current_user_images_improved }}</h3>
+          <p class="text-muted mb-0">{{ _('Contributions Made') }}</p>
+
+          <!-- Rank label -->
+          <div class="rank-label mt-2">
+            {% if current_user_rank == 1 %}
+            <span class="badge bg-warning text-dark px-3 py-1">
+              <i class="fas fa-trophy me-1"></i> {{ _('1st Place') }}
+            </span>
+            {% elif current_user_rank == 2 %}
+            <span class="badge bg-secondary px-3 py-1">
+              <i class="fas fa-trophy me-1"></i> {{ _('2nd Place') }}
+            </span>
+            {% elif current_user_rank == 3 %}
+            <span class="badge bg-danger px-3 py-1">
+              <i class="fas fa-trophy me-1"></i> {{ _('3rd Place') }}
+            </span>
+            {% elif current_user_rank > 3 and current_user_rank <= 10 %}
+            <span class="badge bg-primary px-3 py-1">
+              <i class="fas fa-medal me-1"></i> {{ _('Top 10') }}
+            </span>
+            {% elif current_user_rank > 10 %}
+            <span class="badge bg-info px-3 py-1">
+              <i class="fas fa-star me-1"></i> {{ _('Contributor') }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="progress-section">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="fw-semibold">{{ _('Your Progress') }}</span>
+            <span class="text-muted">
+              {% if table_data.total > 0 %} {{ ((current_user_images_improved /
+              table_data.total) * 100) | round(1) }}% {% else %} 0% {% endif %}
+            </span>
+          </div>
+          <div class="progress" style="height: 8px">
+            <div
+              class="progress-bar bg-info"
+              role="progressbar"
+              style="width: {% if table_data.total > 0 %}{{ (current_user_images_improved / table_data.total) * 100 }}{% else %}0{% endif %}%"
+              aria-valuenow="{{ current_user_images_improved }}"
+              aria-valuemin="0"
+              aria-valuemax="{{ table_data.total }}"
+            ></div>
+          </div>
+
+          <!-- Progress details -->
+          <div class="mt-2 text-muted small">
+            {{ current_user_images_improved }} / {{ table_data.total }} {{
+            _('total contributions') }}
+          </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <div class="mb-4">
+            <i class="fas fa-user-lock fa-4x text-muted opacity-50"></i>
+          </div>
+          <h5 class="mb-3">{{ _('Login to Track Your Progress') }}</h5>
+          <p class="text-muted mb-4">
+            {{ _('Sign in to see your ranking and contribution history') }}
+          </p>
+          <a
+            href="{{ url_for('auth.login') }}"
+            class="btn btn-primary rounded-pill px-4"
+          >
+            <i class="fas fa-sign-in-alt me-2"></i>
+            {{ _('Sign In') }}
+          </a>
         </div>
         {% endif %}
+      </div>
     </div>
+  </div>
 </div>
 
-
-<div class="container campaign-info justify-content-center text-center page-header mt-5">
-    <h2>{{ _('More About This Campaign') }}</h2>
-    <hr>
-    <h5><strong>{{ _('Campaign Manager') }}:</strong> <a href="https://commons.wikimedia.org/wiki/User:{{ campaign.manager.username }}">{{ campaign.manager.username }}</a></h5>
-    <div class="campaign-dates">
-        <h6><strong>{{ _('START DATE')}}: </strong> {{campaign.start_date}}</h6>
-        {% if campaign.end_date is none %}
-            <h6><strong>{{ _('END DATE') }}: </strong> {{ _('Not Set') }}</h6>
-        {% else %}
-            <h6><strong>{{ _('END DATE') }}: </strong> {{campaign.end_date}}</h6>
-        {% endif %}
-    </div>
-    <div class="about-section">
-        <p>{{campaign.long_description}}</p>
-    </div>
-    {% if campaign.manager.username == username %}
-    <a id="" href="{{url_for('campaigns.updateCampaign', id=campaign.id)}}" class="btn btn-danger" title="{{ _('Make changes to this campaign') }}">{{ _('Edit Campaign') }}</a>
-    {% endif %}
-</div>
-
+<!-- Hidden i18n -->
 <div class="hidden-i18n-text">
-    {
-        "Unknown country": {{ _('Unknown country')|tojson }}
-    }
+  { "Unknown country": {{ _('Unknown country') | tojson }} }
 </div>
-{% endblock content%}
-{% block scripts %}
-    <script src="{{url_for('static', filename='js/campaign.js')}}"></script>
-{% endblock scripts%}
+
+{% endblock content %} {% block styles %}
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .campaign-header-card {
+    background: white;
+    border: 1px solid #e9ecef;
+  }
+
+  .primary-cta-card {
+    background: var(--primary-gradient);
+    border: none;
+  }
+
+  .stats-card,
+  .user-stats-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .stats-card:hover,
+  .user-stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .stat-box {
+    transition: all 0.3s ease;
+    cursor: default;
+  }
+
+  .stat-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .rank-circle {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .rank-circle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .btn.hover-lift {
+    transition: all 0.3s ease;
+  }
+
+  .btn.hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .campaign-image-wrapper {
+    overflow: hidden;
+    border-radius: 16px;
+  }
+
+  .campaign-image {
+    transition: transform 0.5s ease;
+  }
+
+  .campaign-image:hover {
+    transform: scale(1.05);
+  }
+
+  .progress-bar {
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+
+  @media (max-width: 768px) {
+    .campaign-title {
+      font-size: 1.75rem;
+    }
+
+    .primary-cta-card .btn-lg {
+      width: 100%;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  .campaign-description .description-content {
+    line-height: 1.8;
+    font-size: 1.05rem;
+  }
+
+  .table-light {
+    --bs-table-bg: #f8f9fa;
+    --bs-table-striped-bg: #e9ecef;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+  }
+
+  .rank-badge {
+    min-height: 120px;
+  }
+
+  .crown-container {
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+  }
+
+  .rank-circle {
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    border: 3px solid white;
+  }
+
+  .rank-circle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Medal colors for top ranks */
+  .rank-circle[data-rank="1"] {
+    background: linear-gradient(135deg, #ffd700, #ffa500);
+  }
+
+  .rank-circle[data-rank="2"] {
+    background: linear-gradient(135deg, #c0c0c0, #808080);
+  }
+
+  .rank-circle[data-rank="3"] {
+    background: linear-gradient(135deg, #cd7f32, #8b4513);
+  }
+
+  /* Animation for top 3 ranks */
+  @keyframes pulse {
+    0% {
+      transform: translateX(-50%) translateY(-50%) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-50%) translateY(-50%) scale(1.3);
+      opacity: 0;
+    }
+  }
+
+  .pulse-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 3px solid;
+    animation: pulse 2s infinite;
+  }
+
+  .pulse-ring:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  .pulse-ring:nth-child(2) {
+    animation-delay: 0.5s;
+  }
+
+  .rank-label .badge {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .rank-circle {
+      width: 70px !important;
+      height: 70px !important;
+    }
+
+    .rank-circle h2 {
+      font-size: 1.5rem;
+    }
+
+    .crown-container i {
+      font-size: 1.5rem !important;
+    }
+
+    .rank-badge {
+      min-height: 100px;
+    }
+  }
+</style>
+{% endblock %} {% block scripts %}
+<script src="{{ url_for('static', filename='js/campaign.js') }}"></script>
+<script>
+    // Add interactivity for country filter
+    document.addEventListener("DOMContentLoaded", function () {
+      const countrySelect = document.getElementById("campaign_countries");
+      if (countrySelect) {
+        countrySelect.addEventListener("change", function () {
+          const country = this.value;
+          // Add animation for selection change
+          this.style.transform = "scale(1.05)";
+          setTimeout(() => {
+            this.style.transform = "scale(1)";
+          }, 200);
+
+          // Here you would typically filter the displayed data
+          console.log("Country selected:", country);
+        });
+      }
+
+      // Add smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        });
+      });
+    });
+
+    // Add rank-specific colors dynamically
+  document.addEventListener('DOMContentLoaded', function() {
+    const rankCircle = document.querySelector('.rank-circle');
+    const userRank = {{ current_user_rank|default(0) }};
+
+    if (rankCircle) {
+      rankCircle.setAttribute('data-rank', userRank);
+
+      // Add rank-specific colors
+      if (userRank === 1) {
+        rankCircle.classList.remove('bg-info');
+        rankCircle.style.background = 'linear-gradient(135deg, #FFD700, #FFA500)';
+      } else if (userRank === 2) {
+        rankCircle.classList.remove('bg-info');
+        rankCircle.style.background = 'linear-gradient(135deg, #C0C0C0, #808080)';
+      } else if (userRank === 3) {
+        rankCircle.classList.remove('bg-info');
+        rankCircle.style.background = 'linear-gradient(135deg, #CD7F32, #8B4513)';
+      }
+    }
+  });
+</script>
+{% endblock scripts %}
