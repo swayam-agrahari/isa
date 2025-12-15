@@ -49,3 +49,42 @@ $('#show-closed-campaigns-checkbox').change(function() {
     var statusSearch = (this.checked) ? '' : 1;
     campaignTable.column(booleanStatusColumn).search(statusSearch).draw();
 });
+
+
+/* ===== ADDED FOR CLICKABLE CAMPAIGN ROWS ===== */
+
+// Make entire campaign row clickable and navigate to View link
+function bindCampaignRowNavigation() {
+    $('#campaign_table tbody').on('click', 'tr.campaign-row', function (e) {
+
+        // Prevent row navigation when clicking buttons or links inside the row
+        if ($(e.target).closest('a, button').length) {
+            return;
+        }
+
+        var href = $(this).data('href');
+        if (href) {
+            window.location.href = href;
+        }
+    });
+
+    // Keyboard accessibility (Enter key)
+    $('#campaign_table tbody').on('keydown', 'tr.campaign-row', function (e) {
+        if (e.key === 'Enter') {
+            var href = $(this).data('href');
+            if (href) {
+                window.location.href = href;
+            }
+        }
+    });
+}
+
+// Initial bind
+bindCampaignRowNavigation();
+
+// Re-bind after every DataTable redraw (pagination, search, filter)
+campaignTable.on('draw', function () {
+    bindCampaignRowNavigation();
+});
+
+
