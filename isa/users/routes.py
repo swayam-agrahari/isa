@@ -1,12 +1,16 @@
 import json
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+import hashlib
+import random
+import datetime
+
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for, jsonify
 from flask_login import current_user, login_user, logout_user
 import mwoauth
 
 from isa import app, gettext, db
 from isa.main.utils import commit_changes_to_db
-from isa.models import User, Campaign
+from isa.models import User, Campaign, Contribution
 from isa.users.forms import LanguageForm
 from isa.utils.languages import getLanguages
 from isa.users.utils import build_user_pref_lang
@@ -207,3 +211,93 @@ def getMyCampaigns(username):
                            session_language=session_language,
                            user_own_campaigns=user_own_campaigns,
                            username=username)
+
+
+@users.route('/my-contributions')
+def myContributions():
+    """Render the My Contributions dashboard for authenticated users."""
+    username = session.get('username', None)
+    if not username:
+        session['next_url'] = request.url
+        flash(gettext('Please login to view your contributions'), 'info')
+        return redirect(url_for('main.home'))
+
+    session_language = session.get('lang', 'en')
+    return render_template('users/my_contributions.html',
+                           title=gettext("My Contributions"),
+                           current_user=current_user,
+                           session_language=session_language,
+                           username=username)
+
+
+@users.route('/api/user/contributions')
+def api_user_contributions():
+    """Return JSON list of contributions for the currently logged-in user.
+
+    This endpoint uses session username and returns mocked deterministic
+    contributions. Each user gets consistent data based on their username.
+    """
+    username = session.get('username')
+    if not username:
+        return jsonify({'error': 'Authentication required'}), 401
+
+    # Show deterministic mock data ONLY for Dev user
+    if username == 'Dev':
+        seed = int(hashlib.sha256(username.encode('utf-8')).hexdigest()[:8], 16)
+        rnd = random.Random(seed)
+        try:
+            campaign_rows = Campaign.query.all()
+            campaigns = [c.campaign_name for c in campaign_rows] or ['General']
+        except Exception:
+            app.logger.exception('Failed to load campaigns, falling back to defaults')
+            campaigns = ['General']
+        countries = ['SE', 'US', 'DE', 'FR', 'GB']
+        langs = ['en', 'sv', 'de', 'fr', 'es']
+        types = ['caption', 'rotate', 'depicts']
+
+        items = []
+        today = datetime.date.today()
+        count = 80 + (seed % 50)
+        for i in range(count):
+            days = rnd.randint(0, 730)
+            d = today - datetime.timedelta(days=days)
+            items.append({
+                'date': d.isoformat(),
+                'campaign': campaigns[rnd.randrange(len(campaigns))],
+                'file': f'{username}_file_{i}.jpg',
+                'edit_type': types[rnd.randrange(len(types))],
+                'country': countries[rnd.randrange(len(countries))],
+                'lang': langs[rnd.randrange(len(langs))]
+            })
+        return jsonify({'data': items})
+
+    # For all other users, fetch real contributions from DB
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'data': []})
+
+    try:
+        # Join campaigns to include campaign names
+        rows = (db.session.query(Contribution, Campaign.campaign_name)
+                .join(Campaign, Contribution.campaign_id == Campaign.id)
+                .filter(Contribution.user_id == user.id)
+                .order_by(Contribution.date.desc())
+                .all())
+    except Exception:
+        app.logger.exception('Failed to load user contributions for %s', username)
+        return jsonify({'error': 'Failed to load contributions'}), 500
+
+    items = []
+    for contrib, campaign_name in rows:
+        # contrib.date is a Date, convert to ISO string
+        date_str = contrib.date.isoformat() if hasattr(contrib.date, 'isoformat') else str(contrib.date)
+        items.append({
+            'date': date_str,
+            'campaign': campaign_name or 'General',
+            'file': contrib.file,
+            'edit_type': contrib.edit_type,
+            'country': contrib.country or '',
+            'lang': contrib.caption_language or ''
+        })
+
+    return jsonify({'data': items})

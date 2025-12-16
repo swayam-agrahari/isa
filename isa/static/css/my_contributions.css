@@ -1,0 +1,172 @@
+.my-contrib-container {
+  padding: 1rem 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.mc-header {
+  margin-bottom: 1rem;
+}
+
+.mc-title {
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+.mc-subtitle {
+  color: #6c757d;
+  margin: 0.25rem 0 1rem;
+}
+
+/* Summary cards */
+.mc-summary-cards .mc-cards-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.mc-card {
+  flex: 1 1 12rem;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  padding: 1rem;
+  border-radius: 6px;
+}
+
+.mc-card-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.mc-card-value {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+/* Main grid */
+.mc-main-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Filters */
+.mc-filters {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e6e6e6;
+  height: fit-content;
+}
+
+.mc-filter-row {
+  margin-bottom: 0.75rem;
+}
+
+.mc-filter-input {
+  width: 100%;
+}
+
+.mc-filter-actions {
+  text-align: right;
+}
+
+/* Content */
+.mc-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Charts section */
+.mc-charts {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Chart cards */
+.mc-chart-card {
+  background: #fff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e6e6e6;
+  min-height: 260px;
+  max-height: 300px;
+  overflow: hidden;
+}
+
+.mc-chart-card.small {
+  flex: 1;
+  min-height: 220px;
+  max-height: 260px;
+}
+
+.mc-chart-title {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}
+
+/* IMPORTANT: stop infinite canvas growth */
+.mc-chart-card canvas {
+  height: 220px !important;
+  max-height: 220px;
+}
+
+.mc-chart-card.small canvas {
+  height: 180px !important;
+  max-height: 180px;
+}
+
+/* Chart row */
+.mc-chart-row {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Table */
+.mc-table-card {
+  background: #fff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e6e6e6;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.mc-table {
+  margin-bottom: 0;
+}
+
+.mc-state {
+  padding: 0.5rem;
+  color: #6c757d;
+}
+
+.mc-loading {
+  color: #6c757d;
+}
+
+.mc-error {
+  color: #b00020;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .mc-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mc-chart-row {
+    flex-direction: column;
+  }
+
+  .mc-cards-row {
+    flex-direction: column;
+  }
+}
