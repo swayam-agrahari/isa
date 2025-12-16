@@ -81,6 +81,22 @@ function bindCampaignRowNavigation() {
 
 // Initial bind
 bindCampaignRowNavigation();
+/* ===== ADDED: TRIM LONG CAMPAIGN DESCRIPTIONS ===== */
+
+function trimCampaignDescriptions() {
+    var MAX_LENGTH = 120;
+
+    $('#campaign_table .campaign-description').each(function () {
+        var text = $(this).text().trim();
+
+        if (text.length > MAX_LENGTH) {
+            $(this).text(text.substring(0, MAX_LENGTH) + '...');
+        }
+    });
+}
+
+// Run once on page load
+trimCampaignDescriptions();
 
 // Re-bind after every DataTable redraw (pagination, search, filter)
 campaignTable.on('draw', function () {
