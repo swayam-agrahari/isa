@@ -34,7 +34,8 @@
             <p class="lead text-muted mb-3">{{ campaign.short_description }}</p>
           </div>
 
-          {% if campaign.manager.username == username %}
+          {% if campaign.manager.username == username or username in
+          isa_superusers %}
           <div class="ms-3 flex-shrink-0">
             <a
               href="{{ url_for('campaigns.updateCampaign', id=campaign.id) }}"

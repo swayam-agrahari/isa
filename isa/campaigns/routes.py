@@ -148,7 +148,8 @@ def getCampaignById(id):
                             current_user_images_improved=current_user_images_improved,
                             contributor_csv_file=contributor_csv_file,
                             country_csv_file=country_csv_file,
-                            countries=country_names
+                            countries=country_names,
+                            isa_superusers=app.config.get('ISA_SUPERUSERS', [])
                             ))
 
 
@@ -446,7 +447,11 @@ def updateCampaign(id):
             campaign_end_date = datetime.strptime(form.end_date.data, '%Y-%m-%d')
         campaign = Campaign.query.get(id)
         campaign.campaign_name = form.campaign_name.data
-        campaign.manager = user
+        # Only update the campaign manager if the current user is the existing
+        # manager (or if the campaign has no manager). Do NOT overwrite the
+        # manager when a superuser edits the campaign.
+        if campaign.manager is None or campaign.manager.username == username:
+            campaign.manager = user
         campaign.short_description = form.short_description.data
         campaign.long_description = form.long_description.data
         campaign.depicts_metadata = form.depicts_metadata.data
@@ -469,7 +474,8 @@ def updateCampaign(id):
         # we get the campaign data to place in form fields
         campaign = Campaign.query.filter_by(id=id).first()
 
-        if campaign.manager != user:
+        isa_superusers = app.config.get('ISA_SUPERUSERS', [])
+        if campaign.manager != user and username not in isa_superusers:
             flash(gettext('You cannot update this campaign. Contact the manager, User:%(username)s.',
                           username=campaign.manager.username), 'info')
             return redirect(url_for('campaigns.getCampaignById', id=id))

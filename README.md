@@ -69,6 +69,16 @@ from isa.users.utils import add_user_to_db
 add_user_to_db("Dev")
 ```
 
+## Superusers
+
+You can configure trusted users who are allowed to edit any campaign (not only campaigns they manage). Add the `ISA_SUPERUSERS` setting to your YAML config (for example `isa/config.yaml`):
+
+```yaml
+ISA_SUPERUSERS: ["YourAdminUser", "AnotherAdmin"]
+```
+
+Users listed in `ISA_SUPERUSERS` must exist in the application's user table. Create them with `add_user_to_db` if needed. The app checks this list both in templates (to show the "Edit Campaign" button) and server-side (to permit access to the update route).
+
 ## Managing Translations
 
 Steps 1 to 3a below show how to extract and generate translation files from the
