@@ -272,4 +272,13 @@ def stats_detailed():
 
 @main.route('/statistics')
 def show_statistics():
-    return render_template('main/stats.html')
+    username = session.get('username', None)
+    session_language = session.get('lang', None)
+    if not session_language:
+        session_language = 'en'
+    session['next_url'] = request.url
+    return render_template('main/stats.html',
+                           title='Statistics',
+                           session_language=session_language,
+                           username=username,
+                           current_user=current_user)
