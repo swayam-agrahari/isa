@@ -1,0 +1,174 @@
+{% extends "main/layout.html" %} {% block content %}
+<div class="container my-contrib-container">
+  <header class="mc-header">
+    <h1 class="mc-title">{{ gettext('My Contributions') }} - {{ username }}</h1>
+    <p class="mc-subtitle">
+      {{ gettext('Overview of your recent contributions and activity') }}
+    </p>
+  </header>
+
+  <!-- Summary cards -->
+  <section class="mc-summary-cards" aria-label="Summary">
+    <div class="mc-cards-row">
+      <div class="mc-card" id="card-total">
+        <div class="mc-card-label">{{ gettext('Total contributions') }}</div>
+        <div class="mc-card-value" id="total-contributions">—</div>
+      </div>
+      <div class="mc-card" id="card-campaigns">
+        <div class="mc-card-label">{{ gettext('Campaigns participated') }}</div>
+        <div class="mc-card-value" id="campaigns-count">—</div>
+      </div>
+      <div class="mc-card" id="card-first">
+        <div class="mc-card-label">{{ gettext('First contribution') }}</div>
+        <div class="mc-card-value" id="first-contribution">—</div>
+      </div>
+      <div class="mc-card" id="card-recent">
+        <div class="mc-card-label">{{ gettext('Most recent') }}</div>
+        <div class="mc-card-value" id="recent-contribution">—</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="mc-main-grid">
+    <!-- Filters panel -->
+    <aside class="mc-filters" aria-label="Filters">
+      <h2 class="mc-section-title">{{ gettext('Filters') }}</h2>
+
+      <div class="mc-filter-row">
+        <label for="filter-campaign">{{ gettext('Campaign') }}</label>
+        <select
+          id="filter-campaign"
+          class="form-control mc-filter-input"
+          aria-label="Campaign filter"
+        ></select>
+      </div>
+
+      <div class="mc-filter-row">
+        <label for="filter-date-from">{{ gettext('From') }}</label>
+        <input
+          id="filter-date-from"
+          type="date"
+          class="form-control mc-filter-input"
+        />
+      </div>
+      <div class="mc-filter-row">
+        <label for="filter-date-to">{{ gettext('To') }}</label>
+        <input
+          id="filter-date-to"
+          type="date"
+          class="form-control mc-filter-input"
+        />
+      </div>
+
+      <div class="mc-filter-row">
+        <label for="filter-edit-type">{{ gettext('Edit type') }}</label>
+        <select id="filter-edit-type" class="form-control mc-filter-input">
+          <option value="">{{ gettext('Any') }}</option>
+          <option value="caption">{{ gettext('Caption') }}</option>
+          <option value="depicts">{{ gettext('Depicts') }}</option>
+        </select>
+      </div>
+
+      <div class="mc-filter-row">
+        <label for="filter-country">{{ gettext('Country') }}</label>
+        <select id="filter-country" class="form-control mc-filter-input">
+          <option value="">{{ gettext('Any') }}</option>
+        </select>
+      </div>
+
+      <div class="mc-filter-row">
+        <label for="filter-lang">{{ gettext('Caption language') }}</label>
+        <select id="filter-lang" class="form-control mc-filter-input">
+          <option value="">{{ gettext('Any') }}</option>
+        </select>
+      </div>
+
+      <div class="mc-filter-row">
+        <label for="filter-search">{{ gettext('Search') }}</label>
+        <input
+          id="filter-search"
+          class="form-control mc-filter-input"
+          placeholder="{{ gettext('File name or item') }}"
+        />
+      </div>
+
+      <div class="mc-filter-actions">
+        <button id="btn-reset" class="btn btn-secondary btn-sm">
+          {{ gettext('Reset') }}
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main content (charts + table) -->
+    <section class="mc-content">
+      <div class="mc-charts">
+        <div class="mc-chart-card">
+          <h3 class="mc-chart-title">
+            {{ gettext('Contributions over time') }}
+          </h3>
+          <canvas
+            id="chart-time"
+            aria-label="Contributions over time"
+            role="img"
+          ></canvas>
+        </div>
+
+        <div class="mc-chart-row">
+          <div class="mc-chart-card small">
+            <h3 class="mc-chart-title">{{ gettext('By campaign') }}</h3>
+            <canvas
+              id="chart-campaign"
+              aria-label="Contributions by campaign"
+              role="img"
+            ></canvas>
+          </div>
+          <div class="mc-chart-card small">
+            <h3 class="mc-chart-title">{{ gettext('By edit type') }}</h3>
+            <canvas
+              id="chart-edit-type"
+              aria-label="Contributions by edit type"
+              role="img"
+            ></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc-table-card">
+        <h3 class="mc-section-title">{{ gettext('Contributions') }}</h3>
+
+        <div id="mc-state" class="mc-state"></div>
+
+        <table
+          class="table table-striped mc-table"
+          id="contrib-table"
+          aria-live="polite"
+        >
+          <thead>
+            <tr>
+              <th data-sort="date">{{ gettext('Date') }}</th>
+              <th data-sort="campaign">{{ gettext('Campaign') }}</th>
+              <th data-sort="file">{{ gettext('File') }}</th>
+              <th data-sort="edit_type">{{ gettext('Edit type') }}</th>
+              <th data-sort="country">{{ gettext('Country') }}</th>
+              <th data-sort="lang">{{ gettext('Caption language') }}</th>
+            </tr>
+          </thead>
+          <tbody id="contrib-tbody"></tbody>
+        </table>
+
+        <nav aria-label="Table pagination">
+          <ul class="pagination" id="mc-pagination"></ul>
+        </nav>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/my_contributions.js') }}"></script>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/my_contributions.css') }}"
+/>
+{% endblock %}
