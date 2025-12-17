@@ -21,6 +21,11 @@ function showFormErrors(messages) {
         messages.map(msg => `<li>${msg}</li>`).join('')
         + '</ul>');
     $errorBox.removeClass('d-none');
+    
+    // Scroll to error box
+    $('html, body').animate({
+        scrollTop: $errorBox.offset().top - 100
+    }, 500);
 }
 
 function clearFormErrors() {
@@ -225,14 +230,18 @@ $('#submit').click(function (ev) {
         errors.push(i18nStrings['Please check your selections and try again.']);
     }
 
-    // Metadata (Depicts / Captions)
-    var metadataTypesAreValid = $('.metadata-type-checkbox')
-        .toArray()
-        .some(el => el.checked);
+    // Metadata (Depicts / Captions) - FIXED to only check the actual metadata checkboxes
+    var depictsChecked = $('#depicts_metadata').is(':checked');
+    var captionsChecked = $('#captions_metadata').is(':checked');
+    var metadataTypesAreValid = depictsChecked || captionsChecked;
 
-    if (!metadataTypesAreValid) {
-        errors.push(i18nStrings['Please select at least one type from the Metadata to collect section']);
-    }
+   if (!metadataTypesAreValid) {
+    errors.push(
+        i18nStrings['Please select at least one type from the Metadata to collect section']
+        || 'Please select at least one metadata type (Depicts or Captions).'
+    );
+}
+
 
     // Date range validation
     if (!isValidDateRange()) {
