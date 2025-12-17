@@ -14,7 +14,8 @@ NUM_USERS = 50
 NUM_CAMPAIGNS = 10
 NUM_CONTRIBUTIONS = 5000
 START_DATE = datetime(2019, 1, 1)
-END_DATE = datetime(2025, 9, 25) # Today's date for realistic data range
+# Use "now" so seeded campaigns are relevant and not all archived.
+END_DATE = datetime.now()
 
 # Initialize Faker for data generation
 fake = Faker()
