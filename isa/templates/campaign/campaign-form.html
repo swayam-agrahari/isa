@@ -318,8 +318,12 @@
     </div>
 
     <hr />
-
     <div class="form-group text-center">
+      <div
+      id="campaign-form-errors"
+      class="alert alert-danger d-none text-left"
+      role="alert"
+      ></div>
       {{ form.submit( class="btn btn-primary", value=_('Publish Campaign') ) }}
       <div id="category-checking-notice" class="mt-3 d-none">
         <p>Checking category selections...</p>

@@ -5,7 +5,7 @@ var categoriesAreValid = false;
 $('#start_date_datepicker').attr({ 'data-toggle': 'datetimepicker', 'data-target': '#start_date_datepicker' });
 $('#start_date_datepicker').datetimepicker({
     format: 'YYYY-MM-DD',
-    useCurrent: false
+    useCurrent: false,
 });
 
 $('#end_date_datepicker').attr({ 'data-toggle': 'datetimepicker', 'data-target': '#end_date_datepicker' });
@@ -13,6 +13,32 @@ $('#end_date_datepicker').datetimepicker({
     format: 'YYYY-MM-DD',
     useCurrent: false
 });
+
+//Error handling helpers
+function showFormErrors(messages) {
+    var $errorBox = $('#campaign-form-errors');
+    $errorBox.html('<ul class="mb-0">' +
+        messages.map(msg => `<li>${msg}</li>`).join('')
+        + '</ul>');
+    $errorBox.removeClass('d-none');
+    
+    // Scroll to error box
+    $('html, body').animate({
+        scrollTop: $errorBox.offset().top - 100
+    }, 500);
+}
+
+function clearFormErrors() {
+    $('#campaign-form-errors').addClass('d-none').empty();
+}
+
+function isValidDateRange() {
+    var start = $('#start_date_datepicker').datetimepicker('date');
+    var end = $('#end_date_datepicker').datetimepicker('date');
+
+    if (!start || !end) return true; // required validation handled elsewhere
+    return start.isSameOrBefore(end, 'day');
+}
 
 // Populate existing categories in the UI if data present in hidden field (on update route)
 var initialCategoryData = $('#categories-data').val();
@@ -180,36 +206,58 @@ function clearWikiLovesValidation() {
 var categoriesChecked = false,
     formIsValid = false;
 $('#submit').click(function (ev) {
+    clearFormErrors();
 
-    // Checks the simple "required" form fileds
-    formIsValid = $('form')[0].checkValidity();
+    var errors = [];
+    var form = $('form')[0];
 
-    if (!categoriesChecked && formIsValid) {
-        // Prevent form submission if categories not checked yet
-        ev.preventDefault();
-        var categorySelections = getCategoryData();
-
-        if (categorySelections.length === 0) {
-            return alert(i18nStrings['You must select at least one category for your campaign.']);
-        }
-        if (isWikiLovesCampaign && !categoriesAreValid) {
-            return alert(i18nStrings['Some of the categories you have chosen do not have the correct syntax for a Wiki Loves Campaign.']) + '\n' +
-                i18nStrings['Please check your selections and try again.'];
-        }
-
-        var metadataTypesAreValid = $.makeArray($('.metadata-type-checkbox')).some(function (element) {
-            return element.checked;
-        })
-        if (!metadataTypesAreValid) return alert(i18nStrings['Please select at least one type from the Metadata to collect section']);
-
-        $('#categories-data')[0].value = JSON.stringify(categorySelections);
-
-        categoriesChecked = true;
-        $('#submit').click();
+    // Native required-field validation
+    if (!form.checkValidity()) {
+        return;
     }
-    // Categories checked, continue default submit, OR
-    // Form is invalid, default submit to show browser warnings
-})
+
+    // Categories
+    var categorySelections = getCategoryData();
+    if (categorySelections.length === 0) {
+        errors.push(i18nStrings['You must select at least one category for your campaign.']);
+    }
+
+    // Wiki Loves syntax
+    if (isWikiLovesCampaign && !categoriesAreValid) {
+        errors.push(
+            i18nStrings['Some of the categories you have chosen do not have the correct syntax for a Wiki Loves Campaign.']
+        );
+        errors.push(i18nStrings['Please check your selections and try again.']);
+    }
+
+    // Metadata (Depicts / Captions) - FIXED to only check the actual metadata checkboxes
+    var depictsChecked = $('#depicts_metadata').is(':checked');
+    var captionsChecked = $('#captions_metadata').is(':checked');
+    var metadataTypesAreValid = depictsChecked || captionsChecked;
+
+   if (!metadataTypesAreValid) {
+    errors.push(
+        i18nStrings['Please select at least one type from the Metadata to collect section']
+        || 'Please select at least one metadata type (Depicts or Captions).'
+    );
+}
+
+
+    // Date range validation
+    if (!isValidDateRange()) {
+        errors.push('Start date must be earlier than or equal to the end date.');
+    }
+
+    // If errors exist → block submit
+    if (errors.length > 0) {
+        ev.preventDefault();
+        showFormErrors(errors);
+        return;
+    }
+
+    // Inject category data & allow submit
+    $('#categories-data')[0].value = JSON.stringify(categorySelections);
+});
 
 
 $('#campaign_type').on("change", function () {
