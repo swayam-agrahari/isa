@@ -55,6 +55,17 @@ class TestCampaignRoutes(unittest.TestCase):
         response = self.app.get('/campaigns', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
+    def test_get_campaigns_paginated_api(self):
+        response = self.app.get('/api/campaigns?draw=1&start=0&length=10', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        payload = json.loads(response.data.decode('utf-8'))
+        self.assertIn('recordsTotal', payload)
+        self.assertIn('recordsFiltered', payload)
+        self.assertIn('data', payload)
+        self.assertEqual(len(payload['data']), 1)
+        self.assertIn('Test Campaign', payload['data'][0]['campaign_html'])
+        self.assertEqual(payload['data'][0]['status_flag'], 1)
+
     def test_get_campaign_by_id(self):
         response = self.app.get('/campaigns/{}'.format(self.test_campaign_id), follow_redirects=True)
         self.assertEqual(response.status_code, 200)

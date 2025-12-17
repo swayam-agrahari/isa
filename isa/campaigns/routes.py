@@ -7,7 +7,8 @@ import requests
 from flask import (make_response, render_template, redirect, url_for, flash, request,
                    session, Blueprint, send_file, jsonify, abort)
 from flask_login import current_user
-from sqlalchemy import func
+from markupsafe import Markup, escape
+from sqlalchemy import func, or_
 from sqlalchemy.exc import SQLAlchemyError
 
 from isa import app, db, gettext
@@ -29,7 +30,6 @@ campaigns = Blueprint('campaigns', __name__)
 @manage_session
 @campaigns.route('/campaigns')
 def getCampaigns():
-    campaigns = Campaign.query.all()
     username = session.get('username', None)
     session_language = session.get('lang', None)
     if not session_language:
@@ -39,10 +39,210 @@ def getCampaigns():
                            title=gettext('Campaigns'),
                            username=username,
                            session_language=session_language,
-                           campaigns=campaigns,
                            today_date=datetime.date(datetime.utcnow()),
                            datetime=datetime,
                            current_user=current_user)
+
+
+@campaigns.route('/api/campaigns', methods=['GET', 'POST'])
+def getCampaignsPaginated():
+    """DataTables server-side endpoint for the Campaigns listing."""
+
+    def _int_param(name, default=None, min_value=None, max_value=None):
+        raw = request.values.get(name, None)
+        if raw is None or raw == '':
+            return default
+        try:
+            value = int(raw)
+        except (TypeError, ValueError):
+            return default
+        if min_value is not None and value < min_value:
+            return default
+        if max_value is not None and value > max_value:
+            return default
+        return value
+
+    draw = _int_param('draw', default=0, min_value=0)
+
+    # Support both DataTables (start/length) and a simpler page/per_page API.
+    page = _int_param('page', default=None, min_value=1)
+    per_page = _int_param('per_page', default=None, min_value=1, max_value=100)
+
+    if page is not None or per_page is not None:
+        length = per_page if per_page is not None else 30
+        start = ((page or 1) - 1) * length
+    else:
+        start = _int_param('start', default=0, min_value=0)
+        length = _int_param('length', default=30, min_value=1, max_value=100)
+
+    # Compact params supported to avoid massive query strings.
+    # DataTables default params are still supported for backwards compatibility.
+    search_value = (request.values.get('search_value') or request.values.get('search[value]') or '').strip()
+
+    show_archived_raw = (request.values.get('show_archived') or '').strip()
+    show_archived = show_archived_raw in ('1', 'true', 'True', 'yes', 'on')
+
+    show_archived_provided = request.values.get('show_archived') is not None
+
+    # Archived toggle is implemented as a column-search on hidden column index 8
+    # (used by older clients). When show_archived is explicitly provided, it takes precedence.
+    status_search_value = (request.values.get('columns[8][search][value]', '') or '').strip()
+
+    # Order handling (best-effort; ignore unknown columns)
+    order_col_idx = _int_param('order_col', default=None, min_value=0)
+    if order_col_idx is None:
+        order_col_idx = _int_param('order[0][column]', default=None, min_value=0)
+
+    order_dir = (request.values.get('order_dir') or request.values.get('order[0][dir]') or 'asc').lower()
+    order_dir = 'desc' if order_dir == 'desc' else 'asc'
+
+    today = datetime.utcnow().date()
+
+    query = Campaign.query
+
+    # Hide archived (closed) campaigns by default.
+    # New clients send show_archived explicitly; older clients used a column-search on hidden col 8.
+    if show_archived_provided:
+        if not show_archived:
+            query = query.filter(or_(Campaign.end_date.is_(None), Campaign.end_date >= today))
+    else:
+        if status_search_value == '1':
+            query = query.filter(or_(Campaign.end_date.is_(None), Campaign.end_date >= today))
+
+    # DataTables expects recordsTotal to reflect the current base dataset (e.g., after applying
+    # user-controlled filters like show_archived) and recordsFiltered to reflect additional
+    # filtering from the global search box.
+    records_total = query.count()
+
+    if search_value:
+        like_value = f"%{search_value}%"
+        query = query.filter(or_(
+            Campaign.campaign_name.ilike(like_value),
+            Campaign.short_description.ilike(like_value),
+            Campaign.long_description.ilike(like_value),
+        ))
+
+    records_filtered = query.count()
+
+    # Map DataTables column index -> SQLAlchemy order-by
+    order_map = {
+        0: Campaign.campaign_name,
+        1: Campaign.campaign_images,
+        2: Campaign.campaign_participants,
+        3: Campaign.campaign_contributions,
+        4: Campaign.start_date,
+        5: Campaign.end_date,
+    }
+    order_col = order_map.get(order_col_idx, Campaign.start_date)
+    if order_dir == 'desc':
+        query = query.order_by(order_col.desc(), Campaign.id.desc())
+    else:
+        query = query.order_by(order_col.asc(), Campaign.id.asc())
+
+    campaigns_page = query.offset(start).limit(length).all()
+    page_number = (start // length) + 1 if length else 1
+
+    data = []
+    for campaign in campaigns_page:
+        campaign_name = escape(campaign.campaign_name or '')
+        short_desc = escape(campaign.short_description or '')
+        long_desc = escape(campaign.long_description or '')
+
+        # Status computation (matches template logic)
+        is_archived = bool(campaign.end_date and campaign.end_date < today)
+        is_upcoming = bool(campaign.start_date and campaign.start_date >= today)
+
+        if is_archived:
+            status_html = Markup(
+                '<span class="badge bg-light text-dark border rounded-pill px-3 py-1">'
+                '<i class="fas fa-archive me-1"></i>%s</span>'
+            ) % escape(gettext('Archived'))
+            status_flag = 0
+        elif is_upcoming:
+            status_html = Markup(
+                '<span class="badge bg-light text-dark border rounded-pill px-3 py-1">'
+                '<i class="fas fa-clock me-1"></i>%s</span>'
+            ) % escape(gettext('Upcoming'))
+            status_flag = 1
+        else:
+            status_html = Markup(
+                '<span class="badge bg-success bg-opacity-10 text-success border border-success '
+                'border-opacity-25 rounded-pill px-3 py-1">'
+                '<i class="fas fa-play-circle me-1"></i>%s</span>'
+            ) % escape(gettext('Active'))
+            status_flag = 1
+
+        end_date_html = (
+            Markup('<span class="text-muted">%s</span>') % escape(gettext('Ongoing'))
+            if campaign.end_date is None
+            else escape(campaign.end_date.strftime('%Y-%m-%d'))
+        )
+
+        # Images column (mirrors template macro)
+        images_html = Markup('%s') % escape(str(campaign.campaign_images or 0))
+        if campaign.update_status == 1:
+            images_html += Markup(
+                '<button type="button" class="btn btn-link py-0" data-container="body" '
+                'title="%s" data-toggle="popover" data-trigger="focus" data-placement="right" '
+                'data-content="%s">'
+                '<i class="fa fa-clock"></i></button>'
+            ) % (
+                escape(gettext('Updating images')),
+                escape(
+                    gettext('The images for this campaign are being updated.') + ' ' +
+                    gettext('More images will be added.') + ' ' +
+                    gettext('You can still participate in the campaign.')
+                ),
+            )
+        elif campaign.update_status == 2:
+            images_html += Markup(
+                '<button type="button" class="btn btn-link py-0" data-container="body" '
+                'title="%s" data-toggle="popover" data-trigger="focus" data-placement="right" '
+                'data-content="%s">'
+                '<i class="fa fa-exclamation-circle"></i></button>'
+            ) % (
+                escape(gettext('Failed to update images')),
+                escape(
+                    gettext('There was an error while updating the images for this campaign.') + ' ' +
+                    gettext('Some images will be missing.') + ' ' +
+                    gettext('You can still participate in the campaign.') + ' ' +
+                    gettext('The campaign manager can retry by updating the campaign.')
+                ),
+            )
+
+        campaign_html = Markup(
+            '<div class="d-flex flex-column">'
+            '<strong class="mb-1">%s</strong>'
+            '<span class="small text-muted campaign-description">%s</span>'
+            '</div>'
+        ) % (campaign_name, short_desc)
+
+        data.append({
+            'href': url_for('campaigns.getCampaignById', id=campaign.id),
+            'campaign_html': campaign_html,
+            'images_html': images_html,
+            'participants': int(campaign.campaign_participants or 0),
+            'contributions': int(campaign.campaign_contributions or 0),
+            'start_date': campaign.start_date.strftime('%Y-%m-%d') if campaign.start_date else '',
+            'end_date_html': end_date_html,
+            'status_html': status_html,
+            'actions_html': Markup(
+                '<a href="%s" class="btn btn-sm btn-outline-primary rounded-1 px-3 py-1">%s</a>'
+            ) % (escape(url_for('campaigns.getCampaignById', id=campaign.id)), escape(gettext('View'))),
+            'status_flag': status_flag,
+            'long_description': long_desc,
+        })
+
+    has_more = (start + len(campaigns_page)) < records_filtered
+    return jsonify({
+        'draw': draw,
+        'recordsTotal': records_total,
+        'recordsFiltered': records_filtered,
+        'page': page_number,
+        'per_page': length,
+        'has_more': has_more,
+        'data': data,
+    })
 
 
 @campaigns.route('/campaigns/<int:id>')
