@@ -9,7 +9,8 @@ module.exports = {
         'campaign-form': './isa/src/campaign-form.js',
         'user-settings': './isa/src/user-settings.js',
         'main': './isa/src/main.js',
-        'stats': './isa/src/stats.js'
+        'stats': './isa/src/stats.js',
+        'my_contributions': './isa/src/my_contributions.js'
     },
     output: {
         path: path.resolve(__dirname, 'isa/static/js/'),
