@@ -1,6 +1,6 @@
 {% extends "main/layout.html" %}
 
-{% block content%}
+{% block content %}
 
 <link
   rel="stylesheet"
@@ -8,147 +8,629 @@
 />
 
 <div class="help-container">
-    <div class="help-header">
-        <h1>ISA - {{ _('Help Center') }}</h1>
-        <p class="lead">{{ _('Easily add structured data to images on Wikimedia Commons') }}</p>
-    </div>
-
-    <div class="help-section">
-        <h2>{{ _('About ISA Tool') }}</h2>
-        
-        <p>
-            {% trans link_attrs='href=https://commons.wikimedia.org/wiki/Commons:Structured_data target=_blank' %}<strong>ISA</strong> is a multilingual, mobile-friendly tool that simplifies adding <a {{link_attrs}}>structured data</a> to images on Wikimedia Commons, particularly those from Wiki Loves competitions.{% endtrans%}
-        </p>
-        
-        <div class="feature-card">
-            <h4>{{ _('Key Features') }}</h4>
-            <ul>
-                <li>{{ _('Mobile-first design for contributions on any device') }}</li>
-                <li>{{ _('Multilingual support for global participation') }}</li>
-                <li>{{ _('Campaign-based organization of tagging activities') }}</li>
-                <li>{{ _('Point system to track and reward contributions') }}</li>
-            </ul>
+    <!-- Hero Section -->
+    <div class="help-hero">
+        <div class="hero-content">
+            <div class="hero-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                </svg>
+            </div>
+            <h1>{{ _('Help Center') }}</h1>
+            <p class="lead">{{ _('Everything you need to know about ISA Tool') }}</p>
         </div>
         
-        <h3>{{ _('Wiki Loves Integration') }}</h3>
-        <p>
-            {% trans link_attrs='href=https://commons.wikimedia.org/wiki/Wiki_Loves_Africa target=_blank' %}Originally developed for <a {{link_attrs}}>Wiki Loves Africa</a>, ISA now supports all <a href=https://meta.wikimedia.org/wiki/Wiki_Loves_X target=_blank>Wiki Loves competitions</a> and is expanding to serve all media files on Wikimedia Commons.{% endtrans %}
-        </p>
-    </div>
-
-    <div class="help-section">
-        <h2>{{ _('Wikimedia Commons Basics') }}</h2>
-        
-        <p>
-            {{ _('<strong>Wikimedia Commons</strong> is the free media repository used by Wikipedia and other Wikimedia projects, hosting millions of freely usable media files contributed by volunteers worldwide.') }}
-        </p>
-        
-        <h3>{{ _('Types of Media on Commons') }}</h3>
-        <ol>
-            <li>{{ _('Personal photography and media from individual contributors') }}</li>
-            <li>{{ _('Freely licensed content from external sources like Flickr and YouTube') }}</li>
-            <li>{{ _('Institutional donations from organizations like NASA and UNESCO') }}</li>
-        </ol>
-        
-        <p>
-            {{ _('With over 5 million new files added annually, Commons relies on tools like ISA to help organize and describe this growing collection.') }}
-        </p>
-    </div>
-
-    <div class="help-section">
-        <h2>{{ _('Structured Data on Commons') }}</h2>
-        
-        <p>
-            {{ _('Structured data provides machine-readable organization to complement traditional wikitext, making media files more discoverable and reusable across Wikimedia projects and by third parties.') }}
-        </p>
-        
-        <div class="feature-card">
-            <h4>{{ _('Why Structured Data Matters') }}</h4>
-            <ul>
-                <li>{{ _('Enables better search and discovery of media') }}</li>
-                <li>{{ _('Allows computers to understand and process media content') }}</li>
-                <li>{{ _('Facilitates reuse in other Wikimedia projects') }}</li>
-                <li>{{ _('Supports multilingual descriptions') }}</li>
-            </ul>
+        <!-- Quick Action Cards -->
+        <div class="quick-actions">
+            <div class="action-card">
+                <div class="action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 0C3.58 0 0 3.58 0 8s3.58 8 8 8 8-3.58 8-8S12.42 0 8 0zm0 14.5c-3.59 0-6.5-2.91-6.5-6.5S4.41 1.5 8 1.5s6.5 2.91 6.5 6.5-2.91 6.5-6.5 6.5zM8 4a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm0 8a1 1 0 0 0 1-1V7a1 1 0 1 0-2 0v4a1 1 0 0 0 1 1z"/>
+                    </svg>
+                </div>
+                <h4>{{ _('Get Started') }}</h4>
+                <p>{{ _('New to ISA? Start here') }}</p>
+                <a href="#getting-started" class="action-link">{{ _('Begin →') }}</a>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+                        <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/>
+                    </svg>
+                </div>
+                <h4>{{ _('Report Issue') }}</h4>
+                <p>{{ _('Found a bug? Need help?') }}</p>
+                <button id="report-issue-btn" class="action-link">{{ _('Report →') }}</button>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zm-5-.5H7a.5.5 0 0 1 0 1H4.5a.5.5 0 0 1 0-1zm0 2h7a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-7a.5.5 0 0 1 .5-.5z"/>
+                    </svg>
+                </div>
+                <h4>{{ _('View Manual') }}</h4>
+                <p>{{ _('Complete documentation') }}</p>
+                <a href="https://commons.wikimedia.org/wiki/Commons:ISA_Tool/Manual" target="_blank" class="action-link">{{ _('Read →') }}</a>
+            </div>
         </div>
-        
-        <h3>{{ _('The Curation Challenge') }}</h3>
-        <p>
-            {{ _('With millions of existing files lacking structured data, ISA provides an efficient way to organize and describe Commons media through focused campaigns.') }}
-        </p>
     </div>
 
-    <div class="help-section">
-        <h2>{{ _('How ISA Works') }}</h2>
-        
-        <p>
-            {{ _('ISA enables adding two key types of structured data:') }}
-        </p>
-        
-        <h3>{{ _('1. Captions') }}</h3>
-        <p>
-            {{ _('Short, multilingual descriptions (255 characters max) published under CC0 license. Unlike traditional file descriptions, captions:') }}
-        </p>
-        <ul>
-            <li>{{ _('Are language-aware and searchable by language') }}</li>
-            <li>{{ _('Can be easily accessed via API') }}</li>
-            <li>{{ _('Support infoboxes and other structured uses') }}</li>
-        </ul>
-        <p>
-            <a href="https://commons.wikimedia.org/wiki/Commons:File_captions" target="_blank">{{ _('Learn more about captions') }}</a>
-        </p>
-        
-        <h3>{{ _('2. Depicts Statements') }}</h3>
-        <p>
-            {{ _('Links to Wikidata items representing the subjects shown in media files. When adding depicts:') }}
-        </p>
-        <ul>
-            <li>{{ _('Be as specific as possible') }}</li>
-            <li>{{ _('Add multiple items if clearly depicted') }}</li>
-            <li>{{ _('Mark prominent subjects when appropriate') }}</li>
-        </ul>
-        <p>
-            <a href="https://commons.wikimedia.org/wiki/Commons:Depicts" target="_blank">{{ _('Learn more about depicts') }}</a>
-        </p>
-        
-        <h3>{{ _('Campaign Participation') }}</h3>
-        <p>
-            {{ _('Anyone with a Wikimedia account can:') }}
-        </p>
-        <ol>
-            <li>{{ _('Create campaigns as a coordinator') }}</li>
-            <li>{{ _('Contribute to existing campaigns') }}</li>
-            <li>{{ _('Participate in tagging challenges') }}</li>
-        </ol>
-    </div>
+    <!-- Main Content with Side Navigation -->
+    <div class="help-content-wrapper">
+        <!-- Side Navigation -->
+        <nav class="help-sidebar">
+            <div class="sidebar-header">
+                <h3>{{ _('Contents') }}</h3>
+            </div>
+            <ul class="sidebar-nav">
+                <li><a href="#about-isa" class="sidebar-link active">{{ _('About ISA Tool') }}</a></li>
+                <li><a href="#commons-basics" class="sidebar-link">{{ _('Wikimedia Commons Basics') }}</a></li>
+                <li><a href="#structured-data" class="sidebar-link">{{ _('Structured Data') }}</a></li>
+                <li><a href="#how-it-works" class="sidebar-link">{{ _('How ISA Works') }}</a></li>
+                <li><a href="#getting-started" class="sidebar-link">{{ _('Getting Started') }}</a></li>
+                <li><a href="#legal-credits" class="sidebar-link">{{ _('Legal & Credits') }}</a></li>
+            </ul>
+            
+            <div class="sidebar-help-box">
+                <h4>{{ _('Need Help?') }}</h4>
+                <p>{{ _('Can\'t find what you\'re looking for?') }}</p>
+                <button id="sidebar-report-btn" class="btn-help">
+                    {{ _('Contact Support') }}
+                </button>
+            </div>
+        </nav>
 
-    <div class="help-section">
+        <!-- Main Content -->
+        <div class="help-main-content">
+            <!-- About ISA Section -->
+            <section id="about-isa" class="help-section">
+                <div class="section-header">
+                    <h2>{{ _('About ISA Tool') }}</h2>
+                    <div class="section-badge">ISA</div>
+                </div>
+                
+                <div class="section-intro">
+                    <p>
+                        {% trans link_attrs='href=https://commons.wikimedia.org/wiki/Commons:Structured_data target=_blank' %}<strong>ISA</strong> is a multilingual, mobile-friendly tool that simplifies adding <a {{link_attrs}} class="text-link">structured data</a> to images on Wikimedia Commons, particularly those from Wiki Loves competitions.{% endtrans%}
+                    </p>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M3 2.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0v.006c0 .07 0 .27-.038.494H15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 14.5V7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h2.038A2.968 2.968 0 0 1 3 2.506V2.5zm1.068.5H7v-.5a1.5 1.5 0 1 0-3 0c0 .085.002.274.045.43a.522.522 0 0 0 .023.07zM9 3h2.932a.56.56 0 0 0 .023-.07c.043-.156.045-.345.045-.43a1.5 1.5 0 0 0-3 0V3zM1 4v2h6V4H1zm8 0v2h6V4H9zm5 3H9v8h4.5a.5.5 0 0 0 .5-.5V7zm-7 8V7H2v7.5a.5.5 0 0 0 .5.5H7z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h4>{{ _('Mobile-First Design') }}</h4>
+                            <p>{{ _('Optimized for contributions on smartphones, tablets, and desktop computers') }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+                                <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h4>{{ _('Multilingual Support') }}</h4>
+                            <p>{{ _('Global participation with support for multiple languages') }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h4>{{ _('Campaign-Based') }}</h4>
+                            <p>{{ _('Organized tagging activities with focused campaigns') }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1h-11zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2h-7zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48V8.35zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h4>{{ _('Point System') }}</h4>
+                            <p>{{ _('Track and reward contributions with gamification') }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wiki-loves-card">
+                    <h3>{{ _('Wiki Loves Integration') }}</h3>
+                    <p>
+                        {% trans link_attrs='href=https://commons.wikimedia.org/wiki/Wiki_Loves_Africa target=_blank' %}Originally developed for <a {{link_attrs}} class="text-link">Wiki Loves Africa</a>, ISA now supports all <a href=https://meta.wikimedia.org/wiki/Wiki_Loves_X target=_blank class="text-link">Wiki Loves competitions</a> and is expanding to serve all media files on Wikimedia Commons.{% endtrans %}
+                    </p>
+                </div>
+            </section>
+
+            <!-- Wikimedia Commons Basics Section -->
+            <section id="commons-basics" class="help-section">
+                <div class="section-header">
+                    <h2>{{ _('Wikimedia Commons Basics') }}</h2>
+                    <div class="section-badge">{{ _('Essentials') }}</div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+                        </svg>
+                        <h3>{{ _('What is Wikimedia Commons?') }}</h3>
+                    </div>
+                    <div class="info-card-body">
+                        <p>
+                            {{ _('<strong>Wikimedia Commons</strong> is the free media repository used by Wikipedia and other Wikimedia projects, hosting millions of freely usable media files contributed by volunteers worldwide.') }}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/>
+                        </svg>
+                    </div>
+                    <div class="stats-content">
+                        <h4>{{ _('Growing Collection') }}</h4>
+                        <p>{{ _('With over 5 million new files added annually, Commons relies on tools like ISA to help organize and describe this expanding collection.') }}</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Structured Data Section -->
+            <section id="structured-data" class="help-section">
+                <div class="section-header">
+                    <h2>{{ _('Structured Data on Commons') }}</h2>
+                    <div class="section-badge">{{ _('Technical') }}</div>
+                </div>
+                
+                <div class="definition-card">
+                    <h3>{{ _('What is Structured Data?') }}</h3>
+                    <p>{{ _('Structured data provides machine-readable organization to complement traditional wikitext, making media files more discoverable and reusable across Wikimedia projects and by third parties.') }}</p>
+                </div>
+                
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                            </svg>
+                        </div>
+                        <h4>{{ _('Better Search') }}</h4>
+                        <p>{{ _('Enables improved search and discovery of media files') }}</p>
+                    </div>
+                    
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M5.921 11.9 1.353 8.62a.719.719 0 0 1 0-1.238L5.921 4.1A.716.716 0 0 1 7 4.719V6c1.5 0 6 0 7 8-2.5-4.5-7-4-7-4v1.281c0 .56-.606.898-1.079.62z"/>
+                            </svg>
+                        </div>
+                        <h4>{{ _('Machine Understanding') }}</h4>
+                        <p>{{ _('Allows computers to process and understand media content') }}</p>
+                    </div>
+                    
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+                            </svg>
+                        </div>
+                        <h4>{{ _('Facilitates Reuse') }}</h4>
+                        <p>{{ _('Supports integration with other Wikimedia projects') }}</p>
+                    </div>
+                    
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/>
+                            </svg>
+                        </div>
+                        <h4>{{ _('Multilingual') }}</h4>
+                        <p>{{ _('Supports descriptions in multiple languages') }}</p>
+                    </div>
+                </div>
+                
+                <div class="challenge-card">
+                    <h3>{{ _('The Curation Challenge') }}</h3>
+                    <p>{{ _('With millions of existing files lacking structured data, ISA provides an efficient way to organize and describe Commons media through focused campaigns.') }}</p>
+                </div>
+            </section>
+
+            <!-- How ISA Works Section -->
+            <section id="how-it-works" class="help-section">
+                <div class="section-header">
+                    <h2>{{ _('How ISA Works') }}</h2>
+                    <div class="section-badge">{{ _('Guide') }}</div>
+                </div>
+                
+                <div class="workflow">
+                    <div class="workflow-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>{{ _('Captions') }}</h3>
+                            <p>{{ _('Short, multilingual descriptions (255 characters max) published under CC0 license. Unlike traditional file descriptions, captions:') }}</p>
+                            <ul class="step-list">
+                                <li>{{ _('Are language-aware and searchable by language') }}</li>
+                                <li>{{ _('Can be easily accessed via API') }}</li>
+                                <li>{{ _('Support infoboxes and other structured uses') }}</li>
+                            </ul>
+                            <a href="https://commons.wikimedia.org/wiki/Commons:File_captions" target="_blank" class="learn-more">
+                                {{ _('Learn more about captions') }} →
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="workflow-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>{{ _('Depicts Statements') }}</h3>
+                            <p>{{ _('Links to Wikidata items representing the subjects shown in media files. When adding depicts:') }}</p>
+                            <ul class="step-list">
+                                <li>{{ _('Be as specific as possible') }}</li>
+                                <li>{{ _('Add multiple items if clearly depicted') }}</li>
+                                <li>{{ _('Mark prominent subjects when appropriate') }}</li>
+                            </ul>
+                            <a href="https://commons.wikimedia.org/wiki/Commons:Depicts" target="_blank" class="learn-more">
+                                {{ _('Learn more about depicts') }} →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="participation-card">
+                    <h3>{{ _('Campaign Participation') }}</h3>
+                    <div class="participation-grid">
+                        <div class="role-card">
+                            <h4>{{ _('Coordinator') }}</h4>
+                            <p>{{ _('Create and manage campaigns') }}</p>
+                        </div>
+                        <div class="role-card">
+                            <h4>{{ _('Contributor') }}</h4>
+                            <p>{{ _('Add structured data to existing campaigns') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+<!-- Getting Started Section -->
+<section id="getting-started" class="help-section">
+    <div class="section-header">
         <h2>{{ _('Getting Started') }}</h2>
-        
-        <p>
-            {{ _('Ready to use ISA? The comprehensive manual covers all features:') }}
-        </p>
-        <p>
-            <a href="https://commons.wikimedia.org/wiki/Commons:ISA_Tool/Manual" target="_blank" class="btn btn-primary">
-                {{ _('ISA Tool Manual') }}
-            </a>
-        </p>
+        <div class="section-badge">{{ _('Start Here') }}</div>
     </div>
+    
+    <div class="cta-card">
+        <div class="cta-content">
+            <div class="cta-header">
+                <div class="cta-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                    </svg>
+                    {{ _('Quick Start') }}
+                </div>
+                <h3>{{ _('Ready to Use ISA?') }}</h3>
+            </div>
+            
+            <p>{{ _('The comprehensive manual covers all features and provides step-by-step guidance for coordinators and contributors. Start adding structured data to Wikimedia Commons today!') }}</p>
+            
+            <div class="cta-features">
+                <div class="cta-feature">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                    </svg>
+                    <span>{{ _('Step-by-step tutorials') }}</span>
+                </div>
+                <div class="cta-feature">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                    </svg>
+                    <span>{{ _('Video guides and examples') }}</span>
+                </div>
+                <div class="cta-feature">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                    </svg>
+                    <span>{{ _('Best practices and tips') }}</span>
+                </div>
+            </div>
+            
+            <div class="cta-buttons">
+                <a href="https://commons.wikimedia.org/wiki/Commons:ISA_Tool/Manual" target="_blank" class="btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px;">
+                        <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1z"/>
+                    </svg>
+                    {{ _('Open ISA Tool Manual') }}
+                </a>
+                <button id="manual-help-btn" class="btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px;">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+                    </svg>
+                    {{ _('Still Need Help?') }}
+                </button>
+            </div>
+        </div>
+        <div class="cta-icon">
+            <div class="icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0ZM1.5 8a6.5 6.5 0 1 1 13 0 6.5 6.5 0 0 1-13 0Zm7-3.25v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5a.75.75 0 0 1 1.5 0Z"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
 
-    <div class="legal-notice">
-        <h3>{{ _('Legal and Credits') }}</h3>
-        <p>
-            {{ _('ISA was developed through collaboration between Wiki In Africa, Histropedia and the Structured Data on Commons project.') }}
-            {{ _('Hosted on Wikimedia Cloud Services, it operates under their Terms of Use and is published under GPLv3.') }}
-            {{ _('Content added through ISA is released under CC0.') }}
-        </p>
-        <p>
-            {{ _('Featured image:') }}
-            <a href="https://commons.wikimedia.org/wiki/File:2017_06_Ali-_00213.jpg" target="_blank">
-                Fisherman on the Volta River by Alimdaihli (CC BY-SA 4.0)
-            </a>
-        </p>
+            <!-- Legal & Credits Section -->
+            <section id="legal-credits" class="help-section">
+                <div class="section-header">
+                    <h2>{{ _('Legal & Credits') }}</h2>
+                    <div class="section-badge">{{ _('Legal') }}</div>
+                </div>
+                
+                <div class="legal-notice">
+                    <div class="legal-content">
+                        <h3>{{ _('Development & Hosting') }}</h3>
+                        <p>{{ _('ISA was developed through collaboration between Wiki In Africa, Histropedia and the Structured Data on Commons project.') }}</p>
+                        <p>{{ _('Hosted on Wikimedia Cloud Services, it operates under their Terms of Use and is published under GPLv3.') }}</p>
+                        <p>{{ _('Content added through ISA is released under CC0.') }}</p>
+                    </div>
+                    
+                    <div class="image-credit">
+                        <h4>{{ _('Featured Image') }}</h4>
+                        <a href="https://commons.wikimedia.org/wiki/File:2017_06_Ali-_00213.jpg" target="_blank" class="image-link">
+                            <span class="image-title">{{ _('Fisherman on the Volta River') }}</span>
+                            <span class="image-author">{{ _('by Alimdaihli (CC BY-SA 4.0)') }}</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
 </div>
 
-{% endblock content%}
+<!-- Report Issue Modal -->
+<div
+    id="reportModal"
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="report-modal-title"
+    aria-hidden="true"
+    tabindex="-1"
+>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="report-modal-title">{{ _('Report an Issue') }}</h2>
+            <button class="modal-close" type="button" aria-label="{{ _('Close') }}">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="issue-type">{{ _('Issue Type') }}</label>
+                <select id="issue-type" class="form-control">
+                    <option value="bug">{{ _('Bug Report') }}</option>
+                    <option value="feature">{{ _('Feature Request') }}</option>
+                    <option value="help">{{ _('Help Request') }}</option>
+                    <option value="other">{{ _('Other') }}</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="issue-title">{{ _('Title') }}</label>
+                <input
+                    id="issue-title"
+                    class="form-control"
+                    type="text"
+                    placeholder="{{ _('Short, clear title for your issue') }}"
+                />
+            </div>
+            
+            <div class="form-group">
+                <label for="issue-description">{{ _('Description') }}</label>
+                <textarea 
+                    id="issue-description" 
+                    class="form-control" 
+                    rows="4" 
+                    placeholder="{{ _('Please describe the issue in detail...') }}"
+                ></textarea>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="submit-issue" class="btn-primary" type="button">{{ _('Create Issue on Phabricator') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal elements
+    const modal = document.getElementById('reportModal');
+    const reportBtn = document.getElementById('report-issue-btn');
+    const sidebarReportBtn = document.getElementById('sidebar-report-btn');
+    const manualHelpBtn = document.getElementById('manual-help-btn');
+    const closeBtns = document.querySelectorAll('.modal-close');
+    const submitBtn = document.getElementById('submit-issue');
+    const titleInput = document.getElementById('issue-title');
+    const loggedInUser = "{{ username|default('', true) }}";
+    let lastFocusedElement = null;
+    
+    function openModal() {
+        if (!modal) {
+            return;
+        }
+
+        lastFocusedElement = document.activeElement;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        const firstField = document.getElementById('issue-type');
+        if (firstField) {
+            firstField.focus();
+        }
+    }
+    
+    function closeModal() {
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = 'auto';
+
+        if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+            lastFocusedElement.focus();
+        }
+    }
+    
+    // Open modal
+    [reportBtn, sidebarReportBtn, manualHelpBtn].forEach(btn => {
+        if (!btn) {
+            return;
+        }
+        btn.addEventListener('click', openModal);
+    });
+    
+    // Close modal
+    closeBtns.forEach(btn => {
+        btn.addEventListener('click', closeModal);
+    });
+    
+    // Close modal when clicking outside
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.classList.contains('is-open')) {
+            closeModal();
+        }
+    });
+    
+    // Smooth scroll for sidebar links
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all links
+            document.querySelectorAll('.sidebar-link').forEach(l => {
+                l.classList.remove('active');
+            });
+            
+            // Add active class to clicked link
+            this.classList.add('active');
+            
+            const targetId = this.getAttribute('href').substring(1);
+            const targetSection = document.getElementById(targetId);
+            
+            if (targetSection) {
+                window.scrollTo({
+                    top: targetSection.offsetTop - 100,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Highlight active section on scroll
+    const sections = document.querySelectorAll('.help-section');
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+    
+    function highlightActiveSection() {
+        let currentSection = '';
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop - 150;
+            const sectionHeight = section.clientHeight;
+            
+            if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+                currentSection = section.getAttribute('id');
+            }
+        });
+        
+        sidebarLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href').substring(1) === currentSection) {
+                link.classList.add('active');
+            }
+        });
+    }
+    
+    window.addEventListener('scroll', highlightActiveSection);
+    
+    // Submit issue to Phabricator
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            const issueType = document.getElementById('issue-type').value;
+            const titleValue = (titleInput ? titleInput.value : '').trim();
+            const description = document.getElementById('issue-description').value.trim();
+            
+            if (!titleValue) {
+                alert('Please provide a title for the issue.');
+                return;
+            }
+
+            if (!description) {
+                alert('Please provide a description of the issue.');
+                return;
+            }
+            
+            // Title passed through as-is (Phabricator form #1 will prepend nothing)
+            const title = titleValue;
+            
+            let body = `**Description:**\n${description}\n\n`;
+            if (loggedInUser) {
+                body += `**User:** ${loggedInUser}\n`;
+            }
+            body += `**Browser:** ${navigator.userAgent}\n`;
+            body += `**URL:** ${window.location.href}\n`;
+            body += `**Timestamp:** ${new Date().toISOString()}\n\n`;
+            body += `---\n*Reported via ISA Tool Help Center*`;
+            
+            // Build query parameters so the Phabricator form is prefilled server-side
+            const params = new URLSearchParams({
+                projects: 'ISA',
+                title,
+                description: body
+            });
+            const url = `https://phabricator.wikimedia.org/maniphest/task/edit/form/1/?${params.toString()}`;
+            window.open(url, '_blank', 'noopener');
+            
+            // Close modal
+            closeModal();
+            
+            // Show confirmation
+            alert('Opening Phabricator to create issue. Please complete the submission there.');
+        });
+    }
+    
+    // Initialize active section
+    highlightActiveSection();
+});
+</script>
+
+{% endblock %}
