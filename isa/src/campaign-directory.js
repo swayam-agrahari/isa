@@ -1,19 +1,34 @@
-
 /*********** Campaign directory page ***********/
 
-// Important: initialize after DOM ready so the global $.ajaxSetup CSRF hook
-// (defined in templates/main/layout.html) is installed before DataTables sends POST.
 $(document).ready(function () {
+    console.log("ISA Debug: Initializing Campaign Directory JS");
 
-    var campaignTableI18nOptions = JSON.parse($('.hidden-i18n-text').text());
+    /* 1. i18n Parsing with Safety and Logging */
+    var campaignTableI18nOptions = {};
+    try {
+        var i18nElement = $('.hidden-i18n-text');
+        console.log("ISA Debug: Found i18n element:", i18nElement.length > 0);
+        
+        var i18nRaw = i18nElement.text().trim();
+        if (i18nRaw) {
+            campaignTableI18nOptions = JSON.parse(i18nRaw);
+            console.log("ISA Debug: i18n JSON parsed successfully");
+        } else {
+            console.warn("ISA Debug: i18n element is empty");
+        }
+    } catch (e) {
+        console.error("ISA Debug: DataTables i18n parsing failed. Error:", e);
+        console.error("ISA Debug: Raw text that failed to parse:", $('.hidden-i18n-text').text());
+        // Fallback to defaults so the script doesn't stop
+        campaignTableI18nOptions = {};
+    }
 
-    // Hidden booleanStatusColumn is used internally to hide/show closed campaigns
-    // This allows filtering the same way regardless of UI language setting
     var booleanStatusColumn = [8];
-
-    // Campaign description, for searching purposes
     var campaignDescColumn = [9];
 
+    /* 2. DataTable Initialization */
+    console.log("ISA Debug: Starting DataTable initialization");
+    
     var campaignTable = $('#campaign_table').DataTable({
         processing: true,
         serverSide: true,
@@ -21,11 +36,11 @@ $(document).ready(function () {
         pageLength: 10,
         ajax: {
             url: '/api/campaigns',
-            type: 'POST',
+            type: 'GET', // Switched to GET to avoid Toolforge CSRF issues
             data: function (d) {
-                // Send only the minimal fields we need (keeps request small)
+                console.log("ISA Debug: AJAX data callback triggered. Draw:", d.draw);
                 var order0 = (d.order && d.order.length) ? d.order[0] : null;
-                return {
+                var params = {
                     draw: d.draw,
                     start: d.start,
                     length: d.length,
@@ -34,6 +49,21 @@ $(document).ready(function () {
                     order_dir: order0 ? order0.dir : 'asc',
                     show_archived: $('#show-closed-campaigns-checkbox').prop('checked') ? 1 : 0
                 };
+                console.log("ISA Debug: Sending request with params:", params);
+                return params;
+            },
+            dataSrc: function(json) {
+                console.log("ISA Debug: Received response from server:", json);
+                if (!json.data || json.data.length === 0) {
+                    console.warn("ISA Debug: API returned success but 0 records.");
+                }
+                return json.data;
+            },
+            error: function (xhr, error, code) {
+                console.error("ISA Debug: AJAX Error!");
+                console.error("Status:", xhr.status);
+                console.error("Response:", xhr.responseText);
+                console.error("Error Type:", error);
             }
         },
 
@@ -60,93 +90,66 @@ $(document).ready(function () {
         },
 
         columnDefs: [
-            {
-                targets: [0],
-                responsivePriority: 1
-            },
-            {
-                targets: [-1],
-                responsivePriority: 2,
-                searchable: false
-            },
-            {
-                targets: booleanStatusColumn,
-                visible: false
-            },
-            {
-                targets: campaignDescColumn,
-                visible: false
-            }
+            { targets: [0], responsivePriority: 1 },
+            { targets: [-1], responsivePriority: 2, searchable: false },
+            { targets: booleanStatusColumn, visible: false },
+            { targets: campaignDescColumn, visible: false }
         ],
 
-        // Translation text extracted from hidden HTML element
         language: campaignTableI18nOptions,
 
-        // See https://stackoverflow.com/questions/32252616/ for explanation of dom setting below
-        // It's used to get the button in the same line as the other table controls in the header
         dom: "f" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>"
     });
 
+    console.log("ISA Debug: DataTable object created");
+
+    /* 3. Event Listeners */
     $('#show-closed-campaigns-checkbox').change(function () {
-        // Reload from server; the request includes show_archived=0/1
+        console.log("ISA Debug: Archived toggle changed. Reloading table...");
         campaignTable.ajax.reload();
     });
 
-    /* ===== CLICKABLE CAMPAIGN ROWS ===== */
-
-    // Make entire campaign row clickable and navigate to View link
     function bindCampaignRowNavigation() {
-        // Ensure we don't accumulate duplicate handlers across redraws
         $('#campaign_table tbody').off('click', 'tr.campaign-row');
         $('#campaign_table tbody').off('keydown', 'tr.campaign-row');
 
         $('#campaign_table tbody').on('click', 'tr.campaign-row', function (e) {
-
-            // Prevent row navigation when clicking buttons or links inside the row
-            if ($(e.target).closest('a, button').length) {
-                return;
-            }
-
+            if ($(e.target).closest('a, button').length) return;
             var href = $(this).data('href');
             if (href) {
+                console.log("ISA Debug: Navigating to:", href);
                 window.location.href = href;
             }
         });
 
-        // Keyboard accessibility (Enter key)
         $('#campaign_table tbody').on('keydown', 'tr.campaign-row', function (e) {
             if (e.key === 'Enter') {
                 var href = $(this).data('href');
-                if (href) {
-                    window.location.href = href;
-                }
+                if (href) window.location.href = href;
             }
         });
     }
 
     function trimCampaignDescriptions() {
         var MAX_LENGTH = 120;
-
         $('#campaign_table .campaign-description').each(function () {
             var text = $(this).text().trim();
-
             if (text.length > MAX_LENGTH) {
                 $(this).text(text.substring(0, MAX_LENGTH) + '...');
             }
         });
     }
 
-    // Initial bind + trim
+    // Initial triggers
     bindCampaignRowNavigation();
     trimCampaignDescriptions();
 
-    // Re-bind after every DataTable redraw (pagination, search, filter)
+    // Redraw trigger
     campaignTable.on('draw', function () {
+        console.log("ISA Debug: Table draw event completed.");
         bindCampaignRowNavigation();
         trimCampaignDescriptions();
     });
 });
-
-
