@@ -122,15 +122,13 @@
   _('Next')|tojson }}, "previous": {{ _('Previous')|tojson }} } }
 </div>
 {% endblock content%} {% block scripts %}
-<script
-  type="text/javascript"
-  src="https://cdn.datatables.net/v/bs5/dt-1.11.3/r-2.2.9/datatables.min.js"
-></script>
+<script type="text/javascript" src="{{ url_for('static', filename='vendor/datatables.min.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/campaign-directory.js') }}"></script>
+
 <script src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
-<script src="{{url_for('static', filename='js/campaign-directory.js')}}"></script>
-
-{% endblock scripts%}
+{% endblock scripts %}
 
 <style>
   .campaign-hero {
