@@ -2,6 +2,7 @@
   'use strict';
 
   const API_URL = '/api/user/contributions';
+  const CAMPAIGNS_API = '/api/campaigns?length=200&start=0&order_col=0&order_dir=asc';
   const pageSize = 10;
 
   const elems = {
@@ -10,7 +11,6 @@
     first: document.getElementById('first-contribution'),
     recent: document.getElementById('recent-contribution'),
     filterCampaign: document.getElementById('filter-campaign'),
-    filterCountry: document.getElementById('filter-country'),
     filterLang: document.getElementById('filter-lang'),
     filterEditType: document.getElementById('filter-edit-type'),
     filterFrom: document.getElementById('filter-date-from'),
@@ -28,6 +28,52 @@
   let currentPage = 1;
   let sortKey = 'date';
   let sortDir = -1;
+
+  function fetchCampaignOptions() {
+    if (!elems.filterCampaign) return;
+
+    // Load a lightweight list of campaigns from the existing campaigns API.
+    fetch(CAMPAIGNS_API)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(payload => {
+        const rows = payload && payload.data ? payload.data : [];
+        const names = rows
+          .map(row => extractCampaignName(row.campaign_html))
+          .filter(Boolean);
+        populateCampaignSelect([...new Set(names)].sort());
+      })
+      .catch(() => {
+        // Silent fail; keep dropdown empty rather than breaking the page.
+        populateCampaignSelect([]);
+      });
+  }
+
+  function extractCampaignName(html) {
+    if (!html) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const strong = tmp.querySelector('strong');
+    const text = strong ? strong.textContent : tmp.textContent;
+    return (text || '').trim();
+  }
+
+  function populateCampaignSelect(names) {
+    const select = elems.filterCampaign;
+    if (!select) return;
+
+    select.innerHTML = '';
+    const anyOpt = document.createElement('option');
+    anyOpt.value = '';
+    anyOpt.textContent = 'Any';
+    select.appendChild(anyOpt);
+
+    names.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+  }
 
   function chartOptions() {
     return {
@@ -52,6 +98,7 @@
 
   function init(data) {
     allData = data;
+    populateLanguageSelect(allData);
     initFilters();
     applyFilters();
     hideLoading();
@@ -62,7 +109,6 @@
 
     filtered = allData.filter(d => {
       if (elems.filterCampaign.value && d.campaign !== elems.filterCampaign.value) return false;
-      if (elems.filterCountry.value && d.country !== elems.filterCountry.value) return false;
       if (elems.filterLang.value && d.lang !== elems.filterLang.value) return false;
       if (elems.filterEditType.value && d.edit_type !== elems.filterEditType.value) return false;
       if (search && !d.file.toLowerCase().includes(search)) return false;
@@ -73,6 +119,31 @@
     updateCharts();
     currentPage = 1;
     renderTable();
+  }
+
+  function populateLanguageSelect(data) {
+    const select = elems.filterLang;
+    if (!select) return;
+
+    const defaultLabel = select.querySelector('option')?.textContent || 'Any';
+    const languages = [...new Set(
+      data
+        .map(d => (d.lang || '').trim())
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+
+    select.innerHTML = '';
+    const anyOpt = document.createElement('option');
+    anyOpt.value = '';
+    anyOpt.textContent = defaultLabel;
+    select.appendChild(anyOpt);
+
+    languages.forEach(lang => {
+      const opt = document.createElement('option');
+      opt.value = lang;
+      opt.textContent = lang;
+      select.appendChild(opt);
+    });
   }
 
   function updateCharts() {
@@ -141,12 +212,15 @@
     filtered
       .slice((currentPage - 1) * pageSize, currentPage * pageSize)
       .forEach(d => {
+        const fileTitle = (d.file || '').replace(/^File:/i, '');
+        const fileUrl = `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(fileTitle)}`;
+        const campaignUrl = d.campaign_id ? `/campaigns/${d.campaign_id}` : null;
         elems.tbody.insertAdjacentHTML(
           'beforeend',
           `<tr>
             <td>${d.date}</td>
-            <td>${d.campaign}</td>
-            <td>${d.file}</td>
+            <td>${campaignUrl ? `<a href="${campaignUrl}" target="_blank" rel="noopener noreferrer">${d.campaign}</a>` : d.campaign}</td>
+            <td><a href="${fileUrl}" target="_blank" rel="noopener noreferrer">${d.file}</a></td>
             <td>${d.edit_type}</td>
             <td>${d.country}</td>
             <td>${d.lang}</td>
@@ -198,6 +272,9 @@
   }
 
   document.readyState === 'loading'
-    ? document.addEventListener('DOMContentLoaded', fetchContributions)
-    : fetchContributions();
+    ? document.addEventListener('DOMContentLoaded', () => {
+        fetchCampaignOptions();
+        fetchContributions();
+      })
+    : (fetchCampaignOptions(), fetchContributions());
 })();

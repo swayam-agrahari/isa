@@ -247,13 +247,13 @@ def api_user_contributions():
         rnd = random.Random(seed)
         try:
             campaign_rows = Campaign.query.all()
-            campaigns = [c.campaign_name for c in campaign_rows] or ['General']
+            campaigns = [(c.id, c.campaign_name) for c in campaign_rows] or [(None, 'General')]
         except Exception:
             app.logger.exception('Failed to load campaigns, falling back to defaults')
-            campaigns = ['General']
+            campaigns = [(None, 'General')]
         countries = ['SE', 'US', 'DE', 'FR', 'GB']
         langs = ['en', 'sv', 'de', 'fr', 'es']
-        types = ['caption', 'rotate', 'depicts']
+        types = ['caption', 'depicts']
 
         items = []
         today = datetime.date.today()
@@ -261,9 +261,11 @@ def api_user_contributions():
         for i in range(count):
             days = rnd.randint(0, 730)
             d = today - datetime.timedelta(days=days)
+            cid, cname = campaigns[rnd.randrange(len(campaigns))]
             items.append({
                 'date': d.isoformat(),
-                'campaign': campaigns[rnd.randrange(len(campaigns))],
+                'campaign': cname,
+                'campaign_id': cid,
                 'file': f'{username}_file_{i}.jpg',
                 'edit_type': types[rnd.randrange(len(types))],
                 'country': countries[rnd.randrange(len(countries))],
@@ -278,22 +280,23 @@ def api_user_contributions():
 
     try:
         # Join campaigns to include campaign names
-        rows = (db.session.query(Contribution, Campaign.campaign_name)
-                .join(Campaign, Contribution.campaign_id == Campaign.id)
-                .filter(Contribution.user_id == user.id)
-                .order_by(Contribution.date.desc())
-                .all())
+        rows = (db.session.query(Contribution, Campaign.id, Campaign.campaign_name)
+            .join(Campaign, Contribution.campaign_id == Campaign.id)
+            .filter(Contribution.user_id == user.id)
+            .order_by(Contribution.date.desc())
+            .all())
     except Exception:
         app.logger.exception('Failed to load user contributions for %s', username)
         return jsonify({'error': 'Failed to load contributions'}), 500
 
     items = []
-    for contrib, campaign_name in rows:
+    for contrib, campaign_id, campaign_name in rows:
         # contrib.date is a Date, convert to ISO string
         date_str = contrib.date.isoformat() if hasattr(contrib.date, 'isoformat') else str(contrib.date)
         items.append({
             'date': date_str,
             'campaign': campaign_name or 'General',
+            'campaign_id': campaign_id,
             'file': contrib.file,
             'edit_type': contrib.edit_type,
             'country': contrib.country or '',
