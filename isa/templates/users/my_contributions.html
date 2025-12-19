@@ -92,36 +92,79 @@
       </div>
     </aside>
 
-    <!-- Main content (charts + table) -->
+    <!-- Main content -->
     <section class="mc-content">
-      <div class="mc-charts">
-        <div class="mc-chart-card">
-          <h3 class="mc-chart-title">
-            {{ gettext('Contributions over time') }}
-          </h3>
-          <canvas
-            id="chart-time"
-            aria-label="Contributions over time"
-            role="img"
-          ></canvas>
+      <!-- GitHub-style contributions grid -->
+      <div class="mc-contrib-grid-card">
+        <div class="contrib-grid-header">
+          <div class="contrib-stats">
+            <div id="contrib-total-display" class="contrib-total">
+              — contributions
+            </div>
+            <div class="contrib-period">in the last year</div>
+          </div>
+          <div class="contrib-grid-nav">
+            <button
+              id="prev-year"
+              class="btn btn-sm btn-outline-secondary"
+              aria-label="Previous year"
+            >
+              &larr;
+            </button>
+            <span id="current-year-display" class="year-display">2024</span>
+            <button
+              id="next-year"
+              class="btn btn-sm btn-outline-secondary"
+              aria-label="Next year"
+            >
+              &rarr;
+            </button>
+            <button id="reset-view" class="btn btn-sm btn-outline-secondary">
+              {{ gettext('Today') }}
+            </button>
+          </div>
         </div>
 
-        <div class="mc-chart-row">
-          <div class="mc-chart-card small">
-            <h3 class="mc-chart-title">{{ gettext('By campaign') }}</h3>
-            <canvas
-              id="chart-campaign"
-              aria-label="Contributions by campaign"
-              role="img"
-            ></canvas>
+        <div class="contrib-grid-wrapper">
+          <!-- Tooltip container -->
+          <div
+            id="contrib-tooltip"
+            class="contrib-tooltip"
+            role="tooltip"
+          ></div>
+
+          <!-- Month labels (top) -->
+          <div id="month-labels" class="month-labels"></div>
+
+          <div style="display: flex">
+            <!-- Day labels (left side) -->
+            <div id="day-labels" class="day-labels"></div>
+
+            <!-- Year labels (left side) -->
+            <div id="year-labels" class="year-labels"></div>
+
+            <!-- Main grid -->
+            <div id="week-columns" class="week-columns"></div>
           </div>
-          <div class="mc-chart-card small">
-            <h3 class="mc-chart-title">{{ gettext('By edit type') }}</h3>
-            <canvas
-              id="chart-edit-type"
-              aria-label="Contributions by edit type"
-              role="img"
-            ></canvas>
+        </div>
+
+        <div class="contrib-grid-footer">
+          <div class="legend-section">
+            <!-- <span class="legend-link">Contribution settings</span> -->
+          </div>
+          <!-- <div class="legend-section">
+            <a href="#" class="learn-link">Learn how we count contributions</a>
+          </div> -->
+          <div class="legend-section">
+            <!-- <span class="legend-label">{{ gettext('Less') }}</span> -->
+            <div class="legend-colors">
+              <div class="legend-color level-0" title="0 contributions"></div>
+              <div class="legend-color level-1" title="1-2 contributions"></div>
+              <div class="legend-color level-2" title="3-4 contributions"></div>
+              <div class="legend-color level-3" title="5-9 contributions"></div>
+              <div class="legend-color level-4" title="10+ contributions"></div>
+            </div>
+            <!-- <span class="legend-label">{{ gettext('More') }}</span> -->
           </div>
         </div>
       </div>
@@ -152,6 +195,38 @@
         <nav aria-label="Table pagination">
           <ul class="pagination" id="mc-pagination"></ul>
         </nav>
+      </div>
+
+      <div class="mc-charts">
+        <div class="mc-chart-card">
+          <h3 class="mc-chart-title">
+            {{ gettext('Contributions over time') }}
+          </h3>
+          <canvas
+            id="chart-time"
+            aria-label="Contributions over time"
+            role="img"
+          ></canvas>
+        </div>
+
+        <div class="mc-chart-row">
+          <div class="mc-chart-card small">
+            <h3 class="mc-chart-title">{{ gettext('By campaign') }}</h3>
+            <canvas
+              id="chart-campaign"
+              aria-label="Contributions by campaign"
+              role="img"
+            ></canvas>
+          </div>
+          <div class="mc-chart-card small">
+            <h3 class="mc-chart-title">{{ gettext('By edit type') }}</h3>
+            <canvas
+              id="chart-edit-type"
+              aria-label="Contributions by edit type"
+              role="img"
+            ></canvas>
+          </div>
+        </div>
       </div>
     </section>
   </div>
