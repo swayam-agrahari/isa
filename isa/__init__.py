@@ -102,14 +102,14 @@ celery_app = celery_init_app(app)
 # we import all our blueprint routes here
 from isa.campaigns.routes import campaigns
 from isa.main.routes import main
-from isa.users.routes import users as users_blueprint
+from isa.users.routes import users
 from isa.errors.handlers import errors
 from isa.utils.context_processors import rtl_context_processor
 
 # Here we register the various blue_prints of our app
 app.register_blueprint(campaigns)
 app.register_blueprint(main)
-app.register_blueprint(users_blueprint)
+app.register_blueprint(users)
 app.register_blueprint(errors)
 
 # Register the context processor
