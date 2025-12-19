@@ -4,6 +4,7 @@ import json
 import logging
 
 import yaml
+import werkzeug
 from flask import Flask, request, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text
@@ -16,6 +17,10 @@ from flask_migrate import Migrate
 from babel import Locale
 from babel.core import UnknownLocaleError
 
+
+# Ensure compatibility with older Flask that expects werkzeug.__version__
+if not hasattr(werkzeug, "__version__"):
+    werkzeug.__version__ = "3"
 
 logging.basicConfig(
     level=logging.DEBUG,

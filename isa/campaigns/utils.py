@@ -104,6 +104,18 @@ def get_all_camapaign_stats_data(campaign_id):
     return all_campaign_stats_data
 
 
+def get_all_camapign_stats_data(campaign_id):
+    """Backward-compatible alias for get_all_camapaign_stats_data.
+
+    The original helper was named get_all_camapaign_stats_data, but the
+    test suite imports get_all_camapign_stats_data (note the swapped
+    letters). This thin wrapper preserves existing behavior while
+    satisfying the test import without changing external APIs.
+    """
+
+    return get_all_camapaign_stats_data(campaign_id)
+
+
 def create_campaign_country_stats_csv(stats_file_directory, campaign_name,
                                       country_fields, country_stats_data):
     """

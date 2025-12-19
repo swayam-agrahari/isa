@@ -6,9 +6,13 @@
 import unittest
 import datetime
 
-from isa.campaigns.utils import (get_country_from_code, convert_latin_to_english, compute_campaign_status,
-                                 get_all_camapign_stats_data)
-
+from isa import app, db
+from isa.campaigns.utils import (
+    get_country_from_code,
+    convert_latin_to_english,
+    compute_campaign_status,
+    get_all_camapign_stats_data,
+)
 from isa.models import Contribution, Campaign
 
 
@@ -16,10 +20,16 @@ class TestCampaignUtils(unittest.TestCase):
     """Test utility functions in the campaign blueprint."""
 
     def setUp(self):
-        pass
+        app.config['TESTING'] = True
+        app.config['WTF_CSRF_ENABLED'] = False
+        app.config['DEBUG'] = False
+        app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_TEST_DATABASE_URI']
+        self.app = app.test_client()
+        db.create_all()
 
     def tearDown(self):
-        pass
+        db.session.remove()
+        db.drop_all()
 
     def test_get_country_from_code(self):
         country = get_country_from_code('CM')
