@@ -2,6 +2,7 @@ from datetime import datetime
 import glob
 import json
 import os
+from types import SimpleNamespace
 
 import requests
 from flask import (make_response, render_template, redirect, url_for, flash, request,
@@ -292,6 +293,23 @@ def getCampaignById(id):
         app.logger.error('Invalid campaign_table_stats returned for %s: %r', id, campaign_table_stats)
         flash(gettext('Unable to load campaign statistics.'), 'info')
         return redirect(url_for('campaigns.getCampaigns'))
+
+    # Normalise the pagination object passed to the template.
+    # The template expects an object with `.pages`, `.page` and `.total`
+    # attributes, but tests may stub `page_info` as a plain dict.
+    raw_page_info = campaign_table_stats.get('page_info')
+    if hasattr(raw_page_info, 'pages') and hasattr(raw_page_info, 'page'):
+        page_info = raw_page_info
+    else:
+        if isinstance(raw_page_info, dict):
+            pages = raw_page_info.get('pages', 1)
+            page_num = raw_page_info.get('page', 1)
+            total = raw_page_info.get('total', 0)
+        else:
+            pages = 1
+            page_num = 1
+            total = 0
+        page_info = SimpleNamespace(pages=pages, page=page_num, total=total)
     # Delete the files in the campaign directory
     stats_path = os.getcwd() + '/campaign_stats_files/' + str(campaign.id)
     files = glob.glob(stats_path + '/*')
@@ -346,7 +364,7 @@ def getCampaignById(id):
                             campaign_contributions=campaign_contributions,
                             current_user=current_user,
                             is_wiki_loves_campaign=campaign.campaign_type,
-                            campaign_table_pagination_data=campaign_table_stats['page_info'],
+                            campaign_table_pagination_data=page_info,
                             all_contributors_data=campaign_table_stats['all_contributors_data'],
                             current_user_rank=campaign_table_stats['current_user_rank'],
                             all_campaign_country_statistics_data=campaign_table_stats['all_campaign_country_statistics_data'],
