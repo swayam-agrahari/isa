@@ -1,67 +1,605 @@
 {% extends "main/layout.html" %}
+
 {% block content %}
-<div class="container text-center page-header">
+<div class="language-preferences-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="container">
+      <div class="header-content">
+        <h1>{{ _('Language Preferences') }}</h1>
+        <p class="page-description">
+          {{ _('Configure your preferred languages for adding structured data to images') }}
+        </p>
+      </div>
+    </div>
+  </div>
 
-  <h2>
-    {{ _('Language preferences') }}
-  </h2>
-  <hr>
+  <!-- Main Content -->
+  <div class="container">
+    <div class="preferences-container">
+      <form class="preferences-form" method="POST">
+        {{ lang_form.csrf_token }}
+        
+        {# Debug: Uncomment to check what's available
+        <div style="display: none;">
+          Languages variable type: {{ languages }}
+          Languages length: {{ languages|length if languages else 0 }}
+          Form depicts field choices: {{ lang_form.depicts_language_select.choices|length if lang_form.depicts_language_select.choices else 0 }}
+        </div>
+        #}
+
+        <!-- Depicts Language Section -->
+        <div class="preference-section">
+          <div class="section-header">
+            <h3>{{ _('Depicts Language') }}</h3>
+            <div class="info-tooltip">
+              <button type="button" class="info-btn" data-toggle="popover" data-placement="right" data-trigger="focus" data-content="{{ _('The selected language will be used for searching for elements depicted in images.')}} {{_('If \'Same as interface\' is selected, the language selected in the top menu will be used.')}}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="section-description">
+            {{ _('Choose the language for searching Wikidata items when adding depicts statements') }}
+          </p>
+          <div class="form-group">
+            <div class="select-wrapper">
+              <select name="depicts_language_select" id="depicts_lang_select" class="form-select">
+                {% for value, label in lang_form.depicts_language_select.choices %}
+                  <option value="{{ value }}"
+                    {% if lang_form.depicts_language_select.data == value %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="select-arrow">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Caption Languages Section -->
+        <div class="preference-section">
+          <div class="section-header">
+            <h3>{{ _('Caption Languages') }}</h3>
+            <div class="info-tooltip">
+              <button type="button" class="info-btn" data-toggle="popover" data-placement="right" data-trigger="focus" data-content="{{ _('Captions can be added in multiple languages for each image.')}} {{ _('The languages you select on this page will appear on the page when you are viewing an image.')}} {{_('Select all the languages you are comfortable contributing in.')}}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="section-description">
+            {{ _('Select up to 6 languages you can write captions in') }}
+          </p>
+
+          <div class="languages-container">
+            {% for i in range(1, 7) %}
+            <div class="language-selector" id="caption_language_select_{{ i }}">
+              <div class="selector-wrapper">
+                <select name="caption_language_select_{{ i }}" id="captions_lang_select_{{ i }}" class="form-select">
+                  {% for value, label in lang_form['caption_language_select_' ~ i].choices %}
+                    <option value="{{ value }}"
+                      {% if lang_form['caption_language_select_' ~ i].data == value %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <div class="select-arrow">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                  </svg>
+                </div>
+              </div>
+              <button type="button" class="remove-btn" id="caption_language_select_{{ i }}_cancel" title="{{ _('Remove language') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                  <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                </svg>
+              </button>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="hint-text">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+              <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+            </svg>
+            {{ _('Languages will be available in the order you select them') }}
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <a href="{{url_for('users.userSettings') }}" class="btn btn-secondary">
+            {{ _('Cancel') }}
+          </a>
+          <button type="submit" class="btn btn-primary" name="submit">
+            {{ _('Save Preferences') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
-<div class="container text-center pb-4" style="max-width: 540px; background-color: #eaecf0">
-   
-    <hr>
-    <form class="" method="POST">
-      {{ lang_form.csrf_token }}
-         <h4>{{ _('Depicts language') }}<button type="button" class="btn btn-link py-0" data-container="body" data-toggle="popover" data-placement="right" data-trigger="focus" data-content="{{ _('The selected language will be used for searching for elements depicted in images.')}} {{_('If \'Same as interface\' is selected, the language selected in the top menu will be used.')}}"><i class="fas fa-question-circle"></i></button></h4>
-         <div id="depicts_language_select" class="input-group mb-3">
-            {{ lang_form.depicts_language_select( id="depicts_lang_select", class="form-control") }}
-         </div>
-         <h4>{{ _('Select upto 6 languages for captions') }}<button type="button" class="btn btn-link py-0" data-container="body" title="{{ _('Caption languages') }}" data-toggle="popover" data-placement="right" data-trigger="focus"  data-content="{{ _('Captions can be added in multiple languages for each image.')}} {{ _('The languages you select on this page will appear on the page when you are viewing an image.')}} {{_('Select all the languages you are comfortable contributing in.')}}"><i class="fas fa-question-circle"></i></button></h4>
-        <div id="caption_language_select_1" class="input-group mb-3">
-            {{ lang_form.caption_language_select_1( id="captions_lang_select_1", class="form-control") }}
-            <div class="input-group-append">
-                <button class="btn btn-outline-danger" type="button" id="caption_language_select_1_cancel" title="{{ _('Remove language') }}"><i class="fa fa-trash"></i></button>
-            </div>
-        </div>
-        <div id="caption_language_select_2" class="input-group mb-3">
-            {{ lang_form.caption_language_select_2( id="captions_lang_select_2", class="form-control") }}
-            <div class="input-group-append">
-                <button class="btn btn-outline-danger" type="button" id="caption_language_select_2_cancel" title="{{ _('Remove language') }}"><i class="fa fa-trash"></i></button>
-            </div>
-        </div>
-        <div id="caption_language_select_3" class="input-group mb-3">
-            {{ lang_form.caption_language_select_3( id="captions_lang_select_3", class="form-control") }}
-            <div class="input-group-append">
-                <button class="btn btn-outline-danger" type="button" id="caption_language_select_3_cancel" title="{{ _('Remove language') }}"><i class="fa fa-trash"></i></button>
-            </div>
-        </div>
-        <div id="caption_language_select_4" class="input-group mb-3">
-            {{ lang_form.caption_language_select_4( id="captions_lang_select_4", class="form-control") }}
-            <div class="input-group-append">
-                <button class="btn btn-outline-danger" type="button" id="caption_language_select_4_cancel" title="{{ _('Remove language') }}"><i class="fa fa-trash"></i></button>
-            </div>
-        </div>
-        <div id="caption_language_select_5" class="input-group mb-3">
-            {{ lang_form.caption_language_select_5( id="captions_lang_select_5", class="form-control") }}
-            <div class="input-group-append">
-                <button class="btn btn-outline-danger" type="button" id="caption_language_select_5_cancel" title="{{ _('Remove language') }}"><i class="fa fa-trash"></i></button>
-            </div>
-        </div>        
-        <div id="caption_language_select_6" class="input-group mb-3">
-            {{ lang_form.caption_language_select_6( id="captions_lang_select_6", class="form-control") }}
-            <div class="input-group-append">
-                <button class="btn btn-outline-danger" type="button" id="caption_language_select_6_cancel" title="{{ _('Remove language') }}"><i class="fa fa-trash"></i></button>
-            </div>
-        </div>
-      <div class="btn-group">
-            <a href="{{url_for('users.userSettings') }}" class="btn btn-danger" title="{{ _('Undo changes to language settings') }}">{{ _('Undo changes') }}</a> &nbsp;
-            {{ lang_form.submit(class="btn btn-primary", value=_('Save'), title="{{ _('Update your language settings') }}") }}
-
-       </div>
-    </form>
-</div>
-
 {% endblock content %}
+
+{% block styles %}
+<style>
+  /* Language Preferences Page */
+  .language-preferences-page {
+    min-height: calc(100vh - 200px);
+  }
+
+  /* Page Header */
+  .page-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 3rem 0;
+    margin-bottom: 3rem;
+  }
+
+  .header-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .header-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .page-description {
+    font-size: 1.125rem;
+    opacity: 0.9;
+    margin: 0;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Preferences Container */
+  .preferences-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .preferences-form {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Preference Sections */
+  .preference-section {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .preference-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-header h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+  }
+
+  .info-tooltip {
+    display: flex;
+    align-items: center;
+  }
+
+  .info-btn {
+    background: none;
+    border: none;
+    color: var(--gray-500);
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
+  }
+
+  .info-btn:hover {
+    color: var(--primary-color);
+  }
+
+  .info-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .section-description {
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  /* Form Elements */
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  .select-wrapper {
+    position: relative;
+    max-width: 400px;
+  }
+
+  .form-select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    border: 2px solid var(--gray-300);
+    border-radius: 10px;
+    background-color: white;
+    appearance: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .form-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+  }
+
+  .select-arrow {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--gray-500);
+  }
+
+  /* Languages Container */
+  .languages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .language-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 400px;
+  }
+
+  .selector-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  .remove-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--gray-100);
+    border: 2px solid var(--gray-300);
+    border-radius: 10px;
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .remove-btn:hover {
+    background: var(--danger-color);
+    border-color: var(--danger-color);
+    color: white;
+  }
+
+  .remove-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Hint Text */
+  .hint-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray-500);
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+  }
+
+  .hint-text svg {
+    color: var(--primary-color);
+    flex-shrink: 0;
+  }
+
+  /* Form Actions */
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 2rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .btn {
+    padding: 0.875rem 2rem;
+    font-weight: 600;
+    border-radius: 10px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+    color: white;
+    text-decoration: none;
+  }
+
+  .btn-secondary {
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: 2px solid var(--gray-300);
+  }
+
+  .btn-secondary:hover {
+    background: var(--gray-200);
+    transform: translateY(-2px);
+    color: var(--gray-800);
+    text-decoration: none;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .page-header {
+      padding: 2rem 0;
+    }
+
+    .header-content h1 {
+      font-size: 2rem;
+    }
+
+    .preferences-form {
+      padding: 1.5rem;
+    }
+
+    .section-header h3 {
+      font-size: 1.25rem;
+    }
+
+    .form-actions {
+      flex-direction: column-reverse;
+    }
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .page-header {
+      padding: 1.5rem 0;
+    }
+
+    .header-content h1 {
+      font-size: 1.75rem;
+    }
+
+    .page-description {
+      font-size: 1rem;
+    }
+
+    .preferences-form {
+      padding: 1.25rem;
+    }
+
+    .language-selector {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+
+    .remove-btn {
+      width: 100%;
+      height: 40px;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block scripts %}
-    <script src="{{url_for('static', filename='js/user-settings.js')}}"></script>
-{% endblock scripts%}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Initialize popovers
+    $('[data-toggle="popover"]').popover({
+      container: "body",
+      trigger: "focus",
+      placement: "right",
+      html: true,
+    });
+
+    // Remove button functionality
+    const removeButtons = document.querySelectorAll(".remove-btn");
+    removeButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const langSelector = this.closest(".language-selector");
+        const selectElement = langSelector.querySelector(".form-select");
+        selectElement.value = "";
+
+        // Hide the selector if it's not the first one
+        const selectorId = langSelector.id;
+        if (!selectorId.includes("_1")) {
+          // Add animation before hiding
+          langSelector.style.opacity = "0";
+          langSelector.style.transform = "translateX(-10px)";
+          setTimeout(() => {
+            langSelector.style.display = "none";
+          }, 300);
+        }
+
+        // Update options after removing a language
+        updateLanguageOptions();
+        updateLanguageSelectorsVisibility();
+      });
+    });
+
+    // Dynamic language selector visibility
+    const languageSelectors = document.querySelectorAll(".language-selector");
+    const languageSelects = document.querySelectorAll(".language-selector .form-select");
+
+    // Ensure each language is selected at most once
+    function normalizeLanguageSelections() {
+      const seen = new Set();
+
+      languageSelectors.forEach(selector => {
+        const select = selector.querySelector(".form-select");
+        if (!select) return;
+
+        const value = select.value;
+        if (!value) return;
+
+        if (seen.has(value)) {
+          // Clear duplicates so a language only appears once overall
+          select.value = "";
+        } else {
+          seen.add(value);
+        }
+      });
+    }
+
+    // Disable/hide already selected languages in other dropdowns
+    function updateLanguageOptions() {
+      const selectedValues = new Set();
+
+      languageSelects.forEach(select => {
+        if (select.value) {
+          selectedValues.add(select.value);
+        }
+      });
+
+      languageSelects.forEach(select => {
+        const currentValue = select.value;
+        const options = select.querySelectorAll("option");
+
+        options.forEach(option => {
+          const value = option.value;
+
+          // Always keep empty option enabled/visible
+          if (!value) {
+            option.disabled = false;
+            option.hidden = false;
+            return;
+          }
+
+          if (value === currentValue) {
+            // Keep the currently selected value enabled in its own select
+            option.disabled = false;
+            option.hidden = false;
+          } else if (selectedValues.has(value)) {
+            // Hide/disable values selected in other selects
+            option.disabled = true;
+            option.hidden = true;
+          } else {
+            option.disabled = false;
+            option.hidden = false;
+          }
+        });
+      });
+    }
+
+    function updateLanguageSelectorsVisibility() {
+      let foundEmpty = false;
+      
+      languageSelectors.forEach((selector, index) => {
+        const select = selector.querySelector(".form-select");
+        
+        if (index === 0) {
+          // Always show the first selector
+          selector.style.display = "flex";
+          if (select.value === "") {
+            foundEmpty = true;
+          }
+        } else {
+          // For other selectors, show if previous one has a value
+          const prevSelector = languageSelectors[index - 1];
+          const prevSelect = prevSelector.querySelector(".form-select");
+          
+          if (prevSelect.value !== "" && !foundEmpty) {
+            selector.style.display = "flex";
+            if (select.value === "") {
+              foundEmpty = true;
+            }
+          } else {
+            selector.style.display = "none";
+          }
+        }
+      });
+    }
+
+    // Initialize visibility and normalize duplicates
+    normalizeLanguageSelections();
+    updateLanguageSelectorsVisibility();
+    updateLanguageOptions();
+
+    // Update on change
+    languageSelects.forEach(select => {
+      select.addEventListener("change", () => {
+        normalizeLanguageSelections();
+        updateLanguageSelectorsVisibility();
+        updateLanguageOptions();
+      });
+    });
+
+    // Auto-focus first empty select
+    function focusFirstEmptySelect() {
+      for (let select of languageSelects) {
+        if (select.value === "") {
+          select.focus();
+          break;
+        }
+      }
+    }
+
+    // Focus first empty on page load
+    setTimeout(focusFirstEmptySelect, 100);
+  });
+</script>
+{% endblock scripts %}

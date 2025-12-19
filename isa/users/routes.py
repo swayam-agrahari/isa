@@ -116,6 +116,7 @@ def userSettings():
         return redirect(url_for('main.home'))
 
     user = User.query.filter_by(username=username).first()
+    print("user:", user)
     lang_form = LanguageForm()
     if lang_form.is_submitted():
         caption_language_1 = str(request.form.get('caption_language_select_1'))
@@ -172,7 +173,11 @@ def userSettings():
                 # We make sure that the form data does not remain in browser
                 return redirect(url_for('users.userSettings'))
     elif request.method == 'GET':
-        caption_languages = user.caption_languages.split(',')
+        caption_languages = (user.caption_languages or '').split(',')
+
+    # Ensure exactly 6 items
+        while len(caption_languages) < 6:
+            caption_languages.append('')
         lang_form.caption_language_select_1.data = str(caption_languages[0])
         lang_form.caption_language_select_2.data = str(caption_languages[1])
         lang_form.caption_language_select_3.data = str(caption_languages[2])
