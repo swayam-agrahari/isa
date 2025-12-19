@@ -50,6 +50,36 @@ if (initialCategoryData) {
     }
 }
 
+// Update UI counts and stats related to selected categories
+function updateCategoryStats() {
+    var count = $('.selected-category').length;
+    $('#selected-count').text(count);
+    $('#total-categories').text(count);
+}
+
+// Ensure the empty-state row is present when there are no selected categories
+function ensureEmptyStateRow() {
+    if ($('.selected-category').length === 0 && $('#selected-categories-content .empty-state').length === 0) {
+        var emptyStateHtml = '' +
+            '<tr class="empty-state">' +
+            '<td colspan="3">' +
+            '<div class="empty-categories">' +
+            '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 16 16">' +
+            '<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>' +
+            '<path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"></path>' +
+            '</svg>' +
+            '<p>' + (i18nStrings['No categories selected yet'] || 'No categories selected yet') + '</p>' +
+            '<small>' + (i18nStrings['Search and add categories above'] || 'Search and add categories above') + '</small>' +
+            '</div>' +
+            '</td>' +
+            '</tr>';
+
+        $('#selected-categories-content').append(emptyStateHtml);
+    }
+
+    updateCategoryStats();
+}
+
 // Setup category search box
 function categorySearchResultsFormat(state) {
     if (!state.id) {
@@ -108,9 +138,10 @@ $(document).ready(function () {
 function addSelectedCategory(name, depth) {
     var depth = depth || 0;
     var shortName = name.replace("Category:", "");
+    // Remove the placeholder empty state row if present
+    $('#selected-categories-content .empty-state').remove();
     $('#selected-categories-content').append(getCategoryRowHtml(shortName, depth));
-    // show the table header if it's not visible already
-    $('#selected-categories-header').show();
+    updateCategoryStats();
     if (isWikiLovesCampaign) validateWikiLovesCategories();
 }
 
@@ -121,9 +152,11 @@ $('#selected-categories-content').on("click", "button.close", function (event) {
 
     if (isWikiLovesCampaign) validateWikiLovesCategories();
 
-    // after removing the element, we must hide the table header if there are no rows left
+    // After removing, restore the empty state if no categories remain
     if ($('.selected-category').length < 1) {
-        $('#selected-categories-header').hide();
+        ensureEmptyStateRow();
+    } else {
+        updateCategoryStats();
     }
     $("#update_images").prop("checked", true);
 });
@@ -162,9 +195,9 @@ function validateWikiLovesCategories() {
     });
 
     if (hasValidationErrors) {
-        $('.invalid-wiki-loves-warning').show();
+        $('.wiki-loves-warning').removeClass('d-none');
     } else {
-        $('.invalid-wiki-loves-warning').hide();
+        $('.wiki-loves-warning').addClass('d-none');
     }
     categoriesAreValid = !hasValidationErrors;
 }
@@ -188,8 +221,8 @@ function isValidWikiLovesSyntax(categoryName) {
 function clearWikiLovesValidation() {
     $('.selected-category').each(function () {
         $(this).removeClass('invalid-category').removeClass('valid-category');
-        $('.invalid-wiki-loves-warning').hide();
     });
+    $('.wiki-loves-warning').addClass('d-none');
 }
 
 //////////// Form submission ////////////
