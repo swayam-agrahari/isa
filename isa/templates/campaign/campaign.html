@@ -3,7 +3,7 @@
 
 <!-- Campaign header with modern design -->
 <div class="container page-header mt-4">
-  <div class="campaign-header-card rounded-4 shadow-sm p-4 mb-5">
+  <div class="campaign-header-card rounded-4 shadow-sm p-4 mb-4">
     <div class="row align-items-center">
       <!-- Campaign Image -->
       <div class="col-lg-3 col-md-4 text-center mb-4 mb-md-0">
@@ -36,13 +36,13 @@
 
           {% if campaign.manager.username == username or username in
           isa_superusers %}
-          <div class="ms-3 flex-shrink-0">
+          <div class="ms-3 flex-shrink-0 ">
             <a
               href="{{ url_for('campaigns.updateCampaign', id=campaign.id) }}"
-              class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
+              class="btn btn-lg btn-outline-primary  rounded-1 px-3 py-1"
               title="{{ _('Make changes to this campaign') }}"
             >
-              <i class="fas fa-edit"></i>
+              <i class="fas fa-edit me-2 "></i>
               {{ _('Edit') }}
             </a>
           </div>
@@ -52,18 +52,16 @@
         <!-- Metadata Cards -->
         <div class="row g-3 mb-4">
           <div class="col-md-4">
-            <div class="campaign-meta-card p-3 rounded-3 bg-light">
-              <div class="d-flex align-items-center mb-2 gap-2">
-                <i class="fas fa-user-circle text-primary"></i>
-                <h6 class="mb-0" style="margin-left: 8px">
-                  {{ _('Campaign Manager') }}
-                </h6>
+            <div class="campaign-meta-card p-3 rounded-3 bg-light border">
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-user-circle text-primary me-3 fs-5 mr-2"></i>
+                <h6 class="mb-0 text-secondary">{{ _('Campaign Manager') }}</h6>
               </div>
               <a
                 href="https://commons.wikimedia.org/wiki/User:{{ campaign.manager.username }}"
                 target="_blank"
                 rel="noopener"
-                class="text-decoration-none fw-semibold"
+                class="text-decoration-none fw-semibold text-dark"
               >
                 {{ campaign.manager.username }}
               </a>
@@ -71,26 +69,22 @@
           </div>
 
           <div class="col-md-4">
-            <div class="campaign-meta-card p-3 rounded-3 bg-light">
-              <div class="d-flex align-items-center mb-2 gap-2">
-                <i class="fas fa-calendar-alt text-success"></i>
-                <h6 class="mb-0" style="margin-left: 8px">
-                  {{ _('Start Date') }}
-                </h6>
+            <div class="campaign-meta-card p-3 rounded-3 bg-light border">
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-calendar-alt text-success me-3 fs-5 mr-2"></i>
+                <h6 class="mb-0 text-secondary">{{ _('Start Date') }}</h6>
               </div>
-              <span class="fw-semibold">{{ campaign.start_date }}</span>
+              <span class="fw-semibold text-dark">{{ campaign.start_date }}</span>
             </div>
           </div>
 
           <div class="col-md-4">
-            <div class="campaign-meta-card p-3 rounded-3 bg-light">
-              <div class="d-flex align-items-center mb-2 gap-2">
-                <i class="fas fa-calendar-times text-warning"></i>
-                <h6 class="mb-0" style="margin-left: 8px">
-                  {{ _('End Date') }}
-                </h6>
+            <div class="campaign-meta-card p-3 rounded-3 bg-light border">
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-calendar-times text-warning me-3 fs-5 mr-2"></i>
+                <h6 class="mb-0 text-secondary">{{ _('End Date') }}</h6>
               </div>
-              <span class="fw-semibold">
+              <span class="fw-semibold text-dark">
                 {% if campaign.end_date is none %} {{ _('Ongoing') }} {% else %}
                 {{ campaign.end_date }} {% endif %}
               </span>
@@ -102,8 +96,11 @@
 
     <!-- Long Description -->
     <div class="campaign-description mt-4 pt-4 border-top">
-      <h5 class="mb-3 fw-semibold">{{ _('More info') }}</h5>
-      <div class="description-content p-3 bg-light rounded-3">
+      <h5 class="mb-3 fw-semibold text-dark">
+        <i class="fas fa-info-circle me-2 text-primary"></i>
+        {{ _('More info') }}
+      </h5>
+      <div class="description-content p-4 bg-white rounded-3 border">
         {{ campaign.long_description | safe }}
       </div>
     </div>
@@ -111,42 +108,42 @@
 </div>
 
 <!-- Primary CTA Section -->
-<div class="container mb-5">
-  <div class="primary-cta-card rounded-4 shadow p-4 bg-gradient-primary">
-    <div class="row align-items-center">
-      <div class="col-lg-8 mb-4 mb-lg-0">
-        <h3 class="fw-bold mb-2">{{ _('Ready to Contribute?') }}</h3>
-        <p class="mb-0">
-          {{ _('Join this campaign and help improve Wikimedia Commons images')
-          }}
-        </p>
+<div class="container mb-4">
+  <div class="primary-cta-card rounded-4 shadow-lg p-5 text-center">
+    <div class="cta-content">
+      <div class="cta-icon mb-3">
+        <i class="fas fa-hand-sparkles fa-3x"></i>
       </div>
+      <h2 class="fw-bold mb-3 cta-title">{{ _('Ready to Contribute?') }}</h2>
+      <p class="mb-4 cta-description mx-auto" style="max-width: 600px;">
+        {{ _('Join this campaign and help improve Wikimedia Commons images') }}
+      </p>
 
-      <div class="col-lg-4 text-lg-end">
-        {% if is_wiki_loves_campaign %}
-        <div class="country-select-wrapper mb-3">
-          <div class="input-group">
-            <span class="input-group-text bg-white border-0">
-              <i class="fas fa-globe text-primary"></i>
-            </span>
-            <select
-              id="campaign_countries"
-              class="form-select border-0 shadow-sm"
-              title="{{ _('Filter by country') }}"
-            >
-              <option value="all">{{ _('All Countries') }}</option>
-              {% for country in countries %}
-              <option value="{{ country }}">{{ country }}</option>
-              {% endfor %}
-            </select>
-          </div>
+      {% if is_wiki_loves_campaign %}
+      <div class="country-select-wrapper mb-4 d-inline-block" style="min-width: 280px;">
+        <div class="input-group shadow">
+          <span class="input-group-text bg-white">
+            <i class="fas fa-globe me-2"></i>
+          </span>
+          <select
+            id="campaign_countries"
+            class="form-select"
+            title="{{ _('Filter by country') }}"
+          >
+            <option value="all">{{ _('All Countries') }}</option>
+            {% for country in countries %}
+            <option value="{{ country }}">{{ country }}</option>
+            {% endfor %}
+          </select>
         </div>
-        {% endif %}
+      </div>
+      {% endif %}
 
+      <div class="cta-buttons">
         <a
           id="get_started_btn"
           href="{{ url_for('campaigns.contributeToCampaign', id=campaign.id) }}"
-          class="btn btn-light btn-lg px-5 fw-bold rounded-pill shadow hover-lift"
+          class=" btn-lg px-5  py-3 fw-bold rounded-pill shadow-lg cta-button"
           title="{{ _('Start contributing to this campaign') }}"
         >
           <i class="fas fa-rocket me-2"></i>
@@ -162,47 +159,51 @@
   <div class="row g-4">
     <!-- Main Campaign Stats -->
     <div class="col-lg-8">
-      <div class="stats-card rounded-4 shadow-sm p-4 h-100">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h4 class="fw-bold mb-0">
-            <i class="fas fa-chart-line me-2 text-primary"></i>
+      <div class="stats-card rounded-4 shadow-sm p-4 h-100 border">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+          <h4 class="fw-bold mb-0 text-dark">
+            <i class="fas fa-chart-line me-3 text-primary "></i>
             {{ _('Campaign Progress') }}
           </h4>
           <div class="text-end">
             <a
               href="{{ url_for('campaigns.getCampaignStatsById', id=campaign.id) }}"
-              class="btn btn-outline-primary btn-sm"
+              class="btn  shadow-sm btn-primary"
               title="{{ _('View detailed statistics') }}"
             >
-              <i class="fas fa-chart-bar me-1"></i>
+              <i class="fas fa-chart-bar me-2 mr-1"></i>
               {{ _('Full Stats') }}
             </a>
           </div>
         </div>
 
         <!-- Quick Stats -->
-        <div class="row g-3 mb-4">
+        <div class="row g-4 mb-4">
           <div class="col-md-6">
             <div
-              class="stat-box text-center p-3 rounded-3 bg-primary bg-opacity-10 border-start border-primary border-4"
+              class="stat-box text-center p-4 rounded-4 shadow-sm border border-primary"
             >
-              <div class="stat-icon mb-2">
-                <i class="fas fa-images fa-2x text-primary"></i>
+              <div class="stat-icon mb-3">
+                <div class="icon-circle bg-primary bg-opacity-10 rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                  <i class="fas fa-images fa-2x "></i>
+                </div>
               </div>
-              <h3 class="fw-bold mb-1">{{ images(campaign) }}</h3>
-              <p class="text-muted mb-0">{{ _('Total Images') }}</p>
+              <h3 class="fw-bold mb-2 text-dark">{{ images(campaign) }}</h3>
+              <p class="text-muted mb-0 fw-semibold">{{ _('Total Images') }}</p>
             </div>
           </div>
 
           <div class="col-md-6">
             <div
-              class="stat-box text-center p-3 rounded-3 bg-success bg-opacity-10 border-start border-success border-4"
+              class="stat-box text-center p-4 rounded-4 shadow-sm border border-success"
             >
-              <div class="stat-icon mb-2">
-                <i class="fas fa-users fa-2x text-success"></i>
+              <div class="stat-icon mb-3">
+                <div class="icon-circle bg-success bg-opacity-10 rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                  <i class="fas fa-users fa-2x "></i>
+                </div>
               </div>
-              <h3 class="fw-bold mb-1">{{ campaign_contributions }}</h3>
-              <p class="text-muted mb-0">{{ _('Total Contributions') }}</p>
+              <h3 class="fw-bold mb-2 text-dark">{{ campaign_contributions }}</h3>
+              <p class="text-muted mb-0 fw-semibold">{{ _('Total Contributions') }}</p>
             </div>
           </div>
         </div>
@@ -216,15 +217,15 @@
     <!-- User Contributions Sidebar -->
     <!-- User Contributions Sidebar -->
     <div class="col-lg-4">
-      <div class="user-stats-card rounded-4 shadow-sm p-4 h-100">
-        <h4 class="fw-bold mb-4">
-          <i class="fas fa-user-circle me-2 text-info"></i>
+      <div class="user-stats-card rounded-4 shadow-sm p-4 h-100 border">
+        <h4 class="fw-bold mb-4 text-dark pb-3 border-bottom">
+          <i class="fas fa-user-circle me-3 text-info "></i>
           {{ _('My Contributions') }}
         </h4>
 
         {% if username != 'Guest' and username != None %}
         <div
-          class="user-rank-card text-center p-4 mb-4 rounded-3 bg-info bg-opacity-10"
+          class="user-rank-card text-center p-4 mb-4 rounded-4 shadow-sm border"
         >
           <div
             class="rank-badge position-relative d-inline-flex align-items-center justify-content-center mb-3"
@@ -254,7 +255,7 @@
 
             <!-- Rank circle with rank number -->
             <div
-              class="rank-circle bg-info text-white rounded-circle d-flex align-items-center justify-content-center position-relative"
+              class="rank-circle bg-info text-white rounded-circle d-flex align-items-center justify-content-center position-relative shadow"
               style="width: 80px; height: 80px; margin-top: {% if current_user_rank <= 3 %}15px{% else %}0{% endif %};"
             >
               <h2 class="mb-0 fw-bold" style="position: relative; z-index: 5">
@@ -268,49 +269,49 @@
             <div
               class="medal-effect position-absolute top-50 start-50 translate-middle"
             >
-              <div class="pulse-ring" style="width: 100px; height: 100px"></div>
+               
             </div>
             {% endif %}
           </div>
 
-          <h3 class="fw-bold mb-2">{{ current_user_images_improved }}</h3>
-          <p class="text-muted mb-0">{{ _('Contributions Made') }}</p>
+          <h3 class="fw-bold mb-2 text-dark">{{ current_user_images_improved }}</h3>
+          <p class="text-muted mb-3 fw-semibold">{{ _('Contributions Made') }}</p>
 
           <!-- Rank label -->
           <div class="rank-label mt-2">
             {% if current_user_rank == 1 %}
-            <span class="badge bg-warning text-dark px-3 py-1">
-              <i class="fas fa-trophy me-1"></i> {{ _('1st Place') }}
+            <span class="badge bg-warning text-dark px-3 py-2 fs-6">
+              <i class="fas fa-trophy me-2"></i> {{ _('1st Place') }}
             </span>
             {% elif current_user_rank == 2 %}
-            <span class="badge bg-secondary px-3 py-1">
-              <i class="fas fa-trophy me-1"></i> {{ _('2nd Place') }}
+            <span class="badge bg-secondary px-3 py-2 fs-6">
+              <i class="fas fa-trophy me-2"></i> {{ _('2nd Place') }}
             </span>
             {% elif current_user_rank == 3 %}
-            <span class="badge bg-danger px-3 py-1">
-              <i class="fas fa-trophy me-1"></i> {{ _('3rd Place') }}
+            <span class="badge bg-danger px-3 py-2 fs-6">
+              <i class="fas fa-trophy me-2"></i> {{ _('3rd Place') }}
             </span>
             {% elif current_user_rank > 3 and current_user_rank <= 10 %}
-            <span class="badge bg-primary px-3 py-1">
-              <i class="fas fa-medal me-1"></i> {{ _('Top 10') }}
+            <span class="badge bg-primary px-3 py-2 fs-6">
+              <i class="fas fa-medal me-2"></i> {{ _('Top 10') }}
             </span>
             {% elif current_user_rank > 10 %}
-            <span class="badge bg-info px-3 py-1">
-              <i class="fas fa-star me-1"></i> {{ _('Contributor') }}
+            <span class="badge bg-info px-3 py-2 fs-6">
+              <i class="fas fa-star me-2"></i> {{ _('Contributor') }}
             </span>
             {% endif %}
           </div>
         </div>
 
-        <div class="progress-section">
-          <div class="d-flex justify-content-between mb-2">
-            <span class="fw-semibold">{{ _('Your Progress') }}</span>
-            <span class="text-muted">
+        <div class="progress-section p-3 bg-light rounded-3">
+          <div class="d-flex justify-content-between mb-3">
+            <span class="fw-bold text-dark">{{ _('Your Progress') }}</span>
+            <span >
               {% if table_data.total > 0 %} {{ ((current_user_images_improved /
               table_data.total) * 100) | round(1) }}% {% else %} 0% {% endif %}
             </span>
           </div>
-          <div class="progress" style="height: 8px">
+          <div class="progress" style="height: 12px">
             <div
               class="progress-bar bg-info"
               role="progressbar"
@@ -322,7 +323,8 @@
           </div>
 
           <!-- Progress details -->
-          <div class="mt-2 text-muted small">
+          <div class="mt-3 text-muted small fw-semibold">
+            <i class="fas fa-chart-line me-2"></i>
             {{ current_user_images_improved }} / {{ table_data.total }} {{
             _('total contributions') }}
           </div>
@@ -330,15 +332,17 @@
         {% else %}
         <div class="text-center py-5">
           <div class="mb-4">
-            <i class="fas fa-user-lock fa-4x text-muted opacity-50"></i>
+            <div class="login-icon-circle bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+              <i class="fas fa-user-lock fa-3x text-muted"></i>
+            </div>
           </div>
-          <h5 class="mb-3">{{ _('Login to Track Your Progress') }}</h5>
+          <h5 class="mb-3 fw-bold">{{ _('Login to Track Your Progress') }}</h5>
           <p class="text-muted mb-4">
             {{ _('Sign in to see your ranking and contribution history') }}
           </p>
           <a
             href="{{ url_for('users.login') }}"
-            class="btn btn-primary rounded-pill px-4"
+            class="btn btn-primary rounded-pill px-4 py-2 shadow"
           >
             <i class="fas fa-sign-in-alt me-2"></i>
             {{ _('Sign In') }}
@@ -350,199 +354,19 @@
   </div>
 </div>
 
-{% endblock content %} {% block styles %}
-<style>
-  :root {
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  }
+<!-- Hidden i18n -->
+<div class="hidden-i18n-text">
+  { "Unknown country": {{ _('Unknown country') | tojson }} }
+</div>
 
-  .campaign-header-card {
-    background: white;
-    border: 1px solid #e9ecef;
-  }
-
-  .primary-cta-card {
-    background: var(--primary-gradient);
-    border: none;
-  }
-
-  .stats-card,
-  .user-stats-card {
-    background: white;
-    border: 1px solid #e9ecef;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .stats-card:hover,
-  .user-stats-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
-  }
-
-  .stat-box {
-    transition: all 0.3s ease;
-    cursor: default;
-  }
-
-  .stat-box:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  }
-
-  .rank-circle {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-  }
-
-  .rank-circle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  }
-
-  .btn.hover-lift {
-    transition: all 0.3s ease;
-  }
-
-  .btn.hover-lift:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  .campaign-image-wrapper {
-    overflow: hidden;
-    border-radius: 16px;
-  }
-
-  .campaign-image {
-    transition: transform 0.5s ease;
-  }
-
-  .campaign-image:hover {
-    transform: scale(1.05);
-  }
-
-  .progress-bar {
-    border-radius: 4px;
-    transition: width 0.6s ease;
-  }
-
-  @media (max-width: 768px) {
-    .campaign-title {
-      font-size: 1.75rem;
-    }
-
-    .primary-cta-card .btn-lg {
-      width: 100%;
-      padding-left: 2rem;
-      padding-right: 2rem;
-    }
-  }
-
-  .campaign-description .description-content {
-    line-height: 1.8;
-    font-size: 1.05rem;
-  }
-
-  .table-light {
-    --bs-table-bg: #f8f9fa;
-    --bs-table-striped-bg: #e9ecef;
-  }
-
-  .table-hover tbody tr:hover {
-    background-color: rgba(13, 110, 253, 0.05);
-  }
-
-  .rank-badge {
-    min-height: 120px;
-  }
-
-  .crown-container {
-    top: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 20;
-  }
-
-  .rank-circle {
-    position: relative;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-    border: 3px solid white;
-  }
-
-  .rank-circle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-  }
-
-  /* Medal colors for top ranks */
-  .rank-circle[data-rank="1"] {
-    background: linear-gradient(135deg, #ffd700, #ffa500);
-  }
-
-  .rank-circle[data-rank="2"] {
-    background: linear-gradient(135deg, #c0c0c0, #808080);
-  }
-
-  .rank-circle[data-rank="3"] {
-    background: linear-gradient(135deg, #cd7f32, #8b4513);
-  }
-
-  /* Animation for top 3 ranks */
-  @keyframes pulse {
-    0% {
-      transform: translateX(-50%) translateY(-50%) scale(1);
-      opacity: 1;
-    }
-    100% {
-      transform: translateX(-50%) translateY(-50%) scale(1.3);
-      opacity: 0;
-    }
-  }
-
-  .pulse-ring {
-    position: absolute;
-    border-radius: 50%;
-    border: 3px solid;
-    animation: pulse 2s infinite;
-  }
-
-  .pulse-ring:nth-child(1) {
-    animation-delay: 0s;
-  }
-
-  .pulse-ring:nth-child(2) {
-    animation-delay: 0.5s;
-  }
-
-  .rank-label .badge {
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .rank-circle {
-      width: 70px !important;
-      height: 70px !important;
-    }
-
-    .rank-circle h2 {
-      font-size: 1.5rem;
-    }
-
-    .crown-container i {
-      font-size: 1.5rem !important;
-    }
-
-    .rank-badge {
-      min-height: 100px;
-    }
-  }
-</style>
-{% endblock %} {% block scripts %}
+{% endblock content %} 
+{% block styles %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/campaign-detail.css') }}"
+>
+{% endblock %}
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/campaign.js') }}"></script>
 <script>
     // Add interactivity for country filter
@@ -580,7 +404,7 @@
     // Add rank-specific colors dynamically
   document.addEventListener('DOMContentLoaded', function() {
     const rankCircle = document.querySelector('.rank-circle');
-    const userRank = {{ current_user_rank|default(0) }};
+    const userRank = {% if current_user_rank %}{{ current_user_rank }}{% else %}0{% endif %};
 
     if (rankCircle) {
       rankCircle.setAttribute('data-rank', userRank);
@@ -588,13 +412,16 @@
       // Add rank-specific colors
       if (userRank === 1) {
         rankCircle.classList.remove('bg-info');
-        rankCircle.style.background = 'linear-gradient(135deg, #FFD700, #FFA500)';
+        rankCircle.style.background = 'linear-gradient(135deg, #FFD700, #FFED4E)';
+        rankCircle.style.borderColor = '#FFD700';
       } else if (userRank === 2) {
         rankCircle.classList.remove('bg-info');
-        rankCircle.style.background = 'linear-gradient(135deg, #C0C0C0, #808080)';
+        rankCircle.style.background = 'linear-gradient(135deg, #C0C0C0, #E8E8E8)';
+        rankCircle.style.borderColor = '#C0C0C0';
       } else if (userRank === 3) {
         rankCircle.classList.remove('bg-info');
-        rankCircle.style.background = 'linear-gradient(135deg, #CD7F32, #8B4513)';
+        rankCircle.style.background = 'linear-gradient(135deg, #CD7F32, #E59866)';
+        rankCircle.style.borderColor = '#CD7F32';
       }
     }
   });
