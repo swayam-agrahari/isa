@@ -3,6 +3,7 @@ from flask_wtf import FlaskForm
 from isa import gettext
 from isa.utils.languages import getLanguages
 from wtforms import SelectField, SubmitField
+from wtforms.validators import Optional
 
 
 class LanguageForm(FlaskForm):

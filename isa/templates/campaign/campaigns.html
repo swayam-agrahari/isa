@@ -3,40 +3,52 @@
 
 <div class="container-fluid px-0">
   <!-- Enhanced Hero Section -->
-  <div class="campaign-hero bg-gradient-primary text-black py-6">
-    <div class="container text-center py-3">
-      <div class="d-flex justify-content-center mb-3">
-        <div
-          class="icon-container bg-white bg-opacity-20 rounded-circle p-3 d-inline-flex"
-        >
-          <i class="fas fa-bullhorn fa-2x me-3"></i>
-          <h1 class="display-5 fw-semibold mb-3">ISA - {{ _('Campaigns') }}</h1>
+  <div class="campaign-hero py-6 position-relative overflow-hidden">
+    <div class="hero-shape hero-shape-1"></div>
+    <div class="hero-shape hero-shape-2"></div>
+    <div class="container py-4">
+      <div
+        class="row align-items-center justify-content-center g-4 text-center"
+      >
+        <div class="col-lg-12">
+          <h1 class="display-5 fw-semibold mb-3">
+            {{ _('Discover and launch structured data campaigns') }}
+          </h1>
+          <p class="lead text-muted mb-4">
+            {{ _('Explore live initiatives, monitor progress, and invite
+            contributors with a dashboard-inspired view modeled after the stats
+            experience.') }}
+          </p>
+          <div
+            class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-4"
+          >
+            <a
+              href="#campaigns"
+              class="btn btn-dark btn-lg px-4 py-2 rounded-1 shadow-sm"
+            >
+              <i class="fas fa-search me-2 mr-2"></i>{{ _('Browse campaigns') }}
+            </a>
+            {% if username != 'Guest' and username != None %}
+            <a
+              href="{{url_for('campaigns.CreateCampaign')}}"
+              class="btn btn-light btn-lg px-4 py-2 rounded-1 shadow-sm"
+              style="margin-left: 2rem"
+            >
+              <i class="fas fa-plus me-2 mr-2"></i>{{ _('Create campaign') }}
+            </a>
+            {% endif %}
+          </div>
         </div>
-      </div>
-      <p class="lead mb-4 mx-auto" style="max-width: 700px">
-        {{ _('Discover structured data annotation campaigns and contribute to
-        our community initiatives.')}}
-      </p>
-      <div class="d-flex justify-content-center gap-3">
-        <a href="#campaigns" class="btn btn-light btn-lg px-4 py-2 rounded-1">
-          <i class="fas fa-search me-2 mr-2"></i>{{ _('Explore Campaigns') }}
-        </a>
-        {% if username != 'Guest' and username != None %}
-        <a
-          href="{{url_for('campaigns.CreateCampaign')}}"
-          class="btn btn-outline-dark btn-lg px-4 py-2 rounded-1"
-        >
-          <i class="fas fa-plus me-2 mr-2"></i>{{ _('Create New') }}
-        </a>
-        {% endif %}
       </div>
     </div>
   </div>
 
   <!-- Main Content -->
   <div class="container py-5" id="campaigns">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
+    <div
+      class="d-flex flex-column flex-md-row justify-content-between align-items-md-center align-items-start mb-4"
+    >
+      <div class="mb-3 mb-md-0">
         <h2 class="h4 fw-semibold text-gray-800 mb-1">
           {{ _('Available Campaigns') }}
         </h2>
@@ -61,37 +73,50 @@
       </div>
     </div>
 
+    <!-- Mobile-friendly table header for small screens -->
+    <div class="d-block d-lg-none mb-3">
+      <div class="alert alert-info py-2 mb-0 d-flex align-items-center">
+        <i class="fas fa-info-circle me-2"></i>
+        <small>{{ _('Scroll horizontally to view all columns') }}</small>
+      </div>
+    </div>
+
     <!-- Campaigns Table -->
     <div class="card border-0 shadow-sm">
       <div class="card-body p-0">
-        <div class="table-responsive">
-          <table
-            id="campaign_table"
-            class="table table-hover align-middle mb-0"
-            style="width: 100%"
-          >
-            <thead class="table-light">
-              <tr>
-                <th scope="col" class="ps-4">{{ _('Campaign') }}</th>
-                <th scope="col" class="text-center">{{ _('Images') }}</th>
-                <th scope="col" class="text-center">{{ _('Participants') }}</th>
-                <th scope="col" class="text-center">
-                  {{ _('Contributions') }}
-                </th>
-                <th scope="col">{{ _('Start Date') }}</th>
-                <th scope="col">{{ _('End Date') }}</th>
-                <th scope="col" class="text-center">{{ _('Status') }}</th>
-                <th scope="col" class="pe-4 text-end">{{ _('Actions') }}</th>
-                <!-- Hidden columns for filtering -->
-                <th scope="col" class="d-none"></th>
-                <th scope="col" class="d-none"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {# Rows are loaded incrementally via /api/campaigns (server-side
-              pagination) #}
-            </tbody>
-          </table>
+        <!-- Enhanced table scroller for mobile -->
+        <div class="table-responsive-md">
+          <div class="table-scroller">
+            <table
+              id="campaign_table"
+              class="table table-hover align-middle mb-0"
+              style="min-width: 992px"
+            >
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="ps-4">{{ _('Campaign') }}</th>
+                  <th scope="col" class="text-center">{{ _('Images') }}</th>
+                  <th scope="col" class="text-center">
+                    {{ _('Participants') }}
+                  </th>
+                  <th scope="col" class="text-center">
+                    {{ _('Contributions') }}
+                  </th>
+                  <th scope="col">{{ _('Start Date') }}</th>
+                  <th scope="col">{{ _('End Date') }}</th>
+                  <th scope="col" class="text-center">{{ _('Status') }}</th>
+                  <th scope="col" class="pe-4 text-end">{{ _('Actions') }}</th>
+                  <!-- Hidden columns for filtering -->
+                  <th scope="col" class="d-none"></th>
+                  <th scope="col" class="d-none"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {# Rows are loaded incrementally via /api/campaigns (server-side
+                pagination) #}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -112,36 +137,130 @@
   </div>
 </div>
 
-<!-- DataTables i18n -->
-<div class="hidden-i18n-text">
-  { "info": {{ _('Showing _START_ to _END_ of _TOTAL_ entries')|tojson }},
-  "infoEmpty": {{ _('No entries')|tojson }}, "infoFiltered": {{ _('(filtered
-  from _MAX_ total entries)')|tojson }}, "search": {{ _('Search:')|tojson }},
-  "zeroRecords": {{ _('No matching records found')|tojson }}, "paginate": {
-  "first": {{ _('First')|tojson }}, "last": {{ _('Last')|tojson }}, "next": {{
-  _('Next')|tojson }}, "previous": {{ _('Previous')|tojson }} } }
-</div>
+<!-- DataTables i18n (parsed by campaign-directory.js) -->
+<script type="application/json" class="hidden-i18n-text">
+  {
+    "info": {{ _('Showing _START_ to _END_ of _TOTAL_ entries')|tojson }},
+    "infoEmpty": {{ _('No entries')|tojson }},
+    "infoFiltered": {{ _('(filtered from _MAX_ total entries)')|tojson }},
+    "search": {{ _('Search:')|tojson }},
+    "zeroRecords": {{ _('No matching records found')|tojson }},
+    "paginate": {
+      "first": {{ _('First')|tojson }},
+      "last": {{ _('Last')|tojson }},
+      "next": {{ _('Next')|tojson }},
+      "previous": {{ _('Previous')|tojson }}
+    }
+  }
+</script>
 {% endblock content%} {% block scripts %}
-<script type="text/javascript" src="{{ url_for('static', filename='vendor/datatables.min.js') }}"></script>
+<script
+  type="text/javascript"
+  src="{{ url_for('static', filename='vendor/datatables.min.js') }}"
+></script>
 
 <script src="{{ url_for('static', filename='js/campaign-directory.js') }}"></script>
 
 <script src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
+
+<script>
+  // Mobile-friendly enhancements
+  document.addEventListener("DOMContentLoaded", function() {
+    // Add touch indicators for horizontal scrolling on mobile
+    const tableScroller = document.querySelector(".table-scroller");
+    if (tableScroller) {
+      // Add touch-friendly scroll indicators
+      let isScrolling = false;
+
+      tableScroller.addEventListener("scroll", function() {
+        if (!isScrolling) {
+          this.classList.add("scrolling");
+          isScrolling = true;
+
+          setTimeout(() => {
+            this.classList.remove("scrolling");
+            isScrolling = false;
+          }, 1500);
+        }
+      });
+
+      // Add momentum scrolling for iOS
+      tableScroller.style["-webkit-overflow-scrolling"] = "touch";
+    }
+  });
+</script>
 {% endblock scripts %}
 
 <style>
   .campaign-hero {
-    background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%);
+    background: radial-gradient(
+        circle at 20% 20%,
+        rgba(59, 130, 246, 0.2),
+        transparent 45%
+      ),
+      radial-gradient(
+        circle at 80% 0%,
+        rgba(45, 212, 191, 0.18),
+        transparent 40%
+      ),
+      linear-gradient(120deg, #0f172a 0%, #0b1224 50%, #0f172a 100%);
+    color: #e5e7eb;
   }
 
-  .bg-gradient-primary {
-    background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%);
+  .campaign-hero .text-muted {
+    color: rgba(229, 231, 235, 0.82) !important;
   }
 
-  .icon-container {
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+  .hero-shape {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(24px);
+    opacity: 0.6;
+  }
+
+  .hero-shape-1 {
+    width: 260px;
+    height: 260px;
+    background: rgba(99, 102, 241, 0.18);
+    top: -60px;
+    left: -40px;
+  }
+
+  .hero-shape-2 {
+    width: 220px;
+    height: 220px;
+    background: rgba(16, 185, 129, 0.2);
+    bottom: -80px;
+    right: -20px;
+  }
+
+  .hero-badge {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  }
+
+  .badge-dot {
+    width: 10px;
+    height: 10px;
+    background: linear-gradient(135deg, #3b82f6, #22d3ee);
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .hero-chip {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    color: #0f172a;
+    border-radius: 999px;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
   }
 
   .table-hover tbody tr:hover {
@@ -177,6 +296,60 @@
     overflow: hidden;
   }
 
+  /* Enhanced table scroller for mobile */
+  .table-responsive-md {
+    position: relative;
+  }
+
+  .table-scroller {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+
+  .table-scroller::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .table-scroller::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  .table-scroller::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+
+  .table-scroller::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  /* Visual indicator for horizontal scrolling */
+  .table-scroller::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(255, 255, 255, 0.9)
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .table-scroller.scrolling::after {
+    opacity: 1;
+  }
+
   .table th {
     font-weight: 600;
     text-transform: uppercase;
@@ -191,67 +364,79 @@
     padding-bottom: 1rem;
   }
 
+  /* Keep all columns on a single row so horizontal scroll is predictable */
+  #campaign_table th,
+  #campaign_table td {
+    white-space: nowrap;
+  }
+
   @media (max-width: 768px) {
+    .hero-card {
+      margin-top: 0.5rem;
+    }
+
     .campaign-hero {
       padding: 2.5rem 0;
     }
 
-    .d-flex.justify-content-center.gap-3 {
+    .d-flex.flex-wrap.justify-content-center.gap-3 {
       flex-direction: column;
       gap: 1rem !important;
     }
 
-    .d-flex.justify-content-between.align-items-center.mb-4 {
-      flex-direction: column;
-      align-items: flex-start !important;
-      gap: 1rem;
-    }
-
-    .table-responsive {
+    .table-scroller {
       border: 0;
+      margin-left: -1rem;
+      margin-right: -1rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      width: calc(100% + 2rem);
     }
 
-    .table thead {
-      display: none;
+    /* Force a wider table so horizontal scrolling is available on narrow screens */
+    #campaign_table {
+      min-width: 992px;
     }
 
-    .table tr {
-      display: block;
-      margin-bottom: 1.5rem;
-      border: 1px solid #e9ecef;
-      border-radius: 0.75rem;
-      padding: 1rem;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    /* Mobile scroll hint */
+    .alert-info {
+      font-size: 0.85rem;
+      padding: 0.75rem;
     }
 
-    .table td {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #f0f0f0;
+    /* Better touch targets for mobile */
+    .table td,
+    .table th {
       padding: 0.75rem 0.5rem;
     }
 
-    .table td::before {
-      content: attr(data-label);
-      font-weight: 600;
-      margin-right: 1rem;
-      color: #495057;
-      font-size: 0.8rem;
-      min-width: 100px;
+    /* Adjust action buttons for mobile */
+    .btn-group .btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    #campaign_table {
+      min-width: 850px;
     }
 
-    .table td:last-child {
-      border-bottom: none;
-      justify-content: flex-end;
+    .table td,
+    .table th {
+      font-size: 0.875rem;
+      padding: 0.5rem 0.375rem;
     }
 
-    .table td .btn {
-      width: auto;
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.5rem;
     }
 
-    .table td[data-label="Status"] {
-      justify-content: flex-end;
+    /* Make the show/hide toggle more touch-friendly */
+    .form-switch .form-check-input {
+      width: 3em;
+      height: 1.75em;
     }
   }
 
@@ -259,5 +444,12 @@
   #campaign_table tbody tr.campaign-row > td,
   #campaign_table tbody tr.campaign-row td * {
     cursor: pointer !important;
+  }
+
+  /* Touch-friendly hover effect for mobile */
+  @media (hover: none) and (pointer: coarse) {
+    .table-hover tbody tr:active {
+      background-color: rgba(67, 97, 238, 0.03);
+    }
   }
 </style>

@@ -1,12 +1,9 @@
-{% extends "main/layout.html" %} {% block content %}
+{% extends "main/layout.html" %} {% block styles %} {{ super() }}
 <link
   rel="stylesheet"
   href="{{ url_for('static', filename='css/components/stat.css') }}"
 />
-<!-- jQuery for AJAX requests -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Chart.js for visualizations -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %} {% block content %}
 
 <div class="main-container">
   <div class="content-wrapper-stats">
@@ -26,17 +23,7 @@
       <!-- Row 1: Line and Bar Charts -->
       <div class="charts-grid charts-grid-row1">
         <div class="card col-span-2">
-          <div class="card-header">
-            <h3 class="card-title">Growth Trends Over Time</h3>
-            <div class="button-group">
-              <button id="toggleContributions" class="button filter-active">
-                Contributions
-              </button>
-              <button id="toggleContributors" class="button">
-                Contributors
-              </button>
-            </div>
-          </div>
+          <h3 class="card-title">Growth Trends Over Time</h3>
           <div class="chart-container">
             <canvas id="lineChart"></canvas>
           </div>
@@ -120,8 +107,10 @@
   </div>
 </div>
 
+{% endblock %} {% block scripts %} {{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  $(document).ready(function () {
+  $(document).ready(function() {
     // --- Global variables for charts and data ---
     let lineChart, barChart, donutChart, avgChart;
     let apiData;
@@ -199,11 +188,6 @@
         }
         if (apiData._empty.distribution) {
           replaceCanvasWithMessage("#donutChart", "No distribution data found");
-          // also disable year selector when distribution missing
-          $("#yearSelect")
-            .prop("disabled", true)
-            .empty()
-            .append($("<option>", { value: "", text: "No data" }));
         }
         if (apiData._empty.averages) {
           replaceCanvasWithMessage("#avgChart", "No average/median data found");
@@ -352,8 +336,9 @@
           labels: ["Top 5%", "Top 6-10%", "Top 11-20%", "Bottom 80%"],
           datasets: [
             {
-              data: [], // Will be populated by year selector
-              backgroundColor: ["#f59e0b", "#3b82f6", "#10b981", "#8b5cf6"],
+              data: [], // Will be populated based on latest available year
+              // Use non-blue tones to avoid blue gradient effect
+              backgroundColor: ["#f59e0b", "#f97316", "#10b981", "#a3a3a3"],
             },
           ],
         },
@@ -368,7 +353,12 @@
           },
         },
       });
-      updateDonutChart($("#yearSelect").val()); // Initial update
+      // Initialize using the currently selected year or the latest available
+      const initialYear = $("#yearSelect").val() || getLatestDistributionYear();
+      if (initialYear) {
+        $("#yearSelect").val(initialYear);
+        updateDonutChart(initialYear);
+      }
     }
 
     function initAvgChart(d) {
@@ -564,7 +554,7 @@
     // --- Event Listeners and Updaters ---
     function setupEventListeners() {
       // Line Chart Toggles
-      $("#toggleContributions").on("click", function () {
+      $("#toggleContributions").on("click", function() {
         lineChart.data.datasets[0].hidden = false;
         lineChart.data.datasets[1].hidden = true;
         lineChart.options.scales.y.display = true;
@@ -573,7 +563,7 @@
         $("#toggleContributors").removeClass("filter-active");
         lineChart.update();
       });
-      $("#toggleContributors").on("click", function () {
+      $("#toggleContributors").on("click", function() {
         lineChart.data.datasets[0].hidden = true;
         lineChart.data.datasets[1].hidden = false;
         lineChart.options.scales.y.display = false;
@@ -584,21 +574,35 @@
       });
 
       // Donut Chart Year Selector
-      $("#yearSelect").on("change", function () {
+      $("#yearSelect").on("change", function() {
         updateDonutChart($(this).val());
       });
 
       // Table Filters
       $("#metricFilter, #searchFilter").on("change input", applyFilters);
-      $("body").on("click", ".year-filter", function () {
+      $("body").on("click", ".year-filter", function() {
         $(".year-filter").removeClass("filter-active");
         $(this).addClass("filter-active");
         applyFilters();
       });
     }
 
+    function getLatestDistributionYear() {
+      if (!apiData || !apiData.distribution) return null;
+      const years = Object.keys(apiData.distribution)
+        .map((y) => Number(y))
+        .filter((y) => !Number.isNaN(y));
+      if (!years.length) return null;
+      return String(Math.max(...years));
+    }
+
     function updateDonutChart(year) {
-      const d = apiData.distribution[year];
+      let targetYear = year;
+      if (!targetYear) {
+        targetYear = getLatestDistributionYear();
+      }
+
+      const d = targetYear ? apiData.distribution[targetYear] : null;
       if (!d) return;
 
       const top6to10 = d.top_10_share - d.top_5_share;
@@ -617,13 +621,15 @@
     function applyFilters() {
       const activeYearFilter = $(".year-filter.filter-active").data("year");
       const activeMetricFilter = $("#metricFilter").val();
-      const searchTerm = $("#searchFilter").val().toLowerCase();
+      const searchTerm = $("#searchFilter")
+        .val()
+        .toLowerCase();
 
       // Filter Columns
       $("#statsTable .year-col").show();
       if (activeYearFilter !== "all") {
         const [start, end] = activeYearFilter.split("-").map(Number);
-        $("#statsTable .year-col").each(function () {
+        $("#statsTable .year-col").each(function() {
           const year = $(this).data("year");
           if (year < start || year > end) {
             $(this).hide();
@@ -632,9 +638,12 @@
       }
 
       // Filter Rows
-      $("#statsTable tbody tr").each(function () {
+      $("#statsTable tbody tr").each(function() {
         const metric = $(this).data("metric");
-        const metricText = $(this).find("td:first").text().toLowerCase();
+        const metricText = $(this)
+          .find("td:first")
+          .text()
+          .toLowerCase();
         const showMetric =
           activeMetricFilter === "all" || metric === activeMetricFilter;
         const showSearch = searchTerm === "" || metricText.includes(searchTerm);

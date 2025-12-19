@@ -1,43 +1,123 @@
 <!-- templates/includes/footer.html -->
-<link
-  rel="stylesheet"
-  href="{{ url_for('static', filename='css/components/header.css') }}"
-/>
-
 <footer class="footer">
   <div class="container">
-    <p class="mb-0">
-      <a
-        href="https://commons.wikimedia.org/wiki/Commons:ISA_Tool"
-        target="_blank"
-        >{{ _('ISA tool') }}</a
-      >
-      {{ _('was developed as a collaboration between Wiki In Africa, Histropedia
-      and the Structured Data on Commons project') }}. {{ _('Further development
-      supported by') }}
-      <a href="https://wikimedia.se" target="_blank">Wikimedia Sverige</a>,
-      <a href="https://www.switch.ch" target="_blank">SWITCH</a> {{ _('and') }}
-      <a href="https://www.bfh.ch" target="_blank"
-        >Bern University of Applied Sciences</a
-      >. {{ _('It is running on') }}
-      <a href="https://tools.wmflabs.org" target="_blank">tools.wmflabs.org</a>,
-      {{ _('and is subject to the') }}
-      <a
-        href="https://wikitech.wikimedia.org/wiki/Wikitech:Cloud_Services_Terms_of_use"
-        target="_blank"
-        >Wikimedia Cloud Services Terms of use</a
-      >. {{ _('ISA is published under') }}
-      <a
-        href="https://www.gnu.org/licenses/quick-guide-gplv3.en.html"
-        target="_blank"
-        >GPLv3</a
-      >. {{ _('Content added through the tool to Wikimedia Commons is released
-      under') }}
-      <a
-        href="https://creativecommons.org/publicdomain/zero/1.0/deed.en"
-        target="_blank"
-        >CC0</a
-      >.
-    </p>
+    <div class="footer-content">
+      <div class="footer-message">
+        <div class="message-box">
+          <p>
+            {{ _('ISA Tool is developed as a collaboration between') }}
+            <a
+              href="https://www.wikiinafrica.org"
+              target="_blank"
+              rel="noopener"
+              >Wiki In Africa</a
+            >,
+            <a href="https://histropedia.com" target="_blank" rel="noopener"
+              >Histropedia</a
+            >, {{ _('and the') }}
+            <a
+              href="https://commons.wikimedia.org/wiki/Commons:Structured_data/GLAM/Projects"
+              target="_blank"
+              rel="noopener"
+              >{{ _('Structural Data on Commons') }}</a
+            >
+            {{ _('projects. Further development of the ISA Tool has been
+            supported by members across the Wikimedia movement.') }} {{ _('For
+            an updated list of the "Developer Credits" please consult the') }}
+            <a
+              href="https://commons.wikimedia.org/wiki/Commons:ISA_Tool"
+              target="_blank"
+              rel="noopener"
+              >{{ _('ISA Tool page on Wikimedia Commons') }}</a
+            >. {{ _('It is available on') }}
+            <a
+              href="https://wikitech.wikimedia.org/wiki/Portal:Toolforge"
+              target="_blank"
+              rel="noopener"
+              >tools.wmflabs.org</a
+            >, {{ _('and is subject to the') }}
+            <a
+              href="https://wikitech.wikimedia.org/wiki/Wikitech:Cloud_Services_Terms_of_use"
+              target="_blank"
+              rel="noopener"
+              >{{ _('Wikimedia Cloud Services Terms of use') }}</a
+            >. {{ _('ISA is published under') }}
+            <a
+              href="https://www.gnu.org/licenses/quick-guide-gplv3.en.html"
+              target="_blank"
+              rel="noopener"
+              >GPLv3</a
+            >. {{ _('Content added through the tool to Wikimedia Commons is
+            released under') }}
+            <a
+              href="https://creativecommons.org/publicdomain/zero/1.0/deed.en"
+              target="_blank"
+              rel="noopener"
+              >CC0</a
+            >.
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 </footer>
+
+<style>
+  /* Footer Styles */
+  .footer {
+    background: var(--gray-900);
+    color: var(--gray-300);
+    padding: 2rem 0;
+    margin-top: auto;
+    border-top: 1px solid var(--gray-800);
+  }
+
+  .footer-content {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .footer-message {
+    text-align: center;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--gray-400);
+  }
+
+  .footer-message p {
+    margin: 0;
+  }
+
+  .footer-message a {
+    color: var(--gray-300);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    border-bottom: 1px dotted var(--gray-600);
+    padding-bottom: 1px;
+  }
+
+  .footer-message a:hover {
+    color: var(--accent-color);
+    border-bottom-style: solid;
+    text-decoration: none;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .footer {
+      padding: 1.5rem 0;
+    }
+
+    .footer-message {
+      font-size: 0.8rem;
+      text-align: left;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .footer-message {
+      font-size: 0.75rem;
+    }
+  }
+</style>

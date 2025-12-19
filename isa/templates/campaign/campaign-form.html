@@ -1,360 +1,1195 @@
-{% extends "main/layout.html" %} {% block content %}
-<div class="container text-center page-header">
-  <h1 class="pt-1 pb-0 d-flex justify-content-center">
-    {% if is_update %} {{ _('Update Campaign Details') }} {% else %} {{
-    _('Create new Campaign') }} {% endif %}
-  </h1>
-  <hr class="pt-0" width="35%" />
-  <p>
-    {% if is_update %} {{ _('You are updating %(campaign)s',
-    campaign=campaign.campaign_name) }} {% else %} {{ _('Fill in the form below
-    to create your campaign') }} {% endif %}
-    <br />
-    {{ _('Fields marked with * are mandatory') }}
-  </p>
-</div>
+{% extends "main/layout.html" %}
 
-<div class="container">
-  <form class="" method="POST" action="">
-    {{ form.csrf_token }}
-    <!-- {{ form.campaign_name.label( class="form-control-label" ) }} -->
-
-    <div class="form-group">
-      <label for="campaign_name">{{ _('Campaign Name') }}*</label>
-      <!-- We test for errors in the form data here -->
-      {% if form.campaign_name.errors %} {{ form.campaign_name(
-      class="form-control form-control-sm is-nvalid" ) }}
-      <div class="invalid-feedback">
-        {% for error in form.campaign_name.errors %}
-        <span> {{ error }}</span>
-        {% endfor %}
-      </div>
-      {% else %} {{ form.campaign_name( class="form-control form-control-sm" )
-      }} {% endif %}
-      <small id="campaign_nameHelp" class="form-text text-muted"
-        >{{ _('This is the name specific to your campaign, not the main
-        project.') }}' {{ _('So, not “Wiki Loves Africa” but rather “Music and
-        Dance in Nigeria”') }}</small
-      >
-    </div>
-
-    <hr />
-
-    <div class="form-group">
-      <!-- {{ form.short_description.label( class="form-control-label " ) }} -->
-      <label for="short_description"
-        >{{ _('Short description of Campaign (144 characters)') }}</label
-      >
-      <!-- We test for errors in the form data here -->
-      {% if form.short_description.errors %} {{ form.short_description(
-      class="form-control form-control-lg is-invalid" ) }}
-      <div class="invalid-feedback">
-        {% for error in form.short_description.errors %}
-        <span> {{ error }}</span>
-        {% endfor %}
-      </div>
-      {% else %} {{ form.short_description( class="form-control form-control-sm"
-      ) }} {% endif %}
-      <small id="short_descriptionHelp" class="form-text text-muted"
-        >{{ _('What are users going to be working on') }}</small
-      >
-    </div>
-
-    <hr />
-
-    <div class="form-row">
-      <div class="form-group col-md-6">
-        <!--  <div class="input-group date">-->
-        <label for="datepick1">{{ _('Start Date') }}*</label>
-        <!-- We test for errors in the form data here -->
-        {% if form.start_date.errors %} {{ form.start_date( class="form-control
-        form-control-sm datetimepicker-input is-invalid" ) }}
-        <div class="invalid-feedback">
-          {% for error in form.start_date.errors %}
-          <span> {{ error }}</span>
-          {% endfor %}
-        </div>
-        {% else %} {{ form.start_date( class="form-control form-control-sm" ) }}
-        {% endif %}
-        <small id="datepick1Help" class="form-text text-muted"
-          >{{ _('Set campaign start date') }}</small
-        >
-      </div>
-      <div class="form-group col-md-6">
-        <label for="datepick2">{{ _('End Date') }}</label>
-        <!-- We test for errors in the form data here -->
-        {% if form.end_date.errors %} {{ form.end_date( class="form-control
-        form-control-md is-invalid" ) }}
-        <div class="invalid-feedback">
-          {% for error in form.end_date.errors %}
-          <span> {{ error }}</span>
-          {% endfor %}
-        </div>
-        {% else %} {{ form.end_date( class="form-control form-control-sm" ) }}
-        {% endif %}
-        <small id="datepick2Help" class="form-text text-muted"
-          >{{ _('Set campaign end date') }}</small
-        >
-      </div>
-    </div>
-
-    <hr />
-
-    <div class="form-group">
-      <label for="campaign_type"
-        >{{ _('This is a Wiki Loves Campaign') }}
-      </label>
-      <!-- We test for errors in the form data here -->
-      {% if form.campaign_type.errors %} {{ form.campaign_type(
-      class="form-control form-control-sm is-invalid" ) }}
-      <div class="invalid-feedback">
-        {% for error in form.campaign_type.errors %}
-        <span> {{ error }}</span>
-        {% endfor %}
-      </div>
-      {% else %} {{ form.campaign_type( class="checkbox-inline mt-1" ) }}<button
-        type="button"
-        class="btn btn-link py-0"
-        data-container="body"
-        data-toggle="popover"
-        data-trigger="focus"
-        data-placement="right"
-        data-content="{{ _('When set up correctly this option allows participants to choose what country they want to see images from and records contributions by country.') }} {{ _(' You can select multiple categories of the correct type.') }} {{ _('Depth must be set to 0 for all categories in a Wiki Loves campaign.')}} <a href=''>Learn more here</a>"
-      >
-        <i class="fas fa-question-circle"></i>
-      </button>
-      {% endif %}
-      <small id="campaign_typeHelp" class="form-text text-muted"
-        >{{ _('Requires categories of the form images from Wiki Loves
-        <strong><em>project</em></strong> in a specific
-        <strong><em>year</em></strong
-        >, eg “Images from Wiki Loves <strong><em>Africa</em></strong>
-        <strong><em>2019</em></strong
-        >” (change <strong><em>project</em></strong> and year as
-        <strong><em>required</em></strong
-        >)') }}</small
-      >
-      <div class="invalid-feedback invalid-wiki-loves-warning">
-        <p>
-          {{ _('Some of the categories chosen below do not have the correct
-          syntax') }}
+{% block content %}
+<div class="campaign-form-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="container">
+      <div class="header-content">
+        <h1>
+          {% if is_update %} 
+            {{ _('Update Campaign Details') }}
+          {% else %} 
+            {{ _('Create New Campaign') }}
+          {% endif %}
+        </h1>
+        <p class="page-description">
+          {% if is_update %} 
+            {{ _('You are updating %(campaign)s', campaign=campaign.campaign_name) }}
+          {% else %} 
+            {{ _('Fill in the form below to create your campaign') }}
+          {% endif %}
+          <br />
+          <span class="required-note">{{ _('Fields marked with * are mandatory') }}</span>
         </p>
       </div>
     </div>
+  </div>
 
-    <hr />
-
-    <div class="form-group">
-      <label for="category-search"
-        >{{ _('Categories to use in this campaign') }}*<button
-          type="button"
-          class="btn btn-link py-0"
-          data-container="body"
-          data-toggle="popover"
-          data-trigger="focus"
-          data-placement="right"
-          data-content="{{ _('Search for the Wikimedia Commons categories that contain the images you wish to use in your campaign.') }} {{ _('If you want a category and ALL of its subcategories use the \'Depth\' option to choose how many levels down you want to go (leave depth on 0 for Wiki loves campaigns).') }}"
-        >
-          <i class="fas fa-question-circle"></i></button
-      ></label>
-
-      <!-- We test for errors in the form data here -->
-      {% if form.categories.errors %} {{ form.categories( class="form-control
-      form-control-lg is-invalid" ) }}
-      <div class="invalid-feedback">
-        {% for error in form.categories.errors %}
-        <span> {{ error }}</span>
-        {% endfor %}
-      </div>
-      {% else %} {{ form.categories( id="categories-data", class="form-control
-      form-control-sm") }} {% endif %} {% if form.campaign_images.errors %} {{
-      form.campaign_images( class="form-control form-control-lg is-invalid" ) }}
-      <div class="invalid-feedback">
-        {% for error in form.campaign_images.errors %}
-        <span> {{ error }}</span>
-        {% endfor %}
-      </div>
-      {% else %} {{ form.campaign_images( id="campaign-image-count",
-      class="form-control form-control-sm" ) }} {% endif %}
-
-      <!-- Category selection UI which is NOT submitted in the form -->
-      <select id="category-search" class="w-100"></select>
-      <small id="category-searchHelp" class="form-text text-muted"
-        >{{ _('Choose categories to use in the campaign') }}</small
-      >
-      <table class="w-100 table table-striped">
-        <thead id="selected-categories-header">
-          <tr>
-            <th>{{ _('Name') }}</th>
-            <th colspan="2">{{ _('Depth') }}</th>
-          </tr>
-        </thead>
-        <tbody id="selected-categories-content">
-          <!-- populated by JavaScript -->
-        </tbody>
-      </table>
-      <div class="invalid-feedback invalid-wiki-loves-warning">
-        <p>
-          {{ _('The categories in red do not have the correct syntax for the
-          "Wiki Loves campaign" feature.') }} {{ _('Please remove them or untick
-          the "Wiki Loves Campaign" checkbox above') }}
-        </p>
-      </div>
-    </div>
-
-    {% if is_update %}
-    <label for="update_images">{{ _('Update images') }}</label>
-    {{ form.update_images( class="checkbox-inline mt-1 metadata-type-checkbox" )
-    }}
-    <small class="form-text text-muted"
-      >{{ _('Collect images from the categories.') }} {{ _('This will replace
-      any current images.') }} {{ _('Use if you changed the categories or if
-      there was an error updating previously.') }}</small
-    >
-    {% endif %}
-
-    <hr />
-
-    <h6>
-      {{ _('Metadata to collect in the Campaign') }}*<button
-        type="button"
-        class="btn btn-link py-0"
-        data-container="body"
-        data-toggle="popover"
-        data-placement="right"
-        data-trigger="focus"
-        data-content="{{ _('Choose what type of <strong>metadata</strong> you want to collect in your campaign.') }} {{ _('You must select at least one of the options below.') }} {{ _('To learn more about Depicts and Caption meta-data, see the help page.') }}"
-      >
-        <i class="fas fa-question-circle"></i>
-      </button>
-    </h6>
-    <div class="form-row">
-      <div class="form-group col-md-6">
-        <label for="depicts_metadata">{{ _('Depicts') }}</label>
-        <!-- We test for errors in the form data here -->
-        {% if form.depicts_metadata.errors %} {{ form.depicts_metadata(
-        class="form-control form-control-sm is-invalid" ) }}
-        <div class="invalid-feedback">
-          {% for error in form.depicts_metadata.errors %}
-          <span> {{ error }}</span>
-          {% endfor %}
+  <!-- Main Form -->
+  <div class="container">
+    <div class="campaign-form-container">
+      <form class="campaign-form" method="POST" action="">
+        {{ form.csrf_token }}
+        
+        <!-- Campaign Name -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>{{ _('Campaign Name') }} <span class="required">*</span></h3>
+          </div>
+          <div class="form-group">
+            {% if form.campaign_name.errors %}
+              {{ form.campaign_name(class="form-control is-invalid", placeholder=_("Enter campaign name")) }}
+              <div class="invalid-feedback">
+                {% for error in form.campaign_name.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form.campaign_name(class="form-control", placeholder=_("Enter campaign name")) }}
+            {% endif %}
+            <div class="form-hint">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+              </svg>
+              {{ _('This is the name specific to your campaign, not the main project. So, not "Wiki Loves Africa" but rather "Music and Dance in Nigeria"') }}
+            </div>
+          </div>
         </div>
-        {% else %} {{ form.depicts_metadata( class="checkbox-inline mt-1
-        metadata-type-checkbox" ) }} {% endif %}
-        <small id="depicts-metadataHelp" class="form-text text-muted"
-          >{{ _('Select to collect Depicts metadata in the campaign') }}</small
-        >
-      </div>
-      <div class="form-group col-md-6">
-        <label for="captions_metadata">{{ _('Captions') }}</label>
-        <!-- We test for errors in the form data here -->
-        {% if form.captions_metadata.errors %} {{ form.captions_metadata(
-        class="form-control form-control-sm is-invalid" ) }}
-        <div class="invalid-feedback">
-          {% for error in form.captions_metadata.errors %}
-          <span> {{ error }}</span>
-          {% endfor %}
+
+        <!-- Short Description -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>{{ _('Short Description') }}</h3>
+            <div class="char-counter">
+              <span id="short-desc-counter">0</span>/144
+            </div>
+          </div>
+          <div class="form-group">
+            {% if form.short_description.errors %}
+              {{ form.short_description(class="form-control is-invalid", placeholder=_("Brief description of your campaign (max 144 characters)"), rows="3", maxlength="144") }}
+              <div class="invalid-feedback">
+                {% for error in form.short_description.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form.short_description(class="form-control", placeholder=_("Brief description of your campaign (max 144 characters)"), rows="3", maxlength="144") }}
+            {% endif %}
+            <div class="form-hint">
+              {{ _('What are users going to be working on') }}
+            </div>
+          </div>
         </div>
-        {% else %} {{ form.captions_metadata( class='checkbox-inline mt-1
-        metadata-type-checkbox' ) }} {% endif %}
-        <small id="caption-metadataHelp" class="form-text text-muted"
-          >{{ _('Select to collect Caption metadata in the campaign') }}</small
-        >
-      </div>
+
+        <!-- Long Description -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>{{ _('Long Description') }}</h3>
+          </div>
+          <div class="form-group">
+            {% if form.long_description.errors %}
+              {{ form.long_description(class="form-control is-invalid", placeholder=_("Detailed description of your campaign. Why it is important that users contribute to the campaign?"), rows="6") }}
+              <div class="invalid-feedback">
+                {% for error in form.long_description.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form.long_description(class="form-control", placeholder=_("Detailed description of your campaign. Why it is important that users contribute to the campaign?"), rows="6") }}
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>{{ _('Campaign Dates') }}</h3>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="start_date">{{ _('Start Date') }} <span class="required">*</span></label>
+              {% if form.start_date.errors %}
+                {{ form.start_date(class="form-control is-invalid datepicker", placeholder="YYYY-MM-DD") }}
+                <div class="invalid-feedback">
+                  {% for error in form.start_date.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form.start_date(class="form-control datepicker", placeholder="YYYY-MM-DD") }}
+              {% endif %}
+              <div class="form-hint">{{ _('Set campaign start date') }}</div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="end_date">{{ _('End Date') }}</label>
+              {% if form.end_date.errors %}
+                {{ form.end_date(class="form-control is-invalid datepicker", placeholder="YYYY-MM-DD") }}
+                <div class="invalid-feedback">
+                  {% for error in form.end_date.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form.end_date(class="form-control datepicker", placeholder="YYYY-MM-DD") }}
+              {% endif %}
+              <div class="form-hint">{{ _('Set campaign end date (optional)') }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wiki Loves Campaign -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>{{ _('Campaign Type') }}</h3>
+            <div class="info-tooltip">
+              <button type="button" class="info-btn" data-toggle="popover" data-trigger="focus" data-content="{{ _('When set up correctly this option allows participants to choose what country they want to see images from and records contributions by country.') }} {{ _('You can select multiple categories of the correct type.') }} {{ _('Depth must be set to 0 for all categories in a Wiki Loves campaign.')}}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="custom-control custom-checkbox">
+              {% if form.campaign_type.errors %}
+                {{ form.campaign_type(class="custom-control-input is-invalid", id="campaign_type") }}
+                <label class="custom-control-label" for="campaign_type">
+                  {{ _('This is a Wiki Loves Campaign') }}
+                </label>
+                <div class="invalid-feedback">
+                  {% for error in form.campaign_type.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form.campaign_type(class="custom-control-input", id="campaign_type") }}
+                <label class="custom-control-label" for="campaign_type">
+                  {{ _('This is a Wiki Loves Campaign') }}
+                </label>
+              {% endif %}
+            </div>
+            <div class="form-hint">
+              {{ _('Requires categories of the form "Images from Wiki Loves <strong><em>project</em></strong> in a specific <strong><em>year</em></strong>", eg "Images from Wiki Loves <strong><em>Africa</em></strong> <strong><em>2019</em></strong>"') }}
+            </div>
+            <div class="wiki-loves-warning invalid-feedback d-none">
+              <p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                </svg>
+                {{ _('Some of the categories chosen below do not have the correct syntax for a Wiki Loves Campaign') }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categories Selection -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>{{ _('Categories') }} <span class="required">*</span></h3>
+            <div class="info-tooltip">
+              <button type="button" class="info-btn" data-toggle="popover" data-trigger="focus" data-content="{{ _('Search for the Wikimedia Commons categories that contain the images you wish to use in your campaign.') }} {{ _('If you want a category and ALL of its subcategories use the "Depth" option to choose how many levels down you want to go (leave depth on 0 for Wiki loves campaigns).') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <div class="category-search-container">
+            <label>{{ _('Search for categories') }}</label>
+            <div class="search-wrapper">
+              <select id="category-search" class="category-search-select"></select>
+              <div class="search-hint">{{ _('Type to search Wikimedia Commons categories') }}</div>
+            </div>
+          </div>
+
+          <!-- Selected Categories -->
+          <div class="selected-categories-container">
+            <div class="selected-header">
+              <h4>{{ _('Selected Categories') }}</h4>
+              <span id="selected-count">0</span>
+            </div>
+            
+            {% if form.categories.errors or form.campaign_images.errors %}
+              <div class="invalid-feedback d-block">
+                {% if form.categories.errors %}
+                  {% for error in form.categories.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                {% endif %}
+                {% if form.campaign_images.errors %}
+                  {% for error in form.campaign_images.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                {% endif %}
+              </div>
+            {% endif %}
+            
+            <!-- Hidden form fields -->
+            {{ form.categories(id="categories-data", class="d-none") }}
+            {{ form.campaign_images(id="campaign-image-count", class="d-none") }}
+            
+            <div class="categories-table-container">
+              <table class="categories-table">
+                <thead>
+                  <tr>
+                    <th>{{ _('Category Name') }}</th>
+                    <th>{{ _('Depth') }}</th>
+                    <th>{{ _('Actions') }}</th>
+                  </tr>
+                </thead>
+                <tbody id="selected-categories-content">
+                  <!-- Will be populated by JavaScript -->
+                  <tr class="empty-state">
+                    <td colspan="3">
+                      <div class="empty-categories">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                          <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                        </svg>
+                        <p>{{ _('No categories selected yet') }}</p>
+                        <small>{{ _('Search and add categories above') }}</small>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="categories-stats">
+              <div class="stat-item">
+                <span class="stat-label">{{ _('Total Images') }}</span>
+                <span id="total-images" class="stat-value">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">{{ _('Categories') }}</span>
+                <span id="total-categories" class="stat-value">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Update Images Option (for updates only) -->
+          {% if is_update %}
+          <div class="form-group mt-4">
+            <div class="custom-control custom-checkbox">
+              {{ form.update_images(class="custom-control-input", id="update_images") }}
+              <label class="custom-control-label" for="update_images">
+                {{ _('Update images from categories') }}
+              </label>
+            </div>
+            <div class="form-hint">
+              {{ _('Collect images from the categories. This will replace any current images. Use if you changed the categories or if there was an error updating previously.') }}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Metadata Collection -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>{{ _('Metadata to Collect') }} <span class="required">*</span></h3>
+            <div class="info-tooltip">
+              <button type="button" class="info-btn" data-toggle="popover" data-trigger="focus" data-content="{{ _('Choose what type of metadata you want to collect in your campaign.') }} {{ _('You must select at least one of the options below.') }} {{ _('To learn more about Depicts and Caption meta-data, see the help page.') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <div class="metadata-options">
+            <div class="metadata-option">
+              <div class="custom-control custom-checkbox">
+                {% if form.depicts_metadata.errors %}
+                  {{ form.depicts_metadata(class="custom-control-input is-invalid", id="depicts_metadata") }}
+                  <label class="custom-control-label" for="depicts_metadata">
+                    {{ _('Depicts') }}
+                  </label>
+                  <div class="invalid-feedback">
+                    {% for error in form.depicts_metadata.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.depicts_metadata(class="custom-control-input", id="depicts_metadata") }}
+                  <label class="custom-control-label" for="depicts_metadata">
+                    {{ _('Depicts') }}
+                  </label>
+                {% endif %}
+              </div>
+              <div class="option-description">{{ _('Collect "depicts" statements for images') }}</div>
+            </div>
+            
+            <div class="metadata-option">
+              <div class="custom-control custom-checkbox">
+                {% if form.captions_metadata.errors %}
+                  {{ form.captions_metadata(class="custom-control-input is-invalid", id="captions_metadata") }}
+                  <label class="custom-control-label" for="captions_metadata">
+                    {{ _('Captions') }}
+                  </label>
+                  <div class="invalid-feedback">
+                    {% for error in form.captions_metadata.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.captions_metadata(class="custom-control-input", id="captions_metadata") }}
+                  <label class="custom-control-label" for="captions_metadata">
+                    {{ _('Captions') }}
+                  </label>
+                {% endif %}
+              </div>
+              <div class="option-description">{{ _('Collect captions in multiple languages') }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campaign Image -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>{{ _('Campaign Image') }}</h3>
+            <div class="info-tooltip">
+              <button type="button" class="info-btn" data-toggle="popover" data-trigger="focus" data-content="{{ _('The maximum height for the campaign image is 150px. Images should either be a banner image or a logo. Portrait or square photos are not recommended.') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            {% if form.campaign_image.errors %}
+              {{ form.campaign_image(class="form-control is-invalid", placeholder=_("File:Example.jpg")) }}
+              <div class="invalid-feedback">
+                {% for error in form.campaign_image.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form.campaign_image(class="form-control", placeholder=_("File:Example.jpg")) }}
+            {% endif %}
+            <div class="form-hint">
+              {{ _('Enter the FILE NAME only of an image from Wikimedia Commons to display on the Campaign home page') }}
+            </div>
+            
+            <!-- Image Preview -->
+            <div id="image-preview-container" class="mt-3 d-none">
+              <div class="image-preview">
+                <img id="image-preview" src="" alt="{{ _('Campaign image preview') }}">
+                <div class="image-preview-info">
+                  <div id="image-filename"></div>
+                  <div id="image-dimensions" class="text-muted"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <div id="campaign-form-errors" class="alert alert-danger d-none" role="alert"></div>
+          
+          <div id="category-checking-notice" class="checking-notice d-none">
+            <div class="spinner"></div>
+            <span>{{ _('Checking category selections...') }}</span>
+          </div>
+          
+          <div class="action-buttons">
+            <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+              {{ _('Cancel') }}
+            </button>
+            {{ form.submit(class="btn btn-primary", value=_('Publish Campaign')) }}
+          </div>
+        </div>
+      </form>
     </div>
-
-    <hr />
-
-    <div class="form-group">
-      <label for="campaign_image"
-        >{{ _('Campaign Image') }}
-        <button
-          type="button"
-          class="btn btn-link py-0"
-          data-container="body"
-          data-toggle="popover"
-          data-trigger="focus"
-          data-placement="right"
-          data-content="{{ _('The maximum height for the campaign image is 150px. Images should either be a banner image or a logo.')}} {{ _('Portrait or square photos are not recommended.') }}"
-        >
-          <i class="fas fa-question-circle"></i></button
-      ></label>
-      <!-- We test for errors in the form data here -->
-      {% if form.campaign_image.errors %} {{ form.campaign_image(
-      class="form-control form-control-sm is-nvalid" ) }}
-      <div class="invalid-feedback">
-        {% for error in form.campaign_name.errors %}
-        <span> {{ error }}</span>
-        {% endfor %}
-      </div>
-      {% else %} {{ form.campaign_image( class="form-control form-control-sm" )
-      }} {% endif %}
-      <small id="campaign_imageHelp" class="form-text text-muted"
-        >{{ _('Enter the FILE NAME only of a image from commons to display on
-        the Campaign home page.') }}</small
-      >
-    </div>
-
-    <hr />
-
-    <div class="form-group">
-      <label for="long_description"
-        >{{ _('Long description of Campaign (full about info)') }}</label
-      >
-      <!-- We test for errors in the form data here -->
-      {% if form.long_description.errors %} {{ form.long_description(
-      class="form-control form-control-sm is-invalid" ) }}
-      <div class="invalid-feedback">
-        {% for error in form.long_description.errors %}
-        <span> {{ error }}</span>
-        {% endfor %}
-      </div>
-      {% else %} {{ form.long_description( class="form-control form-control-md"
-      ) }} {% endif %}
-      <small id="long_descriptionHelp" class="form-text text-muted"
-        >{{ _('Why it is important that users contribute to the campaign?')
-        }}</small
-      >
-    </div>
-
-    <hr />
-    <div class="form-group text-center">
-      <div
-      id="campaign-form-errors"
-      class="alert alert-danger d-none text-left"
-      role="alert"
-      ></div>
-      {{ form.submit( class="btn btn-primary", value=_('Publish Campaign') ) }}
-      <div id="category-checking-notice" class="mt-3 d-none">
-        <p>Checking category selections...</p>
-        <div
-          class="spinner-border text-secondary"
-          role="status"
-          aria-hidden="true"
-        ></div>
-      </div>
-    </div>
-  </form>
+  </div>
 </div>
+
+<!-- Hidden i18n text for JavaScript -->
 <div class="hidden-i18n-text" style="display: none">
-  {{ { "You must select at least one category for your campaign.": _("You must
-  select at least one category for your campaign."), "Some of the categories you
-  have chosen do not have the correct syntax for a Wiki Loves Campaign.":
-  _("Some of the categories you have chosen do not have the correct syntax for a
-  Wiki Loves Campaign."), "Please check your selections and try again.":
-  _("Please check your selections and try again."), "Please select at least one
-  type from the Metadata to collect section": _("Please select at least one type
-  from the Metadata to collect section") } | tojson | safe }}
+  {{ {
+    "You must select at least one category for your campaign.": _("You must select at least one category for your campaign."),
+    "Some of the categories you have chosen do not have the correct syntax for a Wiki Loves Campaign.": _("Some of the categories you have chosen do not have the correct syntax for a Wiki Loves Campaign."),
+    "Please check your selections and try again.": _("Please check your selections and try again."),
+    "Please select at least one type from the Metadata to collect section": _("Please select at least one type from the Metadata to collect section"),
+    "Invalid category depth": _("Invalid category depth"),
+    "Remove": _("Remove"),
+    "images": _("images"),
+    "category": _("category"),
+    "categories": _("categories"),
+    "Image preview failed to load": _("Image preview failed to load")
+  } | tojson | safe }}
 </div>
+{% endblock content %}
 
-{% endblock content %} {% block scripts %}
-<link
-  rel="stylesheet"
-  href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css"
-/>
-<script
-  type="text/javascript"
-  src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"
-></script>
+{% block styles %}
+<style>
+/* Campaign Form Page */
+.campaign-form-page {
+  min-height: calc(100vh - 200px);
+}
+
+/* Page Header */
+.page-header {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  padding: 3rem 0;
+  margin-bottom: 3rem;
+}
+
+.header-content {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.header-content h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.page-description {
+  font-size: 1.125rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.required-note {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
+/* Form Container */
+.campaign-form-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.campaign-form {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 3rem;
+}
+
+/* Form Sections */
+.form-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.required {
+  color: var(--danger-color);
+  font-weight: 700;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-control {
+  border: 2px solid var(--gray-300);
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+  outline: none;
+}
+
+.form-control.is-invalid {
+  border-color: var(--danger-color);
+}
+
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Form Hints */
+.form-hint {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.form-hint svg {
+  color: var(--gray-400);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.form-hint strong {
+  color: var(--gray-700);
+  font-weight: 600;
+}
+
+/* Info Tooltip */
+.info-tooltip {
+  display: flex;
+}
+
+.info-btn {
+  background: none;
+  border: none;
+  color: var(--gray-500);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.info-btn:hover {
+  color: var(--primary-color);
+}
+
+.info-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Character Counter */
+.char-counter {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+/* Checkbox Styling */
+.custom-control-label {
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+}
+
+.custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Category Search */
+.category-search-container {
+  margin-bottom: 2rem;
+}
+
+.category-search-container label {
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.search-wrapper {
+  position: relative;
+}
+
+.category-search-select {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--gray-300);
+  border-radius: 10px;
+  font-size: 1rem;
+  background-color: white;
+}
+
+.search-hint {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin-top: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+/* Selected Categories */
+.selected-categories-container {
+  background: var(--gray-50);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--gray-200);
+}
+
+.selected-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.selected-header h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0;
+}
+
+#selected-count {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Categories Table */
+.categories-table-container {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.categories-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.categories-table thead {
+  background: var(--primary-light);
+}
+
+.categories-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-light);
+}
+
+.categories-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+  vertical-align: middle;
+}
+
+.categories-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.categories-table tbody tr:hover {
+  background-color: var(--gray-50);
+}
+
+.category-name {
+  font-weight: 500;
+  color: var(--gray-800);
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.category-depth {
+  width: 120px;
+}
+
+.depth-select {
+  padding: 0.5rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.875rem;
+}
+
+.category-actions {
+  width: 100px;
+  text-align: right;
+}
+
+.remove-category-btn {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  color: var(--gray-600);
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-category-btn:hover {
+  background: var(--danger-color);
+  border-color: var(--danger-color);
+  color: white;
+}
+
+/* Empty State */
+.empty-state td {
+  padding: 3rem 1rem !important;
+  text-align: center;
+}
+
+.empty-categories {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--gray-400);
+}
+
+.empty-categories svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
+.empty-categories p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.empty-categories small {
+  font-size: 0.875rem;
+}
+
+/* Categories Stats */
+.categories-stats {
+  display: flex;
+  gap: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* Metadata Options */
+.metadata-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.metadata-option {
+  background: var(--gray-50);
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.metadata-option:hover {
+  border-color: var(--gray-300);
+}
+
+.custom-control {
+  margin-bottom: 0.5rem;
+}
+
+.option-description {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  line-height: 1.5;
+}
+
+/* Image Preview */
+#image-preview-container {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.image-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--gray-50);
+  border-radius: 10px;
+  border: 2px solid var(--gray-200);
+}
+
+.image-preview img {
+  max-height: 100px;
+  max-width: 150px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid var(--gray-300);
+}
+
+.image-preview-info {
+  flex: 1;
+}
+
+#image-filename {
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 0.25rem;
+  word-break: break-all;
+}
+
+#image-dimensions {
+  font-size: 0.875rem;
+}
+
+/* Form Actions */
+.form-actions {
+  padding-top: 2rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.checking-notice {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--warning-color-light);
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.checking-notice .spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--gray-300);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.checking-notice span {
+  font-weight: 500;
+  color: var(--gray-700);
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+  color: white;
+}
+
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: 2px solid var(--gray-300);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-200);
+  transform: translateY(-2px);
+  color: var(--gray-800);
+}
+
+/* Wiki Loves Warning */
+.wiki-loves-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid var(--danger-color);
+  animation: fadeIn 0.3s ease;
+}
+
+.wiki-loves-warning svg {
+  color: var(--danger-color);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.wiki-loves-warning p {
+  margin: 0;
+  color: var(--gray-700);
+  line-height: 1.5;
+}
+
+/* Invalid Feedback */
+.invalid-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--danger-color);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page-header {
+    padding: 2rem 0;
+  }
+  
+  .header-content h1 {
+    font-size: 2rem;
+  }
+  
+  .campaign-form {
+    padding: 1.5rem;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .metadata-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .categories-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header {
+    padding: 1.5rem 0;
+  }
+  
+  .header-content h1 {
+    font-size: 1.75rem;
+  }
+  
+  .campaign-form {
+    padding: 1.25rem;
+  }
+  
+  .categories-table th,
+  .categories-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .category-name {
+    max-width: 200px;
+  }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css" />
+<script type="text/javascript" src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"></script>
 <script src="{{url_for('static', filename='js/campaign-form.js')}}"></script>
-{% endblock scripts%}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize popovers
+  $('[data-toggle="popover"]').popover({
+    container: 'body',
+    trigger: 'focus',
+    html: true
+  });
+  
+  // Character counter for short description
+  const shortDesc = document.getElementById('short_description');
+  const charCounter = document.getElementById('short-desc-counter');
+  
+  if (shortDesc && charCounter) {
+    charCounter.textContent = shortDesc.value.length;
+    
+    shortDesc.addEventListener('input', function() {
+      charCounter.textContent = this.value.length;
+      if (this.value.length > 144) {
+        this.value = this.value.substring(0, 144);
+      }
+    });
+  }
+  
+  // Initialize date pickers
+  $('.datepicker').datetimepicker({
+    format: 'YYYY-MM-DD',
+    useCurrent: false,
+    icons: {
+      time: 'far fa-clock',
+      date: 'far fa-calendar',
+      up: 'fas fa-chevron-up',
+      down: 'fas fa-chevron-down',
+      previous: 'fas fa-chevron-left',
+      next: 'fas fa-chevron-right',
+      today: 'far fa-calendar-check',
+      clear: 'far fa-trash-alt',
+      close: 'far fa-times-circle'
+    }
+  });
+  
+  // Campaign image preview
+  const campaignImageInput = document.querySelector('[name="campaign_image"]');
+  const previewContainer = document.getElementById('image-preview-container');
+  const previewImage = document.getElementById('image-preview');
+  const imageFilename = document.getElementById('image-filename');
+  const imageDimensions = document.getElementById('image-dimensions');
+  
+  if (campaignImageInput) {
+    campaignImageInput.addEventListener('blur', function() {
+      const filename = this.value.trim();
+      if (filename) {
+        // Simple validation for Commons file name
+        if (filename.startsWith('File:') || filename.startsWith('Image:')) {
+          // Try to load preview (this would need actual Commons API integration)
+          previewImage.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/' + 
+            encodeURIComponent(filename.replace('File:', '').replace('Image:', '')) + 
+            '/300px-' + encodeURIComponent(filename.replace('File:', '').replace('Image:', ''));
+          
+          previewImage.onload = function() {
+            imageFilename.textContent = filename;
+            imageDimensions.textContent = this.naturalWidth + ' × ' + this.naturalHeight + ' px';
+            previewContainer.classList.remove('d-none');
+          };
+          
+          previewImage.onerror = function() {
+            // Could not load preview
+            previewContainer.classList.add('d-none');
+          };
+        }
+      } else {
+        previewContainer.classList.add('d-none');
+      }
+    });
+  }
+  
+  // Form validation
+  const form = document.querySelector('.campaign-form');
+  const errorContainer = document.getElementById('campaign-form-errors');
+  const submitButton = document.querySelector('[type="submit"]');
+  
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      // Basic validation before submission
+      let isValid = true;
+      let errorMessages = [];
+      
+      // Check metadata selection
+      const depictsChecked = document.getElementById('depicts_metadata')?.checked;
+      const captionsChecked = document.getElementById('captions_metadata')?.checked;
+      
+      if (!depictsChecked && !captionsChecked) {
+        isValid = false;
+        errorMessages.push(getI18nText('Please select at least one type from the Metadata to collect section'));
+      }
+      
+      // Check categories (this should be enhanced with actual category validation from campaign-form.js)
+      const categoryData = document.getElementById('categories-data')?.value;
+      if (!categoryData || categoryData === '[]') {
+        isValid = false;
+        errorMessages.push(getI18nText('You must select at least one category for your campaign.'));
+      }
+      
+      if (!isValid) {
+        e.preventDefault();
+        errorContainer.innerHTML = errorMessages.map(msg => `<p>${msg}</p>`).join('');
+        errorContainer.classList.remove('d-none');
+        errorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
+  
+  // Helper function to get i18n text
+  function getI18nText(key) {
+    try {
+      const i18nData = JSON.parse(document.querySelector('.hidden-i18n-text').textContent);
+      return i18nData[key] || key;
+    } catch (e) {
+      return key;
+    }
+  }
+});
+</script>
+{% endblock scripts %}

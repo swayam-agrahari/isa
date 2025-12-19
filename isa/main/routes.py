@@ -1,15 +1,16 @@
 import os
+from datetime import date
 
 from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify
 from flask_login import current_user
-from sqlalchemy import text,func, extract
+from sqlalchemy import text, func, extract, or_
 from isa import  db
 import statistics
 # from isa import app, db, gettext
 
 from isa import gettext
 from isa.users.utils import add_user_to_db
-from isa.models import Contribution 
+from isa.models import Contribution, Campaign
 import time
 
 # Simple in-memory cache to avoid recomputing heavy stats when multiple
@@ -19,6 +20,30 @@ _stats_cache = {
     'data': None
 }
 _STATS_CACHE_TTL = 30  # seconds
+
+
+def _get_homepage_stats():
+    """Return small set of homepage stats with lightweight queries."""
+    today = date.today()
+    active_campaigns = db.session.query(func.count(Campaign.id)).filter(
+        Campaign.start_date <= today,
+        or_(Campaign.end_date == None, Campaign.end_date >= today)
+    ).scalar() or 0
+
+    contributions_count = db.session.query(func.count(Contribution.id)).scalar() or 0
+
+    languages_count = db.session.query(
+        func.count(func.distinct(Contribution.caption_language))
+    ).filter(
+        Contribution.caption_language.isnot(None),
+        Contribution.caption_language != ''
+    ).scalar() or 0
+
+    return {
+        "active_campaigns": active_campaigns,
+        "contributions_count": contributions_count,
+        "languages_count": languages_count,
+    }
 
 
 def _compute_stats_cached():
@@ -176,6 +201,7 @@ def home():
     username = session.get('username', None)
     directory = os.getcwd() + '/campaign_stats_files/'
     session_language = session.get('lang', None)
+    hero_stats = _get_homepage_stats()
 
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -186,6 +212,7 @@ def home():
     return render_template('main/home.html',
                            title='Home',
                            session_language=session_language,
+                           hero_stats=hero_stats,
                            username=username,
                            current_user=current_user)
 

@@ -39,10 +39,10 @@
           <div class="ms-3 flex-shrink-0">
             <a
               href="{{ url_for('campaigns.updateCampaign', id=campaign.id) }}"
-              class="btn btn-outline-primary btn-sm d-flex align-items-center"
+              class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
               title="{{ _('Make changes to this campaign') }}"
             >
-              <i class="fas fa-edit me-2"></i>
+              <i class="fas fa-edit"></i>
               {{ _('Edit') }}
             </a>
           </div>
@@ -53,9 +53,11 @@
         <div class="row g-3 mb-4">
           <div class="col-md-4">
             <div class="campaign-meta-card p-3 rounded-3 bg-light">
-              <div class="d-flex align-items-center mb-2">
-                <i class="fas fa-user-circle text-primary me-2"></i>
-                <h6 class="mb-0">{{ _('Campaign Manager') }}</h6>
+              <div class="d-flex align-items-center mb-2 gap-2">
+                <i class="fas fa-user-circle text-primary"></i>
+                <h6 class="mb-0" style="margin-left: 8px">
+                  {{ _('Campaign Manager') }}
+                </h6>
               </div>
               <a
                 href="https://commons.wikimedia.org/wiki/User:{{ campaign.manager.username }}"
@@ -70,9 +72,11 @@
 
           <div class="col-md-4">
             <div class="campaign-meta-card p-3 rounded-3 bg-light">
-              <div class="d-flex align-items-center mb-2">
-                <i class="fas fa-calendar-alt text-success me-2"></i>
-                <h6 class="mb-0">{{ _('Start Date') }}</h6>
+              <div class="d-flex align-items-center mb-2 gap-2">
+                <i class="fas fa-calendar-alt text-success"></i>
+                <h6 class="mb-0" style="margin-left: 8px">
+                  {{ _('Start Date') }}
+                </h6>
               </div>
               <span class="fw-semibold">{{ campaign.start_date }}</span>
             </div>
@@ -80,9 +84,11 @@
 
           <div class="col-md-4">
             <div class="campaign-meta-card p-3 rounded-3 bg-light">
-              <div class="d-flex align-items-center mb-2">
-                <i class="fas fa-calendar-times text-warning me-2"></i>
-                <h6 class="mb-0">{{ _('End Date') }}</h6>
+              <div class="d-flex align-items-center mb-2 gap-2">
+                <i class="fas fa-calendar-times text-warning"></i>
+                <h6 class="mb-0" style="margin-left: 8px">
+                  {{ _('End Date') }}
+                </h6>
               </div>
               <span class="fw-semibold">
                 {% if campaign.end_date is none %} {{ _('Ongoing') }} {% else %}

@@ -1,72 +1,293 @@
 <!-- isa/templates/main/layout.html -->
-{% include 'main/header.html' %}
+<!DOCTYPE html>
+<html
+  lang="{{ session_language }}"
+  dir="{% if is_rtl %}rtl{% else %}ltr{% endif %}"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Page Title -->
+    <title>
+      {% if title %}{{ title }} - ISA Tool{% else %}ISA - Structured Data Tool{%
+      endif %}
+    </title>
+
+    <!-- Meta Description -->
+    <meta
+      name="description"
+      content="ISA Tool: Easily add structured data to images on Wikimedia Commons. Join campaigns, add captions and tags, and help enrich Wikimedia Commons."
+    />
+
+    <!-- Open Graph Tags -->
+    <meta
+      property="og:title"
+      content="{% if title %}{{ title }} - ISA Tool{% else %}ISA - Structured Data Tool{% endif %}"
+    />
+    <meta
+      property="og:description"
+      content="Easily add structured data to images on Wikimedia Commons"
+    />
+    <meta
+      property="og:image"
+      content="https://upload.wikimedia.org/wikipedia/commons/4/4c/ISA_Structured_Data_logo.png"
+    />
+    <meta property="og:url" content="{{ request.url }}" />
+
+    <!-- Bootstrap CSS -->
+    {% if is_rtl %}
+    <link
+      rel="stylesheet"
+      href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap-v4-rtl/4.3.1-0/css/bootstrap-rtl.css"
+    />
+    {% else %}
+    <link
+      rel="stylesheet"
+      href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+    {% endif %}
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/font-awesome/5.8.2/css/all.css"
+    />
+
+    <!-- DataTables -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.datatables.net/v/bs4/dt-1.10.18/r-2.2.2/datatables.min.css"
+    />
+
+    <!-- Select2 -->
+    <link
+      href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/select2/4.0.7/css/select2.css"
+      rel="stylesheet"
+    />
+
+    <!-- Base CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/base.css') }}"
+    />
+
+    <!-- RTL CSS if needed -->
+    {% if is_rtl %}
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/base-rtl.css') }}"
+    />
+    {% endif %}
+
+    <!-- Page-specific styles -->
+    {% block styles %}{% endblock %}
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='icons/favicon.svg') }}"
+      type="image/svg+xml"
+    />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="https://upload.wikimedia.org/wikipedia/commons/4/4c/ISA_Structured_Data_logo.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="https://upload.wikimedia.org/wikipedia/commons/4/4c/ISA_Structured_Data_logo.png"
+    />
+
+    <!-- Additional head content -->
+    {% block head %}{% endblock %}
+  </head>
+  <body class="{% if is_rtl %}rtl{% endif %}">
+    {% include 'main/header.html' %}
 
     <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="container">
-                {% for category, message in messages %}
-                    <div class="isa-flash-message show fade alert alert-{{ category }} alert-dismissible">
-                        {{ message }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div class="flash-messages-container">
+      {% for category, message in messages %}
+      <div
+        class="flash-message alert alert-{{ category }} alert-dismissible fade show"
+        role="alert"
+      >
+        <div class="flash-content">
+          <div class="flash-icon">
+            {% if category == 'success' %}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"
+              />
+            </svg>
+            {% elif category == 'danger' %}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"
+              />
+            </svg>
+            {% elif category == 'warning' %}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"
+              />
+            </svg>
+            {% else %}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"
+              />
+            </svg>
+            {% endif %}
+          </div>
+          <div class="flash-text">{{ message }}</div>
+        </div>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="{{ _('Close') }}"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
 
     <!-- Main Content -->
-    <main class="content-wrapper">
-        {% block content %}{% endblock %}
-    </main>
+    <main class="main-content">{% block content %}{% endblock %}</main>
 
     <!-- Footer -->
     {% include 'main/footer.html' %}
 
-    <!-- JavaScript -->
+    <!-- JavaScript Libraries -->
     <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery/3.3.1/jquery.js"></script>
-    <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/select2/4.0.7/js/select2.js"></script>
     <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
-    <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
-    <script src="{{url_for('static', filename='js/main.js')}}"></script>
 
-    <script>
-        $(document).ready(function() {
-            // Initialize Select2 for language dropdown
-            $('#language_select').select2({
-                minimumResultsForSearch: Infinity,
-                dropdownParent: $('#navbarSupportedContent'),
-                templateResult: formatLanguage,
-                templateSelection: formatLanguage
-            }).on('change', function() {
-                window.location.href = "{{url_for('main.set_language')}}?language=" + $(this).val();
-            });
-            
-            function formatLanguage(language) {
-                if (!language.id) { return language.text; }
-                return $('<span>').text(language.text);
-            }
-            
-            // Initialize tooltips
-            $('[data-toggle="tooltip"]').tooltip();
-            
-            // CSRF token setup for AJAX requests
-            var csrf_token = "{{ csrf_token() }}";
-            
-            $.ajaxSetup({
-                beforeSend: function(xhr, settings) {
-                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-                        xhr.setRequestHeader("X-CSRFToken", csrf_token);
-                    }
-                }
-            });
-        });
-    </script>
+    <!-- DataTables -->
+    <script
+      type="text/javascript"
+      src="https://cdn.datatables.net/v/bs4/dt-1.10.18/r-2.2.2/datatables.min.js"
+    ></script>
 
+    <!-- Base JavaScript -->
+    <script src="{{ url_for('static', filename='js/base.js') }}"></script>
+
+    <!-- Page-specific JavaScript -->
     {% block scripts %}{% endblock %}
-</body>
+
+    <!-- Global Scripts -->
+    <script>
+      // Initialize common functionality
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize language selector
+        const languageSelect = document.getElementById("language_select");
+        if (languageSelect) {
+          languageSelect.addEventListener("change", function () {
+            window.location.href =
+              "{{url_for('main.set_language')}}?language=" + this.value;
+          });
+        }
+
+        // Initialize Select2 for dropdowns
+        $(".select2").select2({
+          width: "100%",
+          theme: "bootstrap",
+        });
+
+        // Initialize tooltips
+        $('[data-toggle="tooltip"]').tooltip({
+          trigger: "hover",
+          placement: "top",
+        });
+
+        // Initialize popovers
+        $('[data-toggle="popover"]').popover();
+
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function () {
+          $(".flash-message").alert("close");
+        }, 5000);
+
+        // CSRF token setup for AJAX requests
+        const csrfToken = "{{ csrf_token() }}";
+
+        $.ajaxSetup({
+          beforeSend: function (xhr, settings) {
+            if (
+              !/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) &&
+              !this.crossDomain
+            ) {
+              xhr.setRequestHeader("X-CSRFToken", csrfToken);
+            }
+          },
+        });
+
+        // Back to top button functionality
+        const backToTopBtn = document.querySelector(".back-to-top");
+        if (backToTopBtn) {
+          window.addEventListener("scroll", function () {
+            if (window.pageYOffset > 300) {
+              backToTopBtn.classList.add("show");
+            } else {
+              backToTopBtn.classList.remove("show");
+            }
+          });
+
+          backToTopBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            });
+          });
+        }
+
+        // Add active class to current page in navigation
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll(".nav-link");
+
+        navLinks.forEach((link) => {
+          const linkPath = link.getAttribute("href");
+          if (
+            linkPath === currentPath ||
+            (linkPath !== "/" && currentPath.startsWith(linkPath))
+          ) {
+            link.classList.add("active");
+          }
+        });
+      });
+    </script>
+  </body>
 </html>

@@ -12,6 +12,9 @@ $(document).ready(function () {
 
     var booleanStatusColumn = [8];
     var campaignDescColumn = [9];
+    // Visible columns
+    var statusColumn = [6];
+    var actionsColumn = [7];
 
     /* 2. DataTable Initialization */
     var campaignTable = $('#campaign_table').DataTable({
@@ -56,8 +59,13 @@ $(document).ready(function () {
                 .css('cursor', 'pointer');
         },
         columnDefs: [
+            // Always keep campaign name visible
             { targets: [0], responsivePriority: 1 },
-            { targets: [-1], responsivePriority: 2, searchable: false },
+            // Keep Status visible even on smaller screens
+            { targets: statusColumn, responsivePriority: 2 },
+            // Actions can be hidden before Status if space is tight
+            { targets: actionsColumn, responsivePriority: 3, searchable: false },
+            // Hidden helper columns
             { targets: booleanStatusColumn, visible: false },
             { targets: campaignDescColumn, visible: false }
         ],

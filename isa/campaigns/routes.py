@@ -153,18 +153,23 @@ def getCampaignsPaginated():
         is_upcoming = bool(campaign.start_date and campaign.start_date >= today)
 
         if is_archived:
+            # Archived: red badge
             status_html = Markup(
-                '<span class="badge bg-light text-dark border rounded-pill px-3 py-1">'
+                '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger '
+                'border-opacity-25 rounded-pill px-3 py-1">'
                 '<i class="fas fa-archive me-1"></i>%s</span>'
             ) % escape(gettext('Archived'))
             status_flag = 0
         elif is_upcoming:
+            # Upcoming: neutral/amber badge
             status_html = Markup(
-                '<span class="badge bg-light text-dark border rounded-pill px-3 py-1">'
+                '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning '
+                'border-opacity-25 rounded-pill px-3 py-1">'
                 '<i class="fas fa-clock me-1"></i>%s</span>'
             ) % escape(gettext('Upcoming'))
             status_flag = 1
         else:
+            # Active: green badge
             status_html = Markup(
                 '<span class="badge bg-success bg-opacity-10 text-success border border-success '
                 'border-opacity-25 rounded-pill px-3 py-1">'
@@ -392,9 +397,15 @@ def getCampaignTableData(id):
 
 @campaigns.route('/campaigns/<int:id>/stats')
 def getCampaignStatsById(id):
-    """
-    Endpoint to display the statistics page for a specific campaign.
-    """
+    """Display the statistics page for a specific campaign."""
+    # Basic session/context data used by the base layout/header
+    username = session.get('username', None)
+    session_language = session.get('lang', None)
+    if not session_language:
+        session_language = 'en'
+
+    session['next_url'] = request.url
+
     campaign = Campaign.query.get_or_404(id)
     base_query = Contribution.query.filter_by(campaign_id=id)
     total_contributions = base_query.count()
@@ -449,13 +460,18 @@ def getCampaignStatsById(id):
     # Render the template with the correctly formatted data
     return render_template(
         'campaign/campaign_stats.html',
+        title=gettext('Campaign stats - %(campaign_name)s',
+                      campaign_name=campaign.campaign_name),
         campaign=campaign,
         total_contributions=total_contributions,
         datewise_data=datewise_data,
         top_contributors=top_contributors,
         language_stats=language_stats,
         country_distribution=country_distribution,
-        contribution_types=contribution_types
+        contribution_types=contribution_types,
+        session_language=session_language,
+        username=username,
+        current_user=current_user,
     )
 
 @campaigns.route('/api/campaigns/<int:campaign_id>/stats_by_date')

@@ -1,6 +1,7 @@
 var i18nStrings = JSON.parse($('.hidden-i18n-text').text());
 var isWikiLovesCampaign = $('#campaign_type')[0].checked;
 var categoriesAreValid = false;
+var WIKI_URL = 'https://commons.wikimedia.org/'; // Or your specific wiki
 
 $('#start_date_datepicker').attr({ 'data-toggle': 'datetimepicker', 'data-target': '#start_date_datepicker' });
 $('#start_date_datepicker').datetimepicker({
@@ -21,7 +22,7 @@ function showFormErrors(messages) {
         messages.map(msg => `<li>${msg}</li>`).join('')
         + '</ul>');
     $errorBox.removeClass('d-none');
-    
+
     // Scroll to error box
     $('html, body').animate({
         scrollTop: $errorBox.offset().top - 100
@@ -57,61 +58,57 @@ function categorySearchResultsFormat(state) {
     var $state = $('<span class="search-result-label">' + state.text + '</span>');
     return $state;
 }
+$(document).ready(function () {
+    $('#category-search').select2({
 
-$('#category-search').select2({
-    placeholder: '',
-    delay: 250,
-    minimumResultsForSearch: 1,
-    ajax: {
-        type: 'GET',
-        dataType: 'json',
-        url: WIKI_URL + 'w/api.php',
-        data: function (params) {
-            var query = {
-                search: params.term,
-                action: 'opensearch',
-                namespace: 14,
-                format: 'json',
-                origin: '*'
+        minimumInputLength: 1,
+        placeholder: 'Search for categories...',
+        ajax: {
+            url: 'https://commons.wikimedia.org/w/api.php',
+            dataType: 'jsonp', // Required for cross-site requests
+            delay: 250,
+            data: function (params) {
+                return {
+                    action: 'opensearch',
+                    format: 'json',
+                    namespace: 14, // Category namespace
+                    search: params.term
+                };
+            },
+            processResults: function (data) {
+                console.log('Initializing select2 for category search');
+                // data[1] is the array of results from opensearch
+                return {
+                    results: data[1].map(function (item) {
+                        return {
+                            id: item,
+                            text: item
+                        };
+                    })
+                };
             }
-            return query
         },
-        processResults: function (data) {
-            var processedResults = [],
-                results = data[1];
-            for (var i = 0; i < results.length; i++) {
-                var result = results[i];
-                processedResults.push({
-                    id: result,
-                    text: result
-                });
-            }
-            return {
-                results: processedResults
-            };
-        }
-    },
-    templateResult: categorySearchResultsFormat,
+        templateResult: categorySearchResultsFormat
+    });
+
+    $('#category-search').on('select2:select', function (ev) {
+        var category = $(this).val();
+        addSelectedCategory(category);
+        $(this).val(null).trigger('change'); // clear the search selection
+        $(this).select2("close"); // close the dropdown
+        $("#update_images").prop("checked", true);
+    });
+
+    $(".category-depth-input").change(function () {
+        $("#update_images").prop("checked", true);
+    });
 });
-
-$('#category-search').on('select2:select', function (ev) {
-    var category = $(this).val();
-    addSelectedCategory(category);
-    $(this).val(null).trigger('change'); // clear the search selection
-    $(this).select2("close"); // close the dropdown
-    $("#update_images").prop("checked", true);
-})
-
-$(".category-depth-input").change(function () {
-    $("#update_images").prop("checked", true);
-});
-
 // Main function to add the UI elements for a new category row
 // Used when category is added via search, or populating from existing campaign categories
 function addSelectedCategory(name, depth) {
     var depth = depth || 0;
     var shortName = name.replace("Category:", "");
-    $('#selected-categories-content').append(getCategoryRowHtml(shortName, depth))
+    $('#selected-categories-content').append(getCategoryRowHtml(shortName, depth));
     // show the table header if it's not visible already
     $('#selected-categories-header').show();
     if (isWikiLovesCampaign) validateWikiLovesCategories();
@@ -129,7 +126,7 @@ $('#selected-categories-content').on("click", "button.close", function (event) {
         $('#selected-categories-header').hide();
     }
     $("#update_images").prop("checked", true);
-})
+});
 
 // Returns the html for an individual category row, including depth option and remove button
 function getCategoryRowHtml(name, depth) {
@@ -149,8 +146,8 @@ function getCategoryData() {
         categoryData.push({
             name: name,
             depth: depth
-        })
-    })
+        });
+    });
     return categoryData;
 }
 
@@ -162,7 +159,7 @@ function validateWikiLovesCategories() {
     $('.selected-category').each(function () {
         isValid = validateWikiLovesCategory(this);
         if (!isValid) hasValidationErrors = true;
-    })
+    });
 
     if (hasValidationErrors) {
         $('.invalid-wiki-loves-warning').show();
@@ -192,7 +189,7 @@ function clearWikiLovesValidation() {
     $('.selected-category').each(function () {
         $(this).removeClass('invalid-category').removeClass('valid-category');
         $('.invalid-wiki-loves-warning').hide();
-    })
+    });
 }
 
 //////////// Form submission ////////////
@@ -268,4 +265,4 @@ $('#campaign_type').on("change", function () {
     } else {
         clearWikiLovesValidation();
     }
-})
+});
