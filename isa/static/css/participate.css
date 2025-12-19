@@ -1,0 +1,217 @@
+/* Participate Page Enhanced Styles - Fixed version */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+    --shadow-lg: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    background: var(--primary-gradient);
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+}
+
+.loading-content {
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fix for missing loading overlay removal */
+.loading-overlay.hidden {
+    display: none !important;
+}
+
+/* Main Content */
+.main-content {
+    padding-bottom: 80px;
+}
+
+/* Image Viewer */
+.image-viewer-card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.image-viewer-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.image-container {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+}
+
+.img-holder {
+    position: relative;
+    overflow: hidden;
+}
+
+.img-holder img {
+    transition: transform 0.3s ease;
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    max-height: 70vh;
+}
+
+.img-holder img:hover {
+    transform: scale(1.02);
+}
+
+.image-controls {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-container:hover .image-controls {
+    opacity: 1;
+}
+
+.image-controls .btn {
+    backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.image-controls .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Image Metadata */
+.image-metadata {
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.toggle-metadata {
+    transition: all 0.3s ease;
+}
+
+.toggle-metadata:hover {
+    transform: rotate(15deg);
+}
+
+/* Stats Card */
+.stats-card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.stat-item {
+    padding: 1rem;
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-number {
+    font-size: 1.75rem;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+/* Edit Cards */
+.edit-card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.edit-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.edit-card .card-header {
+    border-bottom: none;
+}
+
+.edit-card .card-header h5 {
+    font-weight: 600;
+}
+
+/* Search Box */
+.search-box .input-group {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.search-box .input-group:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+
+/* Suggestions */
+.suggestions-toggle .btn {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.suggestions-toggle .btn:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+}
+
+.suggestions-panel {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+}
+
+.suggestions-panel.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+/* Depict Tags */
+.depict-tag-group {
+    min-height: 100px;
+}
+
+.depict-tag-item {
+    display: inline-flex;
+    align-items: center;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 0.375rem 0.75rem;
+    margin: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.depict-tag-item

@@ -141,3 +141,14 @@ def inject_language_choices():
             languages.append(language.name)
 
     return dict(languages=sorted(languages))
+
+
+@app.route('/src/<path:filename>', endpoint='src')
+def serve_src(filename):
+    """Serve JavaScript and other assets from the isa/src directory.
+
+    This allows templates to use url_for('src', filename='...') without
+    raising a BuildError.
+    """
+    src_dir = os.path.join(app.root_path, 'src')
+    return send_from_directory(src_dir, filename)

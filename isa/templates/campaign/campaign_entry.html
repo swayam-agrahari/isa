@@ -1,164 +1,636 @@
-{% extends "main/layout.html" %}
-{% block content%}
-<style>
-body {padding-bottom: 50px}
+{% extends "main/layout.html" %} {% block content %}
 
-@media (min-width: 992px) {
-    body {padding-bottom:0}
-}
-</style>
-<div class="loading">
-    <div class="spinner-border text-secondary" role="status" aria-hidden="true"></div>
-	<img src="{{ url_for('static', filename = 'ISA-Structured-Data-logo_landscape_white.png') }}" height="50" alt="">
-</div>
-
-<!-- Flash messages displayed and populated via JavaScript -->
-<div class="isa-flash-message alert alert-success fade"></div>
-<div class="isa-flash-message alert alert-danger fade"></div>
-
-<div class="container px-0"> <a href="{{url_for('campaigns.getCampaignById', id=campaign.id ) }}" class="btn btn-outline-secondary btn-sm" title="{{ _('Return to the campaign home page') }}"><i class="fas fa-caret-left"></i> {{ campaign.campaign_name }}: {{ _('Home Page') }}</a> </div>
-
-
-<div class="container px-0 image-wrapper bg-light">
-    <button class="previous-image-btn btn btn-link btn-lg desktop-img-nav"  title="{{ _('View the previous image') }}"><i class="fas fa-chevron-left"></i>{{ _('PREV IMAGE') }}</button>
-    <div class="img-holder"><img src="{{url_for('static',filename='default.jpg')}}" alt=""><!-- src updated by JavaScript -->
-        <div class="image-overlay px-3 small"><span id="image_author"></span> | <span id="image_credit">{{ _('Own work') }}</span> | <span id="image_license"><a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a></span></div>
+<!-- Loading Overlay -->
+<div
+  class="loading-overlay d-flex flex-column justify-content-center align-items-center position-fixed vw-100 vh-100"
+>
+  <div class="loading-content text-center">
+    <div class="loading-spinner mb-4">
+      <div
+        class="spinner-border text-primary"
+        style="width: 3rem; height: 3rem;"
+        role="status"
+      >
+        <span class="visually-hidden">Loading...</span>
+      </div>
     </div>
-    <button id="" class="next-image-btn btn btn-link desktop-img-nav btn-lg" title="{{ _('View the next image') }}">{{ _('NEXT IMAGE') }}<i class="fas fa-chevron-right"></i></button>
-</div>
-<div class="container px-0 bg-light">
-    <div id="edit_image_info">
-        <div class="image-desc">
-            <p>{{ _('File') }}:&nbsp;<span id="image_name" title="{{ _('Open this image on Wikimedia Commons') }}"></span></p>
-            <p>{{ _('Description') }}:&nbsp;<span id="image_description"></span></p>
-            <p>{{ _('Categories') }}:&nbsp;<span id="image_categories"></span></p>
-            <p>{{ _('Camera Location') }}:&nbsp;<span id="image_camera_location"></span></p>
-        </div>
-        <div class="text-center">
-            <button id="expand-meta-data" class="btn btn-sm btn-link"><i class="fas fa-caret-down"></i>&nbsp; {{ _('show all metadata from Commons') }} </button>
-        </div>
+    <div class="loading-text">
+      <img
+        src="{{ url_for('static', filename = 'ISA-Structured-Data-logo_landscape_white.png') }}"
+        height="60"
+        alt="ISA Logo"
+        class="mb-4"
+      />
+      <h4 class="text-white mb-2">{{ _('Loading Campaign Images') }}</h4>
+      <p class="text-light mb-0 opacity-75">
+        {{ _('Preparing your contribution session...') }}
+      </p>
     </div>
+  </div>
 </div>
-{% if campaign.depicts_metadata %}
-<div class="container edit-box">
-    <div class="edit-box-header">
-        <div class="edit-box-header-nav">
-            <h4>{{ _('Depicts') }}
-                <button type="button" class="btn btn-link py-0" data-container="body" title="{{_('Adding Depict Statements') }}" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="{{_('Make it simple: Use simple words and concepts to describe what you see in each image (e.g. cat, mountain, Taj Mahal)')}}
-            "><i class="fas fa-question-circle"></i></button>
-            </h4>
-            <div edit-type="depicts" class="edit-publish-btn-group text-right">
-                <button class="btn btn-sm btn-link cancel-edits-btn" disabled title="{{ _('Cancel your changes') }}">{{ _('Cancel') }}</button>
-                <button type="submit" class="btn btn-sm btn-primary publish-edits-btn" disabled title="{{ _('Save your edits to Wikimedia Commons') }}">{{ _('Save') }}</button>
+
+<!-- Header Navigation -->
+<div class="container-fluid sticky-top bg-white shadow-sm">
+  <div class="container py-3">
+    <nav class="d-flex align-items-center">
+      <a
+        href="{{url_for('campaigns.getCampaignById', id=campaign.id ) }}"
+        class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+        title="{{ _('Return to the campaign home page') }}"
+      >
+        <i class="fas fa-arrow-left me-2"></i>
+        <span class="d-none d-md-inline">{{ _('Back to Campaign') }}</span>
+        <span class="d-md-none">{{ _('Back') }}</span>
+      </a>
+
+      <div class="ms-auto d-flex align-items-center">
+        <div class="progress-container me-4 d-none d-md-block">
+          <div class="progress" style="height: 6px; width: 150px;">
+            <div
+              class="progress-bar progress-bar-striped progress-bar-animated"
+              role="progressbar"
+              id="session-progress"
+            ></div>
+          </div>
+          <small class="text-muted d-block mt-1" id="progress-text">0/0</small>
+        </div>
+
+        <div class="user-info">
+          {% if username %}
+          <span class="badge bg-primary rounded-pill">
+            <i class="fas fa-user me-1"></i>
+            {{ username }}
+          </span>
+          {% else %}
+          <a
+            href="{{ url_for('auth.login') }}"
+            class="btn btn-sm btn-outline-primary"
+          >
+            <i class="fas fa-sign-in-alt me-1"></i>
+            {{ _('Login') }}
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container main-content mt-4">
+  <!-- Flash Messages -->
+  <div class="flash-messages mb-4">
+    <div
+      class="isa-flash-message alert alert-success alert-dismissible fade"
+      role="alert"
+    >
+      <span class="message-content"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div
+      class="isa-flash-message alert alert-danger alert-dismissible fade"
+      role="alert"
+    >
+      <span class="message-content"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Image Viewer Column -->
+    <div class="col-lg-8">
+      <div class="image-viewer-card card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom-0 pb-0">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">{{ _('Current Image') }}</h5>
+            <div class="image-nav-buttons btn-group" role="group">
+              <button
+                class="previous-image-btn btn btn-outline-primary btn-sm"
+                title="{{ _('View previous image') }}"
+              >
+                <i class="fas fa-chevron-left"></i>
+                <span class="d-none d-sm-inline ms-1">{{ _('Previous') }}</span>
+              </button>
+              <button
+                class="next-image-btn btn btn-outline-primary btn-sm"
+                title="{{ _('View next image') }}"
+              >
+                <span class="d-none d-sm-inline me-1">{{ _('Next') }}</span>
+                <i class="fas fa-chevron-right"></i>
+              </button>
             </div>
+          </div>
         </div>
-        {% if username is none %}
-        <p class="text-danger small mb-1 text-right">{{_('You will be redirected to login and back here to save your changes')}}</p>
-        {% endif %}
-        <p>{{ _('Name the different elements that you can see in this image') }}</p>
-    </div>
-    <div class="depicts-search">
-        <div class="input-group mb-3">
-            <div class="input-group-prepend"> <span class="input-group-text"><i class="fas fa-search"></i></span> </div>
-            <select id="depicts-select" class="form-control">
-            </select>
-        </div>
-    </div>
 
-   <!-- Used to perform action on suggestion while using small screens -->
-    <div class="modal" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5>
-                        <a class="modal-label-link" target="_blank"></a>
-                        <span class="modal-item"></span>
-                        <span class="modal-confidence"></span>
-                    </h5>
-                    <i class="fa fa-times close-modal" aria-hidden="true"></i>
+        <div class="card-body p-0">
+          <div class="image-container position-relative bg-dark rounded-top">
+            <!-- Image Controls -->
+            <div
+              class="image-controls position-absolute top-0 end-0 p-3 d-flex gap-2"
+              style="z-index: 10;"
+            >
+              <button
+                class="btn btn-light btn-sm zoom-in"
+                title="{{ _('Zoom in') }}"
+              >
+                <i class="fas fa-search-plus"></i>
+              </button>
+              <button
+                class="btn btn-light btn-sm zoom-out"
+                title="{{ _('Zoom out') }}"
+              >
+                <i class="fas fa-search-minus"></i>
+              </button>
+              <a
+                href="#"
+                id="open-commons-link"
+                class="btn btn-light btn-sm"
+                target="_blank"
+                title="{{ _('Open on Wikimedia Commons') }}"
+              >
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+
+            <!-- Main Image -->
+            <div
+              class="img-holder-wrapper d-flex justify-content-center align-items-center"
+              style="min-height: 400px;"
+            >
+              <div
+                class="img-holder position-relative"
+                style="max-width: 100%; max-height: 70vh;"
+              >
+                <img
+                  src="{{url_for('static',filename='default.jpg')}}"
+                  alt=""
+                  class="img-fluid rounded-top"
+                  style="cursor: zoom-in; max-height: 70vh; object-fit: contain;"
+                />
+
+                <!-- Image Overlay -->
+                <div
+                  class="image-overlay position-absolute bottom-0 start-0 end-0 p-3 text-white"
+                  style="background: linear-gradient(transparent, rgba(0,0,0,0.7)); border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem;"
+                >
+                  <div
+                    class="d-flex justify-content-between align-items-center"
+                  >
+                    <div>
+                      <small class="d-block">
+                        <i class="fas fa-camera me-1"></i>
+                        <span id="image_author">{{ _('Loading...') }}</span>
+                      </small>
+                      <small class="d-block mt-1">
+                        <i class="fas fa-balance-scale me-1"></i>
+                        <span id="image_license">
+                          <a
+                            href="https://creativecommons.org/licenses/by-sa/4.0"
+                            target="_blank"
+                            class="text-white text-decoration-underline"
+                          >
+                            CC BY-SA 4.0
+                          </a>
+                        </span>
+                      </small>
+                    </div>
+                    <button
+                      class="btn btn-sm btn-light toggle-metadata"
+                      title="{{ _('Toggle metadata') }}"
+                    >
+                      <i class="fas fa-info-circle"></i>
+                    </button>
+                  </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary accept-depict-mobile">{{ _('Accept') }}</button>
-                    <button type="button" class="btn btn-danger reject-depict-mobile" data-dismiss="modal">{{ _('Reject') }}</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Image Metadata -->
+          <div class="image-metadata collapse" id="imageMetadata">
+            <div class="p-4 border-top">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <h6 class="text-muted mb-2">{{ _('File Information') }}</h6>
+                  <div class="mb-3">
+                    <strong>{{ _('File') }}:</strong>
+                    <span id="image_name" class="ms-2 text-break"></span>
+                  </div>
+                  <div class="mb-3">
+                    <strong>{{ _('Description') }}:</strong>
+                    <p id="image_description" class="mb-0 mt-1 text-muted"></p>
+                  </div>
                 </div>
+                <div class="col-md-6">
+                  <h6 class="text-muted mb-2">{{ _('Additional Details') }}</h6>
+                  <div class="mb-3">
+                    <strong>{{ _('Categories') }}:</strong>
+                    <div
+                      id="image_categories"
+                      class="mt-1 d-flex flex-wrap gap-1"
+                    ></div>
+                  </div>
+                  <div>
+                    <strong>{{ _('Location') }}:</strong>
+                    <span id="image_camera_location" class="ms-2 text-muted"
+                      >{{ _('Not specified') }}</span
+                    >
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
     </div>
 
-    <div id="depict-tag-suggestions-container">
-        <div id="suggest-toggle">
-            <i id="toggle-indicator" class="fas fa-caret-up"></i>
-            <span id="toggle-label">{{ _('Hide Suggestions') }}</span>
-        </div>
-        <div class="depict-tag-suggestions">
-        </div>
-    </div>
-    <div class="depict-tag-group">
-        <!-- populated by JavaScript -->
-    </div>
-    <p class="small text-muted my-1 prom-help">{{ _('To mark the prominent elements in the image, click on the flag icon') }} <i class="fas fa-flag mr-2"></i></p>
-</div>
-{% endif %}
-
-{% if campaign.captions_metadata %}
-<div class="container edit-box">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <div class="edit-box-header">
-        <div class="edit-box-header-nav">
-            <h4>{{ _('Captions') }} <button type="button" class="btn btn-link py-0" data-container="body" title="{{_('Writing Captions')}}" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="{{_('Include any culturally specific, scientific or technical information that you can identify (e.g. the Ethiopian Coffee Ceremony or bunna maflat) to make the information richer.')}}"><i class="fas fa-question-circle"></i></button></h4>
-            <div edit-type="captions" class="edit-publish-btn-group text-right">
-                <button class="btn btn-sm btn-link cancel-edits-btn" disabled>{{ _('Cancel') }}</button>
-                <button type="submit" class="btn btn-sm btn-primary publish-edits-btn" disabled>{{ _('Save') }}</button>
+    <!-- Editing Panel Column -->
+    <div class="col-lg-4">
+      <div class="sticky-top" style="top: 80px;">
+        <!-- Stats Card -->
+        <div class="stats-card card border-0 shadow-sm mb-4">
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="stat-item">
+                  <div
+                    class="stat-number text-primary fw-bold"
+                    id="current-image-number"
+                  >
+                    0
+                  </div>
+                  <small class="text-muted">{{ _('Current') }}</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="stat-item">
+                  <div
+                    class="stat-number text-success fw-bold"
+                    id="completed-count"
+                  >
+                    0
+                  </div>
+                  <small class="text-muted">{{ _('Completed') }}</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="stat-item">
+                  <div
+                    class="stat-number text-warning fw-bold"
+                    id="remaining-count"
+                  >
+                    0
+                  </div>
+                  <small class="text-muted">{{ _('Remaining') }}</small>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
-        {% if username is none %}
-        <p class="text-danger small mb-1 text-right">{{_('Log in to publish changes')}}</p>
+
+        <!-- ... rest of the HTML remains the same until Editing Panel Column ... -->
+
+        {% if campaign.depicts_metadata %}
+        <!-- Depicts Editor -->
+        <div class="edit-card card border-0 shadow-sm mb-4">
+          <div class="card-header bg-primary text-white rounded-top">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-tags me-2"></i>
+                {{ _('Depicts') }}
+              </h5>
+              <button
+                type="button"
+                class="btn btn-sm btn-light"
+                data-bs-toggle="popover"
+                title="{{ _('Adding Depict Statements') }}"
+                data-bs-content="{{ _('Make it simple: Use simple words and concepts to describe what you see in each image (e.g. cat, mountain, Taj Mahal)') }}"
+              >
+                <i class="fas fa-question-circle"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="card-body">
+            {% if username is none %}
+            <div class="alert alert-warning mb-3 py-2">
+              <small>
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                {{ _('You will be redirected to login to save changes') }}
+              </small>
+            </div>
+            {% endif %}
+
+            <p class="text-muted mb-3">
+              {{ _('Name the different elements that you can see in this image')
+              }}
+            </p>
+
+            <!-- Search Input -->
+            <div class="search-box mb-4">
+              <div class="input-group">
+                <span class="input-group-text bg-white">
+                  <i class="fas fa-search text-muted"></i>
+                </span>
+                <select id="depicts-select" class="form-control"> </select>
+              </div>
+            </div>
+
+            <!-- Selected Depicts -->
+            <div class="selected-depicts">
+              <h6 class="text-muted mb-3">{{ _('Selected Items') }}</h6>
+              <div class="depict-tag-group">
+                <!-- Will be populated by JavaScript -->
+                <div class="empty-state text-center py-4">
+                  <i class="fas fa-tags fa-2x text-muted opacity-25 mb-3"></i>
+                  <p class="text-muted mb-0">
+                    {{ _('No items selected yet') }}
+                  </p>
+                  <small class="text-muted"
+                    >{{ _('Search and add items above') }}</small
+                  >
+                </div>
+              </div>
+
+              <div class="prominent-help mt-3">
+                <small class="text-muted">
+                  <i class="fas fa-flag text-warning me-1"></i>
+                  {{ _('Click the flag icon to mark prominent elements') }}
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer bg-light">
+            <div class="d-flex justify-content-between">
+              <button
+                class="btn btn-sm btn-outline-secondary cancel-edits-btn"
+                edit-type="depicts"
+                disabled
+              >
+                {{ _('Reset') }}
+              </button>
+              <button
+                class="btn btn-sm btn-primary publish-edits-btn"
+                edit-type="depicts"
+                disabled
+              >
+                <i class="fas fa-save me-1"></i>
+                {{ _('Save Depicts') }}
+              </button>
+            </div>
+          </div>
+        </div>
         {% endif %}
-        <p>{{ _('Add a caption to better explain the image (max 255 characters)') }}</p>
-    </div>
-    <div class="caption-search"> {% for lang_code in caption_languages %}
-        <div class="input-group mb-3">
-            <div class="input-group-prepend"> <span class="input-group-text">{{lang_code}}</span> </div>
-            <input type="input" class="form-control caption-input" lang="{{lang_code}}" placeholder="{{ _('Briefly explain what you see in this image.') }}">
+
+        <!-- ... rest of the HTML remains the same ... -->
+
+        <!-- Captions Editor -->
+        <div class="edit-card card border-0 shadow-sm">
+          <div class="card-header bg-success text-white rounded-top">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-comment-alt me-2"></i>
+                {{ _('Captions') }}
+              </h5>
+              <button
+                type="button"
+                class="btn btn-sm btn-light"
+                data-bs-toggle="popover"
+                title="{{ _('Writing Captions') }}"
+                data-bs-content="{{ _('Include any culturally specific, scientific or technical information that you can identify to make the information richer.') }}"
+              >
+                <i class="fas fa-question-circle"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="card-body">
+            {% if username is none %}
+            <div class="alert alert-warning mb-3 py-2">
+              <small>
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                {{ _('Log in to publish changes') }}
+              </small>
+            </div>
+            {% endif %}
+
+            <p class="text-muted mb-3">
+              {{ _('Add a caption to better explain the image (max 255
+              characters)') }}
+            </p>
+
+            <!-- Caption Inputs -->
+            <div class="caption-inputs">
+              {% for lang_code in caption_languages %}
+              <div class="mb-3">
+                <label
+                  class="form-label small text-uppercase fw-semibold text-muted"
+                >
+                  {{ lang_code|upper }}
+                  <span
+                    class="char-counter float-end"
+                    data-lang="{{ lang_code }}"
+                    >0/255</span
+                  >
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="fas fa-language"></i>
+                  </span>
+                  <textarea
+                    class="form-control caption-input"
+                    lang="{{ lang_code }}"
+                    rows="3"
+                    placeholder="{{ _('Briefly explain what you see in this image...') }}"
+                    maxlength="255"
+                  ></textarea>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="language-info">
+              <small class="text-muted">
+                <i class="fas fa-globe me-1"></i>
+                {{ _('Add more languages in user preferences') }}
+              </small>
+            </div>
+          </div>
+
+          <div class="card-footer bg-light">
+            <div class="d-flex justify-content-between">
+              <button
+                class="btn btn-sm btn-outline-secondary cancel-edits-btn"
+                edit-type="captions"
+                disabled
+              >
+                {{ _('Reset') }}
+              </button>
+              <button
+                class="btn btn-sm btn-success publish-edits-btn"
+                edit-type="captions"
+                disabled
+              >
+                <i class="fas fa-save me-1"></i>
+                {{ _('Save Captions') }}
+              </button>
+            </div>
+          </div>
         </div>
-        {% endfor %}
+      </div>
     </div>
-    <p class="small text-muted my-1">{{ _('You can add captions in additional languages by selecting Language Preferences from the user menu') }}</p>
-</div>
-{% endif %}
-<div class="participate-nav-footer container">
-    <div class="btn-group d-flex" role="group" aria-label="">
-        <button class="previous-image-btn btn btn-primary w-100"><i class="fas fa-chevron-left"></i>{{ _('PREV IMAGE') }}</button>
-        <button class="next-image-btn btn btn-primary w-100">{{ _('NEXT IMAGE') }}<i class="fas fa-chevron-right"></i></button>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div
+    class="bottom-navigation fixed-bottom bg-white border-top shadow-lg py-3 d-none d-lg-block"
+  >
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <div class="image-info me-4">
+            <span class="text-muted me-2">{{ _('Image') }}:</span>
+            <span class="fw-semibold" id="bottom-image-number">0</span>
+            <span class="text-muted mx-1">/</span>
+            <span id="bottom-total-images">0</span>
+          </div>
+          <div class="contributions-info">
+            <span class="badge bg-success me-2">
+              <i class="fas fa-check me-1"></i>
+              <span id="bottom-completed">0</span>
+            </span>
+            <span class="text-muted">{{ _('completed') }}</span>
+          </div>
+        </div>
+
+        <div class="navigation-buttons">
+          <div class="btn-group" role="group">
+            <button class="previous-image-btn btn btn-primary px-4">
+              <i class="fas fa-chevron-left me-2"></i>
+              {{ _('Previous Image') }}
+            </button>
+            <button class="next-image-btn btn btn-primary px-4">
+              {{ _('Next Image') }}
+              <i class="fas fa-chevron-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
+<!-- Mobile Bottom Navigation -->
+<div
+  class="mobile-bottom-nav d-block d-lg-none fixed-bottom bg-white border-top shadow-lg py-2"
+>
+  <div class="container">
+    <div class="row g-1">
+      <div class="col">
+        <button class="previous-image-btn btn btn-outline-primary w-100">
+          <i class="fas fa-chevron-left"></i>
+          <span class="d-none d-sm-inline ms-1">{{ _('Prev') }}</span>
+        </button>
+      </div>
+      <div class="col">
+        <div class="text-center py-1">
+          <small class="text-muted d-block">{{ _('Image') }}</small>
+          <span class="fw-bold" id="mobile-image-number">0</span>/<span
+            id="mobile-total-images"
+            >0</span
+          >
+        </div>
+      </div>
+      <div class="col">
+        <button class="next-image-btn btn btn-outline-primary w-100">
+          <span class="d-none d-sm-inline me-1">{{ _('Next') }}</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Suggestion Modal -->
+<div class="modal fade" id="suggestionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ _('Depict Suggestion') }}</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="suggestion-content">
+          <h6 class="mb-2">
+            <a href="#" class="suggestion-link" target="_blank"></a>
+          </h6>
+          <p class="text-muted mb-2 suggestion-item"></p>
+          <div class="confidence-badge">
+            <span class="badge bg-info suggestion-confidence"></span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger reject-suggestion">
+          <i class="fas fa-times me-1"></i>
+          {{ _('Reject') }}
+        </button>
+        <button type="button" class="btn btn-success accept-suggestion">
+          <i class="fas fa-check me-1"></i>
+          {{ _('Accept') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden i18n -->
 <div class="hidden-i18n-text">
-    {
-        "No images found for this campaign!": {{ _('No images found for this campaign!')|tojson }},
-        "Something went wrong getting campaign images": {{ _('Something went wrong getting campaign images')|tojson }},
-        "Search for things you see in the image": {{ _('Search for things you see in the image')|tojson }},
-        "minimise metadata from Commons": {{ _('minimise metadata from Commons')|tojson }},
-        "show all metadata from Commons": {{ _('show all metadata from Commons')|tojson }},
-        "Success! Depicted items saved to Wikimedia Commons": {{ _('Success! Depicted items saved to Wikimedia Commons')|tojson }},
-        "Success! Captions saved to Wikimedia Commons": {{ _('Success! Captions saved to Wikimedia Commons')|tojson }},
-        "Oops! Something went wrong, your edits have not been saved to Wikimedia Commons": {{ _('Oops! Something went wrong, your edits have not been saved to Wikimedia Commons')|tojson }},
-        "Are you sure you want to navigate to another image? You have unsaved changes which will be lost.": {{ _('Are you sure you want to navigate to another image? You have unsaved changes which will be lost.')|tojson }},
-        "Click 'OK' to proceed anyway, or 'Cancel' if you want to save changes first.": {{ _("Click 'OK' to proceed anyway, or 'Cancel' if you want to save changes first.")|tojson }},
-        "Remove this depicted item": {{ _('Remove this depicted item')|tojson }},
-        "Mark this depicted item as prominent": {{ _('Mark this depicted item as prominent')|tojson }},
-        "Mark this depicted item as NOT prominent": {{ _('Mark this depicted item as NOT prominent')|tojson }},
-        "Suggestion removed from list": {{ _('Suggestion removed from list')|tojson }},
-        "Please check that you are logged in": {{ _('Please check that you are logged in')|tojson }},
-        "Oops! Suggestion might not have been removed": {{ _('Oops! Suggestion might not have been removed')|tojson }},
-        "Hide Suggestions": {{ _('Hide Suggestions')|tojson }},
-        "Show Suggestions": {{ _('Show Suggestions')|tojson }},
-        "Are you sure you want to reject this suggestion?": {{ _('Are you sure you want to reject this suggestion?')|tojson }},
-        "Are you sure explanation for reject suggestion": {{ _('Only do this if you are sure the suggested tag does not appear in the image, or would be incorrect according to Wikimedia Commons guidelines. If several users reject the same suggestion, it will no longer be shown.')|tojson }}
-    }
+  {{ { "No images found for this campaign!": _('No images found for this
+  campaign!'), "Something went wrong getting campaign images": _('Something went
+  wrong getting campaign images'), "Search for things you see in the image":
+  _('Search for things you see in the image'), "minimise metadata from Commons":
+  _('minimise metadata from Commons'), "show all metadata from Commons": _('show
+  all metadata from Commons'), "Success! Depicted items saved to Wikimedia
+  Commons": _('Success! Depicted items saved to Wikimedia Commons'), "Success!
+  Captions saved to Wikimedia Commons": _('Success! Captions saved to Wikimedia
+  Commons'), "Oops! Something went wrong, your edits have not been saved to
+  Wikimedia Commons": _('Oops! Something went wrong, your edits have not been
+  saved to Wikimedia Commons'), "Are you sure you want to navigate to another
+  image? You have unsaved changes which will be lost.": _('Are you sure you want
+  to navigate to another image? You have unsaved changes which will be lost.'),
+  "Click 'OK' to proceed anyway, or 'Cancel' if you want to save changes
+  first.": _("Click 'OK' to proceed anyway, or 'Cancel' if you want to save
+  changes first."), "Remove this depicted item": _('Remove this depicted item'),
+  "Mark this depicted item as prominent": _('Mark this depicted item as
+  prominent'), "Mark this depicted item as NOT prominent": _('Mark this depicted
+  item as NOT prominent'), "Suggestion removed from list": _('Suggestion removed
+  from list'), "Please check that you are logged in": _('Please check that you
+  are logged in'), "Oops! Suggestion might not have been removed": _('Oops!
+  Suggestion might not have been removed'), "Hide Suggestions": _('Hide
+  Suggestions'), "Show Suggestions": _('Show Suggestions'), "Are you sure you
+  want to reject this suggestion?": _('Are you sure you want to reject this
+  suggestion?'), "Are you sure explanation for reject suggestion": _('Only do
+  this if you are sure the suggested tag does not appear in the image, or would
+  be incorrect according to Wikimedia Commons guidelines. If several users
+  reject the same suggestion, it will no longer be shown.'), "Loading image...":
+  _('Loading image...'), "Image loaded successfully": _('Image loaded
+  successfully'), "Changes saved successfully": _('Changes saved successfully'),
+  "Zoom": _('Zoom'), "Original size": _('Original size') }|tojson }}
 </div>
-{% endblock content%}
-{% block scripts %}
+
+{% endblock content %} {% block styles %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/participate.css') }}"
+/>
+{% endblock %} {% block scripts %}
 <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js"></script>
-<script src="{{url_for('static', filename='js/participate.js')}}"></script>
-{% endblock scripts%}
+<script src="{{ url_for('src', filename='participate-enhanced.js') }}"></script>
+<script src="{{ url_for('static', filename='js/participate.js') }}"></script>
+{% endblock scripts %}

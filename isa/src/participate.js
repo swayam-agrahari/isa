@@ -1,17 +1,40 @@
 /*********** Participate page ***********/
 
-import {ParticipationManager} from './participation-manager';
-import {getUrlParameters, shuffle, flashMessage} from './utils';
+import {ParticipationManager} from './participation-manager.js';
+import {getUrlParameters, shuffle, flashMessage} from './utils.js';
 import {generateGuid} from './guid-generator.js';
 
-var i18nStrings = JSON.parse($('.hidden-i18n-text').text());
+// Get i18n strings safely
+var i18nStrings = {};
+try {
+    i18nStrings = JSON.parse($('.hidden-i18n-text').text().trim());
+} catch (e) {
+    console.error('Failed to parse i18n strings:', e);
+    // Use default English strings as fallback
+    i18nStrings = {
+        "No images found for this campaign!": "No images found for this campaign!",
+        "Something went wrong getting campaign images": "Something went wrong getting campaign images",
+        "Search for things you see in the image": "Search for things you see in the image",
+        "minimise metadata from Commons": "minimise metadata from Commons",
+        "show all metadata from Commons": "show all metadata from Commons",
+        "Success! Depicted items saved to Wikimedia Commons": "Success! Depicted items saved to Wikimedia Commons",
+        "Success! Captions saved to Wikimedia Commons": "Success! Captions saved to Wikimedia Commons",
+        "Oops! Something went wrong, your edits have not been saved to Wikimedia Commons": "Oops! Something went wrong, your edits have not been saved to Wikimedia Commons",
+        "Are you sure you want to navigate to another image? You have unsaved changes which will be lost.": "Are you sure you want to navigate to another image? You have unsaved changes which will be lost.",
+        "Click 'OK' to proceed anyway, or 'Cancel' if you want to save changes first.": "Click 'OK' to proceed anyway, or 'Cancel' if you want to save changes first.",
+        "Remove this depicted item": "Remove this depicted item",
+        "Mark this depicted item as prominent": "Mark this depicted item as prominent",
+        "Mark this depicted item as NOT prominent": "Mark this depicted item as NOT prominent"
+    };
+}
 
 var campaignId = getCampaignId(),
     wikiLovesCountry = getWikiLovesCountry(),
-    isWikiLovesCampaign = !!wikiLovesCountry, // todo: this should be read from get-campaign-categories api call
+    isWikiLovesCampaign = !!wikiLovesCountry,
     isUserLoggedIn = false,
     csrf_token = "{{ csrf_token() }}",
-    editSession;
+    editSession,
+    enhancedUI;
 
 // Pagination state
 let currentPage = 1;
@@ -21,7 +44,6 @@ let hasMoreImages = true;
 
 // Helper to load images from backend
 function loadImages(page) {
-    console.log("called in here")
     let imagesUrl = `../../campaigns/${campaignId}/images?page=${page}&per_page=${perPage}`;
     if (isWikiLovesCampaign && wikiLovesCountry) {
         imagesUrl += `/${encodeURIComponent(wikiLovesCountry)}`;
@@ -40,43 +62,57 @@ function loadImages(page) {
     });
 }
 
+function initParticipation() {
+    // Initial load
+    loadImages(currentPage).then(() => {
+        if (allLoadedImages.length === 0) {
+            hideLoadingOverlay();
+            alert(i18nStrings["No images found for this campaign!"]);
+            window.location.href = '../' + campaignId;
+            return;
+        }
+        
+        shuffle(allLoadedImages);
+        editSession = new ParticipationManager(allLoadedImages, campaignId, wikiLovesCountry, isUserLoggedIn);
+
+        // Initialize enhanced UI if available
+        if (typeof window.enhancedParticipate !== 'undefined') {
+            enhancedUI = window.enhancedParticipate;
+            enhancedUI.initEnhancedFeatures();
+        }
+
+        if (getUrlParameters().image) {
+            var image = Number.parseInt(getUrlParameters().image);
+            var imageIndex = allLoadedImages.indexOf(image);
+            if (imageIndex !== -1) {
+                editSession.setImageIndex(imageIndex);
+            }
+        } else {
+            editSession.imageChanged();
+        }
+
+        hideLoadingOverlay();
+    }).catch(function(err) {
+        console.log("error loading campaign images", err);
+        hideLoadingOverlay();
+        alert(i18nStrings["Something went wrong getting campaign images"]);
+        window.location.href = '../' + campaignId;
+    });
+}
+
 ///////// Campaign images /////////
 
 // Check if user is logged in
 $.getJSON('../../api/login-test')
     .then(function(response) {
         isUserLoggedIn = response.is_logged_in;
-    })
-    .then(function () {
-        // Initial load
-        loadImages(currentPage).then(() => {
-            shuffle(allLoadedImages);
-            editSession = new ParticipationManager(allLoadedImages, campaignId, wikiLovesCountry, isUserLoggedIn);
-
-            if (getUrlParameters().image) {
-                var image = Number.parseInt(getUrlParameters().image);
-                var imageIndex = allLoadedImages.indexOf(image);
-                if (imageIndex !== -1) {
-                    editSession.setImageIndex(imageIndex);
-                }
-            } else {
-                editSession.imageChanged();
-            }
-
-            if (allLoadedImages.length > 0) {
-                hideLoadingOverlay();
-            } else {
-                alert(i18nStrings["No images found for this campaign!"]);
-                window.location.href = '../' + campaignId;
-            }
-        });
+        initParticipation();
     })
     .fail(function(err) {
-        console.log("error retrieving campaign categories", err)
-        alert(i18nStrings["Something went wrong getting campaign images"]);
-        window.location.href = '../' + campaignId;
-    })
-
+        console.log("error checking login status", err);
+        isUserLoggedIn = false;
+        initParticipation();
+    });
 
 ///////// Depicts search box /////////
 
@@ -128,50 +164,9 @@ function searchResultsFormat(state) {
             false /* isProminent */,
             statementId
         );
-        if (editSession.machineVisionActive) {
-            var suggestion = editSession.getDepictSuggestionByItem(selected.id);
-            if (suggestion) suggestion.isAccepted = true;
-            editSession.renderDepictSuggestions();
-        }
         $(this).val(null).trigger('change');
     })
   })();
-
-///////// Rejecting statements /////////
-
-function rejectStatement(item, element){
-    var rejectedSuggestion = editSession.getDepictSuggestionByItem(item);
-    var rejectedSuggestionData = JSON.stringify({
-        file: editSession.imageFileName,
-        campaign_id: getCampaignId(),
-        depict_item: item,
-        google_vision: rejectedSuggestion.google_vision || null,
-        google_vision_confidence: rejectedSuggestion.confidence.google || null,
-        metadata_to_concept: rejectedSuggestion.metadata_to_concept || null,
-        metadata_to_concept_confidence: rejectedSuggestion.confidence.metadata_to_concept || null,
-    });
-
-    var conformRemoveMessageHead = i18nStrings['Are you sure you want to reject this suggestion?'],
-        conformRemoveMessageExplain = i18nStrings['Are you sure explanation for reject suggestion'];
-
-    if (confirm(conformRemoveMessageHead + "\n\n" + conformRemoveMessageExplain)) {
-        $.post({
-            url: '/api/reject-suggestion',
-            data: rejectedSuggestionData,
-            contentType: 'application/json',
-            headers: {
-                "X-CSRFToken": csrf_token,
-            },
-        }).done(function(response) {
-            // Contribution accepted by server, we can remove suggestion from list
-            rejectedSuggestion.isRejectedByUser = true;
-            editSession.renderDepictSuggestions();
-            flashMessage('success', i18nStrings['Suggestion removed from list']);
-        }).fail( function(error) {
-            flashMessage('danger', i18nStrings['Oops! Suggestion might not have been removed'])
-        });
-    }
-}
 
 ///////// Event handlers /////////
 
@@ -211,12 +206,6 @@ $('.caption-input').on('input', function() {
 
 // Click to remove depicts tags
 $('.depict-tag-group').on('click','.depict-tag-btn', function(ev) {
-    if (editSession.machineVisionActive) {
-        // Todo: move to new participation manager method
-        var item = $(this).siblings('.label').children('.depict-tag-qvalue').text(); // todo: fix messy way to retreive item
-        var suggestion = editSession.getDepictSuggestionByItem(item);
-        if (suggestion) suggestion.isAccepted = false;
-    }
     $(this).parents('.depict-tag-item').remove();
     editSession.depictDataChanged();
 })
@@ -226,60 +215,6 @@ $('.depict-tag-group').on('click','.prominent-btn', function(ev) {
     $(this).toggleClass('active');
     editSession.depictDataChanged();
 })
-
-$('#depict-tag-suggestions-container').on('click', '.accept-depict', function() {
-    var item = $(this).siblings('.depict-tag-qvalue').text();
-    editSession.addDepictBySuggestionItem(item);
-});
-
-function displayModal(item, label, confidence){
-    $('.modal-label-link').text(label);
-    $('.modal-label-link').attr('href', 'https://www.wikidata.org/wiki/' + item);
-    $('.modal-item').text(item);
-    $('.modal-confidence').text(confidence);
-    $('.modal').show();
-    $('#depict-tag-suggestions-container').addClass('blur')
-}
-
-function clearModal(){
-    $('.modal').hide();
-    $('#depict-tag-suggestions-container').removeClass('blur');
-}
-
-$('.depict-tag-suggestions').on('click', '.depict-tag-suggestion', function(e){
-    if (!editSession.isMobile) return;
-    var suggestion = $(this);
-    var item = suggestion.find('.depict-tag-qvalue').text();
-    var label = suggestion.find('.depict-tag-label-text').text();
-    var confidence = suggestion.find('.depict-tag-confidence').text();
-    displayModal(item, label, confidence);
-});
-
-$('.modal').on('click', '.close-modal', function(){
-   clearModal();
-});
-
-function getItemFromModal(){
-    return $('.modal-item').text();
-}
-
-$('.modal').on('click', '.accept-depict-mobile', function(){
-    var item = getItemFromModal();
-    editSession.addDepictBySuggestionItem(item);
-    clearModal();
-});
-
-$('.modal').on('click', '.reject-depict-mobile', function(){
-    var item = getItemFromModal();
-    rejectStatement(item, $(this));
-    clearModal()
-});
-
-$('#depict-tag-suggestions-container').on('click', '.reject-depict', function() {
-    var item = $(this).siblings('.depict-tag-qvalue').text();
-    rejectStatement(item, $(this)); 
-});
-
 
 $('.edit-publish-btn-group').on('click', 'button', function() {
     var editType = $(this).parent().attr('edit-type');
@@ -309,43 +244,36 @@ function getWikiLovesCountry () {
     return (country) ? decodeURIComponent(country) : '';
 }
 
-
-function populateCaption(language, text) {
-    $('.caption-input[lang=' + language + ']').val(text);
-}
-
-function getUserLanguages() {
-    var languages = []
-    $('.caption-input').each(function() {
-        languages.push( $(this).attr('lang'))
-    })
-    return languages
-}
-
 function generateStatementId(mediaId) {
     return mediaId + '$' + generateGuid();
 }
 
 function hideLoadingOverlay() {
-    $('.loading').fadeOut('slow');
+    $('.loading-overlay').fadeOut('slow', function() {
+        $(this).remove();
+    });
 }
 
-// Toggle display of suggested items
-$("#suggest-toggle").click(function () {
-    var toggleIndicator = $('#toggle-indicator'),
-        toggleLabel = $('#toggle-label'),
-        suggestionCntainer = $('.depict-tag-suggestions'),
-        hideText = i18nStrings['Hide Suggestions'],
-        showText = i18nStrings['Show Suggestions'];
-
-    suggestionCntainer.toggleClass('collapsed');
-    if(suggestionCntainer.hasClass('collapsed')){
-        toggleIndicator.removeClass('fa-caret-up');
-        toggleIndicator.addClass('fa-caret-down');
-        toggleLabel.text(showText)
-    }else{
-        toggleIndicator.removeClass('fa-caret-down');
-        toggleIndicator.addClass('fa-caret-up');
-        toggleLabel.text(hideText)
+// Override the imageChanged method to integrate with enhanced UI
+const originalImageChanged = ParticipationManager.prototype.imageChanged;
+ParticipationManager.prototype.imageChanged = function() {
+    originalImageChanged.apply(this, arguments);
+    
+    // Notify enhanced UI
+    if (enhancedUI) {
+        $(document).trigger('imageChanged', {
+            imageFileName: this.imageFileName,
+            imageIndex: this.imageIndex,
+            totalImages: this.images.length
+        });
+        enhancedUI.updateProgress(this.imageIndex + 1, this.getCompletedCount(), this.images.length);
     }
-});
+};
+
+// Add getCompletedCount method if it doesn't exist
+if (!ParticipationManager.prototype.getCompletedCount) {
+    ParticipationManager.prototype.getCompletedCount = function() {
+        // Implement your logic to count completed images
+        return 0; // Placeholder
+    };
+}
