@@ -256,6 +256,13 @@
                 >
                   <i class="fas fa-history mr-2"></i>{{ _('My Contributions') }}
                 </a>
+                <a
+                  class="dropdown-item"
+                  href="{{url_for('users.year_in_review')}}"
+                >
+                  <i class="fas fa-trophy mr-2"></i> {{ _('Celebrate
+                  Contributions') }}
+                </a>
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="{{url_for('users.logout')}}">
                   <i class="fas fa-sign-out-alt mr-2"></i>{{ _('Logout') }}
