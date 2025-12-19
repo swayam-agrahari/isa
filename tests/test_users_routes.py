@@ -7,7 +7,7 @@ import unittest
 
 from flask import session
 
-from isa import app
+from isa import app, db
 
 
 class TestUser(unittest.TestCase):
@@ -21,10 +21,13 @@ class TestUser(unittest.TestCase):
         app.config['DEBUG'] = False
         app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_TEST_DATABASE_URI']
         self.app = app.test_client()
+        # Ensure all tables exist in the test database before hitting routes
+        db.create_all()
 
     # executed after each test
     def tearDown(self):
-        pass
+        db.session.close()
+        db.drop_all()
 
     # tests #
 

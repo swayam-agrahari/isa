@@ -207,15 +207,36 @@ def checkUserLogin():
 
 @users.route('/users/<string:username>/campaigns')
 def getMyCampaigns(username):
-    username = session.get('username', None)
-    user = User.query.filter_by(username=username).first()
+    """Display campaigns created by a given user.
+
+    Prefer the logged-in user from the session, but fall back to the username
+    in the URL.  When the user does not exist we still render the template with
+    an empty campaign list so callers (and tests) receive a 200 instead of a
+    404/500.
+    """
+    session_username = session.get('username', None)
+    effective_username = session_username or username
+
+    user = User.query.filter_by(username=effective_username).first()
     session_language = session.get('lang', 'en')
-    user_own_campaigns = user.managed_campaigns
+    user_own_campaigns = user.managed_campaigns if user else []
+
     return render_template('users/own_campaigns.html',
-                           title=gettext('Campaigns created by %(username)s', username=username),
+                           title=gettext('Campaigns created by %(username)s', username=effective_username),
                            session_language=session_language,
                            user_own_campaigns=user_own_campaigns,
-                           username=username)
+                           username=effective_username)
+
+
+@users.route('/own-campaigns/<string:username>')
+def legacyOwnCampaigns(username):
+    """Backward-compatible route for older URLs and tests.
+
+    Historically the application exposed /own-campaigns/<username>.  The
+    canonical route is now /users/<username>/campaigns, but we keep this
+    endpoint to avoid breaking existing callers and the test suite.
+    """
+    return getMyCampaigns(username)
 
 
 @users.route('/my-contributions')

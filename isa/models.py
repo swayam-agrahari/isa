@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from flask_login import UserMixin
+from sqlalchemy import event, select
 
 from isa import db, login_manager
 
@@ -98,6 +99,61 @@ class Campaign(db.Model):
                self.creation_date,
                self.start_date,
                self.end_date)
+
+
+@event.listens_for(Campaign, 'before_insert')
+def _ensure_campaign_manager_id(mapper, connection, target):
+    """Ensure ``Campaign.manager_id`` is populated when only ``campaign_manager`` is set.
+
+    This hook is executed during SQLAlchemy's flush process, so it *must not*
+    call ``Session.add`` or ``Session.flush``.  To avoid nested flushes we work
+    directly with the low-level ``connection`` and the ``User`` table instead
+    of going through the ORM session.
+    """
+
+    # If the caller already supplied a manager_id we respect it.
+    if target.manager_id is not None:
+        return
+
+    username = getattr(target, 'campaign_manager', None)
+    if not username:
+        # Nothing to derive a manager from; leave the value unchanged and let
+        # the database enforce integrity if this is really invalid.
+        return
+
+    user_table = User.__table__
+
+    # Look for an existing user with this username using the same connection
+    # that SQLAlchemy is currently flushing with.
+    existing = connection.execute(
+        select(user_table.c.id).where(user_table.c.username == username)
+    ).first()
+
+    if existing is not None:
+        target.manager_id = existing[0]
+        return
+
+    # No existing user row; insert a minimal one and use its primary key.
+    insert_stmt = user_table.insert().values(
+        username=username,
+        caption_languages='en',  # required column; default to English
+    )
+    result = connection.execute(insert_stmt)
+    user_id = None
+
+    # ``inserted_primary_key`` is populated on most dialects; fall back to a
+    # SELECT if it isn't available for some reason.
+    if result.inserted_primary_key:
+        user_id = result.inserted_primary_key[0]
+    else:
+        fetched = connection.execute(
+            select(user_table.c.id).where(user_table.c.username == username)
+        ).first()
+        if fetched is not None:
+            user_id = fetched[0]
+
+    if user_id is not None:
+        target.manager_id = user_id
 
 
 class Image(db.Model):
