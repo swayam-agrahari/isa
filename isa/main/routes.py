@@ -194,7 +194,9 @@ def home():
 def help():
     username = session.get('username', None)
     session_language = session.get('lang', None)
-    username_for_current_user = add_user_to_db(username)
+
+    # Only attempt to persist/look up a user if someone is logged in.
+    username_for_current_user = add_user_to_db(username) if username else None
     session['next_url'] = request.url
     if not session_language:
         session_language = 'en'
