@@ -16,7 +16,7 @@ stages:
 #         - package-lock.json
 #     paths:
 #       - node_modules/
-    
+
 #   script:
 #     - npm --version
 #     - mkdir -p ~/.ssh
@@ -32,15 +32,15 @@ stages:
 #       npm run build
 #       exit
 
-  # artifacts:
-  #   paths:
-  #     - /www/python/src/isa/static/js/
-  #   expire_in: 1 day
+# artifacts:
+#   paths:
+#     - /www/python/src/isa/static/js/
+#   expire_in: 1 day
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-.deploy_template: &deploy_template
-  # Using node:22-alpine because the script needs git and ssh for deployment
+.deploy_template:
+  &deploy_template # Using node:22-alpine because the script needs git and ssh for deployment
   image: node:22-alpine
   script:
     - apk update
@@ -75,6 +75,11 @@ stages:
 
 deploy-test:
   stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
+    - when: never
+
   variables:
     environment: test
     SSH_HOST: "login.tools.wmflabs.org"
@@ -84,5 +89,5 @@ deploy-test:
     ACCESS_TOKEN: $TOOL_ACCESS_TOKEN
     SECURE_FILES_DOWNLOAD_PATH: .
     PRIVATE_KEY_NAME: "id_rsa"
-  
+
   <<: *deploy_template
