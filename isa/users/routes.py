@@ -233,11 +233,15 @@ def myContributions():
 @users.route('/api/user/contributions')
 def api_user_contributions():
     """Return JSON list of contributions for the currently logged-in user.
-
-    This endpoint uses session username and returns mocked deterministic
-    contributions. Each user gets consistent data based on their username.
+    
+    Optional query parameters:
+    - year: filter by specific year
+    - limit: maximum number of contributions to return
     """
     username = session.get('username')
+    year = request.args.get('year', type=int)
+    limit = request.args.get('limit', type=int)
+    
     if not username:
         return jsonify({'error': 'Authentication required'}), 401
 
@@ -258,19 +262,46 @@ def api_user_contributions():
         items = []
         today = datetime.date.today()
         count = 80 + (seed % 50)
-        for i in range(count):
-            days = rnd.randint(0, 730)
-            d = today - datetime.timedelta(days=days)
-            cid, cname = campaigns[rnd.randrange(len(campaigns))]
-            items.append({
-                'date': d.isoformat(),
-                'campaign': cname,
-                'campaign_id': cid,
-                'file': f'{username}_file_{i}.jpg',
-                'edit_type': types[rnd.randrange(len(types))],
-                'country': countries[rnd.randrange(len(countries))],
-                'lang': langs[rnd.randrange(len(langs))]
-            })
+        
+        # Adjust count and dates based on year filter
+        if year:
+            # Generate dates only in the specified year
+            for i in range(count):
+                days_in_year = 365 if year % 4 != 0 else 366  # Simple leap year check
+                day_of_year = rnd.randint(0, days_in_year - 1)
+                d = datetime.date(year, 1, 1) + datetime.timedelta(days=day_of_year)
+                
+                cid, cname = campaigns[rnd.randrange(len(campaigns))]
+                items.append({
+                    'date': d.isoformat(),
+                    'campaign': cname,
+                    'campaign_id': cid,
+                    'file': f'{username}_file_{i}.jpg',
+                    'edit_type': types[rnd.randrange(len(types))],
+                    'country': countries[rnd.randrange(len(countries))],
+                    'lang': langs[rnd.randrange(len(langs))]
+                })
+        else:
+            # Original logic - dates from last 2 years
+            for i in range(count):
+                days = rnd.randint(0, 730)
+                d = today - datetime.timedelta(days=days)
+                
+                cid, cname = campaigns[rnd.randrange(len(campaigns))]
+                items.append({
+                    'date': d.isoformat(),
+                    'campaign': cname,
+                    'campaign_id': cid,
+                    'file': f'{username}_file_{i}.jpg',
+                    'edit_type': types[rnd.randrange(len(types))],
+                    'country': countries[rnd.randrange(len(countries))],
+                    'lang': langs[rnd.randrange(len(langs))]
+                })
+        
+        # Apply limit if specified
+        if limit and limit > 0:
+            items = items[:limit]
+            
         return jsonify({'data': items})
 
     # For all other users, fetch real contributions from DB
@@ -279,12 +310,28 @@ def api_user_contributions():
         return jsonify({'data': []})
 
     try:
-        # Join campaigns to include campaign names
-        rows = (db.session.query(Contribution, Campaign.id, Campaign.campaign_name)
+        # Build query
+        query = (db.session.query(Contribution, Campaign.id, Campaign.campaign_name)
             .join(Campaign, Contribution.campaign_id == Campaign.id)
-            .filter(Contribution.user_id == user.id)
-            .order_by(Contribution.date.desc())
-            .all())
+            .filter(Contribution.user_id == user.id))
+        
+        # Apply year filter if specified
+        if year:
+            start_date = datetime.date(year, 1, 1)
+            end_date = datetime.date(year, 12, 31)
+            query = query.filter(
+                Contribution.date >= start_date,
+                Contribution.date <= end_date
+            )
+        
+        # Order and limit
+        query = query.order_by(Contribution.date.desc())
+        
+        if limit and limit > 0:
+            rows = query.limit(limit).all()
+        else:
+            rows = query.all()
+            
     except Exception:
         app.logger.exception('Failed to load user contributions for %s', username)
         return jsonify({'error': 'Failed to load contributions'}), 500
@@ -304,3 +351,253 @@ def api_user_contributions():
         })
 
     return jsonify({'data': items})
+
+@users.route('/year-in-review')
+def year_in_review():
+    """Render the Year in Review celebration page."""
+    username = session.get('username', None)
+    if not username:
+        session['next_url'] = request.url
+        flash(gettext('Please login to view your Year in Review'), 'info')
+        return redirect(url_for('main.home'))
+
+    session_language = session.get('lang', 'en')
+    current_year = datetime.date.today().year
+    
+    return render_template('users/year_in_review.html',
+                           title=gettext("Year in Review"),
+                           current_user=current_user,
+                           session_language=session_language,
+                           username=username,
+                           current_year=current_year)
+
+
+@users.route('/api/user/year-stats')
+def api_user_year_stats():
+    """Return JSON statistics for the current user for a specific year."""
+    username = session.get('username')
+    year = request.args.get('year', type=int)
+    
+    if not username:
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    if not year:
+        year = datetime.date.today().year
+
+    # For the Dev user, mirror the deterministic mock data used by
+    # /api/user/contributions so that Year in Review shows meaningful stats
+    # even when there are no real DB contributions.
+    if username == 'Dev':
+        seed = int(hashlib.sha256(username.encode('utf-8')).hexdigest()[:8], 16)
+        rnd = random.Random(seed)
+
+        try:
+            campaign_rows = Campaign.query.all()
+            campaigns = [(c.id, c.campaign_name) for c in campaign_rows] or [(None, 'General')]
+        except Exception:
+            app.logger.exception('Failed to load campaigns for Dev year stats, falling back to defaults')
+            campaigns = [(None, 'General')]
+
+        countries = ['SE', 'US', 'DE', 'FR', 'GB']
+        langs = ['en', 'sv', 'de', 'fr', 'es']
+        types = ['caption', 'depicts']
+
+        items = []
+        count = 80 + (seed % 50)
+
+        # Generate dates only inside the requested year
+        days_in_year = 365 if year % 4 != 0 else 366
+        for i in range(count):
+            day_of_year = rnd.randint(0, days_in_year - 1)
+            d = datetime.date(year, 1, 1) + datetime.timedelta(days=day_of_year)
+
+            _cid, cname = campaigns[rnd.randrange(len(campaigns))]
+            items.append({
+                'date': d.isoformat(),
+                'campaign': cname,
+                'file': f'{username}_file_{i}.jpg',
+                'edit_type': types[rnd.randrange(len(types))],
+                'country': countries[rnd.randrange(len(countries))],
+                'lang': langs[rnd.randrange(len(langs))]
+            })
+
+        # Aggregate statistics from the generated items
+        total_edits = len(items)
+        depicts_edits = sum(1 for it in items if it['edit_type'] == 'depicts')
+        caption_edits = sum(1 for it in items if it['edit_type'] == 'caption')
+
+        campaigns_set = set(it['campaign'] for it in items if it.get('campaign'))
+        languages_set = set(it['lang'] for it in items if it.get('lang'))
+
+        campaigns_details = {}
+        for it in items:
+            name = it.get('campaign') or 'General'
+            campaigns_details[name] = campaigns_details.get(name, 0) + 1
+
+        campaigns_count = len(campaigns_set)
+        languages_count = len(languages_set)
+
+        top_campaigns = sorted(
+            campaigns_details.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:6]
+
+        return jsonify({
+            'success': True,
+            'year': year,
+            'stats': {
+                'total_edits': total_edits,
+                'depicts_edits': depicts_edits,
+                'caption_edits': caption_edits,
+                'campaigns_count': campaigns_count,
+                'languages_count': languages_count
+            },
+            'top_campaigns': [
+                {
+                    'name': name,
+                    'edits': count,
+                    'year': year
+                }
+                for name, count in top_campaigns
+            ]
+        })
+    
+    # Get user
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    try:
+        # Calculate start and end dates for the year
+        start_date = datetime.date(year, 1, 1)
+        end_date = datetime.date(year, 12, 31)
+        
+        # Query contributions for the year
+        contributions = (db.session.query(Contribution, Campaign.campaign_name)
+            .join(Campaign, Contribution.campaign_id == Campaign.id)
+            .filter(
+                Contribution.user_id == user.id,
+                Contribution.date >= start_date,
+                Contribution.date <= end_date
+            )
+            .all())
+        
+        # Calculate statistics
+        stats = {
+            'total_edits': len(contributions),
+            'depicts_edits': 0,
+            'caption_edits': 0,
+            'campaigns': set(),
+            'languages': set(),
+            'campaigns_details': {}
+        }
+        
+        for contrib, campaign_name in contributions:
+            # Count by edit type
+            if contrib.edit_type == 'depicts':
+                stats['depicts_edits'] += 1
+            elif contrib.edit_type == 'caption':
+                stats['caption_edits'] += 1
+            
+            # Track campaigns
+            if campaign_name:
+                stats['campaigns'].add(campaign_name)
+                # Count edits per campaign
+                if campaign_name not in stats['campaigns_details']:
+                    stats['campaigns_details'][campaign_name] = 0
+                stats['campaigns_details'][campaign_name] += 1
+            
+            # Track languages
+            if contrib.caption_language:
+                stats['languages'].add(contrib.caption_language)
+        
+        # Convert sets to counts
+        stats['campaigns_count'] = len(stats['campaigns'])
+        stats['languages_count'] = len(stats['languages'])
+        
+        # Get top campaigns (sorted by edit count)
+        top_campaigns = sorted(
+            stats['campaigns_details'].items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:6]  # Top 6 campaigns
+        
+        return jsonify({
+            'success': True,
+            'year': year,
+            'stats': {
+                'total_edits': stats['total_edits'],
+                'depicts_edits': stats['depicts_edits'],
+                'caption_edits': stats['caption_edits'],
+                'campaigns_count': stats['campaigns_count'],
+                'languages_count': stats['languages_count']
+            },
+            'top_campaigns': [
+                {
+                    'name': name,
+                    'edits': count,
+                    'year': year
+                }
+                for name, count in top_campaigns
+            ]
+        })
+        
+    except Exception as e:
+        app.logger.exception(f'Failed to calculate year stats for {username}: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': 'Failed to calculate year stats'
+        }), 500
+
+
+@users.route('/api/user/top-campaigns')
+def api_user_top_campaigns():
+    """Return top campaigns for the current user."""
+    username = session.get('username')
+    limit = request.args.get('limit', 6, type=int)
+    
+    if not username:
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    try:
+        # Query campaigns with contribution counts
+        campaigns = (db.session.query(
+                Campaign.campaign_name,
+                db.func.count(Contribution.id).label('edit_count')
+            )
+            .join(Contribution, Campaign.id == Contribution.campaign_id)
+            .filter(Contribution.user_id == user.id)
+            .group_by(Campaign.campaign_name)
+            .order_by(db.desc('edit_count'))
+            .limit(limit)
+            .all())
+        
+        campaign_list = []
+        for campaign_name, edit_count in campaigns:
+            campaign_list.append({
+                'name': campaign_name,
+                'edits': edit_count,
+                'html': f'<strong>{campaign_name}</strong>'
+            })
+
+        return jsonify({
+            'success': True,
+            'campaigns': campaign_list
+        })
+        
+    except Exception as e:
+        app.logger.exception(f'Failed to fetch top campaigns for {username}: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': 'Failed to fetch top campaigns'
+        }), 500
+        
+        return jsonify({
+            'success': True,
+            'campaigns': mock_campaigns[:limit]
+        })

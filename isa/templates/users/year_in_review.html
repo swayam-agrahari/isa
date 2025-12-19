@@ -1,0 +1,138 @@
+{% extends "main/layout.html" %} {% block content %}
+<div class="year-review-container">
+  <!-- Header -->
+  <div class="yr-header">
+    <h1 class="yr-title">{{ gettext('Year in Review') }}</h1>
+    <div class="yr-domain-logo" style="width: 256px; height: 256px">
+      <img
+        src="{{ url_for('static', filename='WP20Symbols_puzzleglobe1.svg') }}"
+        alt="Wikimedia Commons logo"
+        crossorigin="anonymous"
+        style="width: 100%; height: 100%; object-fit: contain"
+      />
+    </div>
+
+    <div class="yr-subtitle">
+      <div class="yr-username">
+        <span id="yr-username">{{ username }}</span>
+      </div>
+      <div class="yr-domain">commons.wikimedia.org</div>
+    </div>
+  </div>
+
+  <!-- Year selector -->
+  <div class="yr-year-selector">
+    <button id="yr-prev-year" class="yr-nav-btn" aria-label="Previous year">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <span id="yr-current-year" class="yr-current-year">{{ current_year }}</span>
+    <button id="yr-next-year" class="yr-nav-btn" aria-label="Next year">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="yr-stats-grid">
+    <!-- Depicts Card -->
+    <div class="yr-stat-card">
+      <div class="yr-card-header">
+        <span class="yr-card-icon" style="background: #ef4444">
+          <i class="fas fa-tags"></i>
+        </span>
+        <div class="yr-card-label">EDITED DEPICTS</div>
+      </div>
+      <div class="yr-stat-value" id="depicts-count">0</div>
+      <div class="yr-stat-subtitle">edits across the project</div>
+    </div>
+
+    <!-- Captions Card -->
+    <div class="yr-stat-card">
+      <div class="yr-card-header">
+        <span class="yr-card-icon" style="background: #2563eb">
+          <i class="fas fa-font"></i>
+        </span>
+        <div class="yr-card-label">EDITED CAPTIONS</div>
+      </div>
+      <div class="yr-stat-value" id="captions-count">0</div>
+      <div class="yr-stat-subtitle" id="captions-subtitle">
+        0 characters of text!
+      </div>
+    </div>
+
+    <!-- Campaigns Card -->
+    <div class="yr-stat-card">
+      <div class="yr-card-header">
+        <span class="yr-card-icon" style="background: #22c55e">
+          <i class="fas fa-flag"></i>
+        </span>
+        <div class="yr-card-label">CAMPAIGNS PARTICIPATED</div>
+      </div>
+      <div class="yr-stat-value" id="campaigns-count">0</div>
+      <div class="yr-stat-subtitle">campaigns</div>
+    </div>
+
+    <!-- Languages Card -->
+    <div class="yr-stat-card">
+      <div class="yr-card-header">
+        <span class="yr-card-icon" style="background: #a855f7">
+          <i class="fas fa-language"></i>
+        </span>
+        <div class="yr-card-label">LANGUAGES CONTRIBUTED</div>
+      </div>
+      <div class="yr-stat-value" id="languages-count">0</div>
+      <div class="yr-stat-subtitle">languages</div>
+    </div>
+  </div>
+
+  <!-- Total Contributions
+  <div class="yr-total-section">
+    <div class="yr-total-label">TOTAL CONTRIBUTIONS</div>
+    <div class="yr-total-value" id="total-edits">0</div>
+  </div> -->
+
+  <!-- Action Buttons -->
+  <div class="yr-actions">
+    <button id="yr-generate-image" class="yr-action-btn yr-primary-btn">
+      <i class="fas fa-image mr-2"></i>{{ gettext('Generate Shareable Image') }}
+    </button>
+    <button id="yr-share-stats" class="yr-action-btn yr-secondary-btn">
+      <i class="fas fa-share-alt mr-2"></i>{{ gettext('Share Stats') }}
+    </button>
+    <a
+      href="https://isa.toolforge.org/year-in-review"
+      target="_blank"
+      class="yr-action-link"
+    >
+      Generate your own Year in Review at isa.toolforge.org/year-in-review
+    </a>
+  </div>
+
+  <!-- Image Preview Modal -->
+  <div id="yr-image-modal" class="yr-modal">
+    <div class="yr-modal-content">
+      <div class="yr-modal-header">
+        <h3>{{ gettext('Your Year in Review Image') }}</h3>
+        <button id="yr-close-modal" class="yr-close-btn">&times;</button>
+      </div>
+      <div class="yr-modal-body">
+        <canvas id="yr-image-canvas" width="1200" height="630"></canvas>
+        <div class="yr-modal-actions">
+          <button id="yr-download-image" class="yr-action-btn yr-primary-btn">
+            <i class="fas fa-download mr-2"></i>{{ gettext('Download Image') }}
+          </button>
+          <button id="yr-copy-image" class="yr-action-btn yr-secondary-btn">
+            <i class="fas fa-copy mr-2"></i>{{ gettext('Copy to Clipboard') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="{{ url_for('static', filename='js/year_in_review.js') }}"></script>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/year_in_review.css') }}"
+/>
+{% endblock %}
