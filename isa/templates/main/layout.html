@@ -183,7 +183,9 @@
     {% endif %} {% endwith %}
 
     <!-- Main Content -->
-    <main class="main-content">{% block content %}{% endblock %}</main>
+    <main class="content-wrapper">
+        {% block content %}{% endblock %}
+    </main>
 
     <!-- Footer -->
     {% include 'main/footer.html' %}

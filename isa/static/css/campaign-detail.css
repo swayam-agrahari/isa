@@ -1,0 +1,308 @@
+:root {
+    --wiki-orange: #ff6b35;
+    --wiki-teal: #00c9a7;
+    --wiki-purple: #6c5ce7;
+    --wiki-dark: #2d3436;
+  }
+
+  body {
+    background-color: #f8f9fa;
+  }
+
+  .campaign-header-card {
+    background: white;
+    border: 1px solid #dee2e6;
+  }
+
+  /* Bold Centered CTA Design */
+  .primary-cta-card {
+    background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%);
+    border: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .primary-cta-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 255, 255, 0.05) 10px,
+      rgba(255, 255, 255, 0.05) 20px
+    );
+    animation: slide 20s linear infinite;
+  }
+
+  @keyframes slide {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+  }
+
+  .cta-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-icon {
+    color: rgba(255, 255, 255, 0.9);
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .cta-title {
+    color: #ffffff;
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .cta-description {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1.2rem;
+  }
+
+  /* Giant Prominent CTA Button */
+  .cta-button {
+    background: #ffffff;
+    border: none;
+    font-size: 1.3rem;
+    color: black;
+    padding: 1rem 3rem !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .cta-button:hover {
+    background: #2d3436;
+    color: #ffffff;
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .cta-button i {
+    font-size: 1.4rem;
+    transition: transform 0.3s ease;
+  }
+
+  .cta-button:hover i {
+    transform: translateX(5px);
+  }
+
+  /* Country Select with Better Styling */
+  .country-select-wrapper .input-group {
+    border-radius: 50px;
+    overflow: hidden;
+    background: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .country-select-wrapper .input-group-text {
+    border: none;
+    padding-left: 1.25rem;
+  }
+
+  .country-select-wrapper .form-select {
+    border: none;
+    font-weight: 600;
+    color: #2d3436;
+    padding-right: 2rem;
+  }
+
+  .country-select-wrapper .form-select:focus {
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.3);
+  }
+
+  /* Action Buttons - Edit & Stats */
+
+  /* Icon spacing fixes */
+  .campaign-meta-card i {
+    flex-shrink: 0;
+  }
+
+  .stats-card h4 i,
+  .user-stats-card h4 i {
+    flex-shrink: 0;
+  }
+
+  /* Stat Boxes with Modern Cards */
+  .stat-box {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: default;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: white;
+  }
+
+ 
+  .icon-circle {
+    transition: all 0.4s ease;
+  }
+
+  .rank-circle {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    border: 4px solid white;
+  }
+
+  
+
+  .campaign-image-wrapper {
+    overflow: hidden;
+    border-radius: 16px;
+  }
+
+  .campaign-image {
+    transition: transform 0.5s ease;
+  }
+
+
+  .progress-bar {
+    border-radius: 6px;
+    transition: width 0.8s ease;
+    background: linear-gradient(90deg, var(--wiki-teal), var(--wiki-purple));
+  }
+
+  .progress {
+    background-color: #e9ecef;
+    border-radius: 6px;
+  }
+
+  @media (max-width: 768px) {
+    .campaign-title {
+      font-size: 1.75rem;
+    }
+
+    .cta-title {
+      font-size: 1.8rem;
+    }
+
+    .cta-button {
+      width: 100%;
+      font-size: 1.1rem;
+      padding: 0.875rem 2rem !important;
+    }
+
+    .cta-icon {
+      font-size: 2rem;
+    }
+
+    .country-select-wrapper {
+      width: 100%;
+      margin-bottom: 1.5rem !important;
+    }
+  }
+
+  .campaign-description .description-content {
+    line-height: 1.8;
+    font-size: 1.05rem;
+  }
+
+  .table-light {
+    --bs-table-bg: #f8f9fa;
+    --bs-table-striped-bg: #e9ecef;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: rgba(0, 201, 167, 0.05);
+  }
+
+  .rank-badge {
+    min-height: 120px;
+  }
+
+  .crown-container {
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+  }
+
+  /* Medal colors for top ranks */
+  .rank-circle[data-rank="1"] {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    border-color: #ffd700;
+  }
+
+  .rank-circle[data-rank="2"] {
+    background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+    border-color: #c0c0c0;
+  }
+
+  .rank-circle[data-rank="3"] {
+    background: linear-gradient(135deg, #cd7f32, #e59866);
+    border-color: #cd7f32;
+  }
+
+  /* Animation for top 3 ranks */
+  @keyframes pulse {
+    0% {
+      transform: translateX(-50%) translateY(-50%) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-50%) translateY(-50%) scale(1.4);
+      opacity: 0;
+    }
+  }
+
+  .pulse-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 3px solid currentColor;
+    animation: pulse 2s infinite;
+  }
+
+  .rank-label .badge {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .rank-circle {
+      width: 70px !important;
+      height: 70px !important;
+    }
+
+    .rank-circle h2 {
+      font-size: 1.5rem;
+    }
+
+    .crown-container i {
+      font-size: 1.5rem !important;
+    }
+
+    .rank-badge {
+      min-height: 100px;
+    }
+
+    .edit-btn-modern,
+    .stats-btn {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+    }
+  }
+
+  .login-icon-circle {
+    transition: all 0.3s ease;
+  }
+
+  .user-stats-card:hover .login-icon-circle {
+    transform: scale(1.05);
+    background-color: #e9ecef !important;
+  }
