@@ -172,7 +172,7 @@
               {% endif %}
             </div>
             <div class="form-hint">
-              {{ _('Requires categories of the form "Images from Wiki Loves <strong><em>project</em></strong> in a specific <strong><em>year</em></strong>", eg "Images from Wiki Loves <strong><em>Africa</em></strong> <strong><em>2019</em></strong>"') }}
+              {{ _('Requires categories in the format "Images from Wiki Loves project in a specific year", for example "Images from Wiki Loves Africa 2019".') }}
             </div>
             <div class="wiki-loves-warning invalid-feedback d-none">
               <p>
@@ -638,6 +638,21 @@
   border-radius: 10px;
   font-size: 1rem;
   background-color: white;
+}
+
+/* Ensure Select2-rendered search box is clearly visible */
+.category-search-container .select2-container {
+  width: 100% !important;
+}
+
+.category-search-container .select2-container--default .select2-selection--single {
+  border: 2px solid var(--gray-300);
+  border-radius: 10px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background-color: #fff;
 }
 
 .search-hint {
