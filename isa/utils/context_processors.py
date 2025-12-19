@@ -1,5 +1,21 @@
-from flask import session
+from flask import session as flask_session
 from flask_babel import Locale
+
+
+class _SessionWrapper:
+    """Light wrapper around flask.session to make testing easier.
+
+    Tests patch isa.utils.context_processors.session; using a simple
+    wrapper object here prevents accessing the real LocalProxy during
+    unittest.mock.patch setup (which would require a request context).
+    """
+
+    def get(self, key, default=None):
+        return flask_session.get(key, default)
+
+
+# Exposed name used in tests
+session = _SessionWrapper()
 
 
 def rtl_context_processor():
@@ -12,6 +28,7 @@ def rtl_context_processor():
     RTL styles or logic in templates.
     
     """
-    session_language = session.get('lang', 'en')
+    # Fall back to English if no language is set or it's falsy
+    session_language = session.get('lang') or 'en'
     is_rtl = Locale(session_language).text_direction == "rtl"
     return dict(is_rtl=is_rtl)
