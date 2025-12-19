@@ -306,3 +306,7 @@
     transform: scale(1.05);
     background-color: #e9ecef !important;
   }
+
+  .hidden-i18n-text {
+    display: none;
+  }
