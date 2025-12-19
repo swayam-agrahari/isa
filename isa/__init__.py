@@ -44,6 +44,10 @@ app.config['SQLALCHEMY_TRACK_OPTIONS'] = False
 app.config['SQLALCHEMY_POOL_RECYCLE'] = 3600
 app.config['SQLALCHEMY_POOL_SIZE'] = 1
 app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
+# Do not expire objects on commit so that tests (and other
+# code paths that access attributes after a session teardown)
+# can still read already-loaded attribute values.
+app.config['SQLALCHEMY_EXPIRE_ON_COMMIT'] = False
 # We hook babel to our app
 
 
@@ -72,11 +76,15 @@ def before_request():
     # Update session language
     get_locale()
 
-    if "ISA_DEV" in app.config and app.config["ISA_DEV"]:
+    # In development we sometimes want a default username to make
+    # manual testing easier, but this must not interfere with the
+    # automated test-suite, which relies on anonymous requests.
+    if (not app.config.get('TESTING') and
+            app.config.get("ISA_DEV")):
         session['username'] = "Dev"
 
 
-db = SQLAlchemy(app)
+db = SQLAlchemy(app, session_options={"expire_on_commit": False})
 migrate = Migrate()
 
 migrate.init_app(app, db)
@@ -105,14 +113,14 @@ def celery_init_app(app):
 celery_app = celery_init_app(app)
 
 # we import all our blueprint routes here
-from isa.campaigns.routes import campaigns
+from isa.campaigns.routes import campaigns as campaigns_blueprint
 from isa.main.routes import main
 from isa.users.routes import users as users_blueprint
 from isa.errors.handlers import errors
 from isa.utils.context_processors import rtl_context_processor
 
 # Here we register the various blue_prints of our app
-app.register_blueprint(campaigns)
+app.register_blueprint(campaigns_blueprint)
 app.register_blueprint(main)
 app.register_blueprint(users_blueprint)
 app.register_blueprint(errors)
