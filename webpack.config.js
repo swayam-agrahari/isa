@@ -10,7 +10,8 @@ module.exports = {
         'user-settings': './isa/src/user-settings.js',
         'main': './isa/src/main.js',
         'stats': './isa/src/stats.js',
-        'my_contributions': './isa/src/my_contributions.js'
+        'my_contributions': './isa/src/my_contributions.js',
+        "year_in_review": './isa/src/year_in_review.js'
     },
     output: {
         path: path.resolve(__dirname, 'isa/static/js/'),
@@ -21,4 +22,4 @@ module.exports = {
             WIKI_URL: JSON.stringify('https://commons.wikimedia.org/')
         })
     ]
-}
+};
