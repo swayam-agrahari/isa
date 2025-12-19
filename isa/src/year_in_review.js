@@ -273,7 +273,8 @@
   }
 
   // Image generation and modal functions
-  // Replace the generateImage function in your year_in_review.js file
+  // Image generation and modal functions
+  // Returns a Promise that resolves when the canvas has content
   function generateImage() {
     const container = document.querySelector('.year-review-container');
 
@@ -281,28 +282,26 @@
     if (!container || typeof window.html2canvas !== 'function') {
       console.error('html2canvas is not available; cannot capture Year in Review.');
       alert('Unable to generate image preview. Please try again later.');
-      return;
+      return Promise.reject(new Error('html2canvas not available'));
     }
 
     showLoading(true);
 
-    // First ensure the logo image is fully loaded
-    const logoImg = container.querySelector('.yr-domain-logo img');
+    return new Promise((resolve, reject) => {
+      // First ensure the logo image is fully loaded
+      const logoImg = container.querySelector('.yr-domain-logo img');
 
-    if (logoImg && !logoImg.complete) {
-      // Wait for logo to load
-      logoImg.addEventListener('load', () => {
-        captureContainer(container);
-      });
-      logoImg.addEventListener('error', () => {
-        // Continue anyway if logo fails to load
-        captureContainer(container);
-      });
-    } else {
-      captureContainer(container);
-    }
+      const proceed = () => captureContainer(container, resolve, reject);
 
-    function captureContainer(containerElement) {
+      if (logoImg && !logoImg.complete) {
+        logoImg.addEventListener('load', proceed, { once: true });
+        logoImg.addEventListener('error', proceed, { once: true });
+      } else {
+        proceed();
+      }
+    });
+
+    function captureContainer(containerElement, resolve, reject) {
       window.html2canvas(containerElement, {
         backgroundColor: null,
         scale: 2,
@@ -346,10 +345,12 @@
           ctx.drawImage(capturedCanvas, 0, 0);
 
           elems.imageModal.style.display = 'flex';
+          resolve();
         })
         .catch(error => {
           console.error('Failed to capture Year in Review container:', error);
           alert('Failed to generate image. Please try again.');
+          reject(error);
         })
         .finally(() => {
           showLoading(false);
@@ -379,18 +380,54 @@
     }
   }
 
-  function shareStats() {
-    if (navigator.share) {
-      navigator.share({
-        title: `My ${selectedYear} Year in Review - ${elems.username.textContent}`,
-        text: `Check out my Wikimedia Commons contributions for ${selectedYear}!`,
-        url: window.location.href
+  async function shareStats() {
+    const username = (elems.username && elems.username.textContent) ? elems.username.textContent : 'user';
+
+    try {
+      // Always (re)generate the image to ensure canvas has up-to-date content
+      await generateImage();
+
+      const canvas = elems.imageCanvas;
+
+      const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob(result => {
+          if (result) {
+            resolve(result);
+          } else {
+            reject(new Error('Failed to create image blob'));
+          }
+        }, 'image/png');
       });
-    } else {
-      // Fallback to copying URL
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => alert('Link copied to clipboard! Share it with your friends!'))
-        .catch(() => alert('Please copy the URL manually to share.'));
+
+      const fileName = `year-in-review-${selectedYear}-${username}.png`;
+      const filesArray = [new File([blob], fileName, { type: 'image/png' })];
+
+      // Prefer Web Share API with file support when available
+      if (navigator.canShare && navigator.canShare({ files: filesArray })) {
+        await navigator.share({
+          title: `My ${selectedYear} Year in Review - ${username}`,
+          text: `Check out my Wikimedia Commons contributions for ${selectedYear}!`,
+          files: filesArray
+        });
+        return;
+      }
+
+      // Fallback to regular share (link only)
+      if (navigator.share) {
+        await navigator.share({
+          title: `My ${selectedYear} Year in Review - ${username}`,
+          text: `Check out my Wikimedia Commons contributions for ${selectedYear}!`,
+          url: window.location.href
+        });
+        return;
+      }
+
+      // Final fallback: copy link to clipboard
+      await navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard! Share it with your friends!');
+    } catch (error) {
+      console.error('Error sharing stats:', error);
+      alert('Unable to share the image automatically. Please try downloading the image and sharing it manually.');
     }
   }
 
