@@ -141,12 +141,48 @@ translations in the app.
 
 # Testing the application
 
-- To run tests from the applications root directory, use the command `nose2 -v tests.<test_module_name>`
+Run tests from the project root (the folder containing app.py).
 
-- To get a blueprint's coverage, run following commands:
+- Run the full test suite with pytest:
 
-  - From the applications root directory, run `coverage run -m unittest discover`
-  - Then run `coverage report -m isa/<blueprint_name>/*.py>`
+  ```bash
+  pytest
+  ```
+
+- Run a single test module, for example tests/test_campaign_routes.py:
+
+  ```bash
+  pytest tests/test_campaign_routes.py
+  ```
+
+- Run a single test case or method (pytest syntax):
+
+  ```bash
+  pytest tests/test_campaign_routes.py::TestCampaignRoutes::test_get_campaigns_route
+  ```
+
+If you prefer the standard unittest runner, you can also do:
+
+- Run all tests:
+
+  ```bash
+  python -m unittest discover -s tests -p "test_*.py"
+  ```
+
+- Run one test module:
+
+  ```bash
+  python -m unittest tests.test_campaign_routes
+  ```
+
+## Test coverage (optional)
+
+To measure coverage for a specific blueprint/package, you can use coverage.py. For example:
+
+```bash
+coverage run -m pytest
+coverage report -m isa/<blueprint_name>/*.py
+```
 
 # Maintenance scripts
 
