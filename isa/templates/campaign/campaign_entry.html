@@ -1,135 +1,238 @@
 {% extends "main/layout.html" %}
 {% block content%}
 <style>
-body {padding-bottom: 50px}
+    /* 1. Global Layout & Footer Fix */
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    body {
+        display: flex;
+        flex-direction: column;
+        background-color: #f8f9fa;
+        padding-bottom: 0 !important;
+    }
+    .container {
+        flex: 1 0 auto;
+        width: 100%;
+    }
 
-@media (min-width: 992px) {
-    body {padding-bottom:0}
-}
+    /* 2. UI Elements & Overlays */
+    .hidden-i18n-text {
+        display: none !important;
+        visibility: hidden;
+    }
+
+    .loading {
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.9);
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* 3. Image Viewer */
+    .image-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 10px;
+        position: relative;
+    }
+    .img-holder img { 
+        max-width: 100%; 
+        max-height: 500px; 
+        display: block; 
+        margin: auto; 
+    }
+
+    /* 4. Search Bar & Select2 Fixes */
+    .depicts-search {
+        display: block !important;
+        width: 100%;
+        margin: 20px 0;
+        position: relative;
+        z-index: 1050 !important; /* Ensures it is clickable and above other cards */
+    }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--open {
+        z-index: 1060 !important; /* Ensures dropdown appears above everything */
+    }
+
+    /* 5. Depicts Tags - Pretty Chip Cards */
+    .depict-tag-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .depict-tag-item {
+        display: inline-flex;
+        flex-direction: column;
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 12px !important;
+        padding: 15px;
+        min-width: 200px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease;
+    }
+
+    .depict-tag-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .depict-tag-label-text {
+        font-weight: 700;
+        color: #007bff;
+        font-size: 1.1rem;
+        margin-bottom: 2px;
+    }
+
+    .depict-tag-qvalue {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+    
+    /* Tag Action Icons (Flag/Trash) */
+    .tag-actions {
+        display: flex;
+        gap: 20px;
+        border-top: 1px solid #f1f1f1;
+        padding-top: 10px;
+    }
+
+    .tag-actions i {
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: color 0.2s;
+    }
+
+    .prominent-btn { color: #555; }
+    .prominent-btn.active { color: #ffc107; } /* Gold flag */
+    .depict-tag-btn { color: #007bff; } /* Match blue icon style */
+    .depict-tag-btn:hover { color: #dc3545; } /* Red on hover for delete */
+
+    /* 6. Footer Navigation */
+    .participate-nav-footer {
+        flex-shrink: 0;
+        background: white;
+        padding: 15px 0;
+        border-top: 1px solid #dee2e6;
+    }
+
+    @media (min-width: 992px) {
+        .desktop-img-nav { display: inline-flex; }
+    }
 </style>
 <div class="loading">
-    <div class="spinner-border text-secondary" role="status" aria-hidden="true"></div>
-	<img src="{{ url_for('static', filename = 'ISA-Structured-Data-logo_landscape_white.png') }}" height="50" alt="">
+    <div class="spinner-border text-secondary" role="status"></div>
+    <img src="{{ url_for('static', filename='ISA-Structured-Data-logo_landscape_white.png') }}" height="50" class="mt-2">
 </div>
 
-<!-- Flash messages displayed and populated via JavaScript -->
 <div class="isa-flash-message alert alert-success fade"></div>
 <div class="isa-flash-message alert alert-danger fade"></div>
 
-<div class="container px-0"> <a href="{{url_for('campaigns.getCampaignById', id=campaign.id ) }}" class="btn btn-outline-secondary btn-sm" title="{{ _('Return to the campaign home page') }}"><i class="fas fa-caret-left"></i> {{ campaign.campaign_name }}: {{ _('Home Page') }}</a> </div>
+<div class="container mt-3">
+    <a href="{{url_for('campaigns.getCampaignById', id=campaign.id ) }}" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="fas fa-caret-left"></i> {{ campaign.campaign_name }}: {{ _('Home Page') }}
+    </a>
 
-
-<div class="container px-0 image-wrapper bg-light">
-    <button class="previous-image-btn btn btn-link btn-lg desktop-img-nav"  title="{{ _('View the previous image') }}"><i class="fas fa-chevron-left"></i>{{ _('PREV IMAGE') }}</button>
-    <div class="img-holder"><img src="{{url_for('static',filename='default.jpg')}}" alt=""><!-- src updated by JavaScript -->
-        <div class="image-overlay px-3 small"><span id="image_author"></span> | <span id="image_credit">{{ _('Own work') }}</span> | <span id="image_license"><a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a></span></div>
-    </div>
-    <button id="" class="next-image-btn btn btn-link desktop-img-nav btn-lg" title="{{ _('View the next image') }}">{{ _('NEXT IMAGE') }}<i class="fas fa-chevron-right"></i></button>
-</div>
-<div class="container px-0 bg-light">
-    <div id="edit_image_info">
-        <div class="image-desc">
-            <p>{{ _('File') }}:&nbsp;<span id="image_name" title="{{ _('Open this image on Wikimedia Commons') }}"></span></p>
-            <p>{{ _('Description') }}:&nbsp;<span id="image_description"></span></p>
-            <p>{{ _('Categories') }}:&nbsp;<span id="image_categories"></span></p>
-            <p>{{ _('Camera Location') }}:&nbsp;<span id="image_camera_location"></span></p>
-        </div>
-        <div class="text-center">
-            <button id="expand-meta-data" class="btn btn-sm btn-link"><i class="fas fa-caret-down"></i>&nbsp; {{ _('show all metadata from Commons') }} </button>
-        </div>
-    </div>
-</div>
-{% if campaign.depicts_metadata %}
-<div class="container edit-box">
-    <div class="edit-box-header">
-        <div class="edit-box-header-nav">
-            <h4>{{ _('Depicts') }}
-                <button type="button" class="btn btn-link py-0" data-container="body" title="{{_('Adding Depict Statements') }}" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="{{_('Make it simple: Use simple words and concepts to describe what you see in each image (e.g. cat, mountain, Taj Mahal)')}}
-            "><i class="fas fa-question-circle"></i></button>
-            </h4>
-            <div edit-type="depicts" class="edit-publish-btn-group text-right">
-                <button class="btn btn-sm btn-link cancel-edits-btn" disabled title="{{ _('Cancel your changes') }}">{{ _('Cancel') }}</button>
-                <button type="submit" class="btn btn-sm btn-primary publish-edits-btn" disabled title="{{ _('Save your edits to Wikimedia Commons') }}">{{ _('Save') }}</button>
+    <div class="image-wrapper shadow-sm">
+        <button class="previous-image-btn btn btn-link btn-lg desktop-img-nav"><i class="fas fa-chevron-left"></i></button>
+        <div class="img-holder">
+            <img src="{{url_for('static',filename='default.jpg')}}" alt="Campaign Image" id="campaign-image">
+            <div class="image-overlay px-3 py-2 small bg-dark text-white text-center">
+                <span id="image_author"></span> | <span id="image_credit">{{ _('Own work') }}</span> | 
+                <span id="image_license"><a href="#" class="text-info" target="_blank">CC BY-SA 4.0</a></span>
             </div>
         </div>
-        {% if username is none %}
-        <p class="text-danger small mb-1 text-right">{{_('You will be redirected to login and back here to save your changes')}}</p>
-        {% endif %}
-        <p>{{ _('Name the different elements that you can see in this image') }}</p>
-    </div>
-    <div class="depicts-search">
-        <div class="input-group mb-3">
-            <div class="input-group-prepend"> <span class="input-group-text"><i class="fas fa-search"></i></span> </div>
-            <select id="depicts-select" class="form-control">
-            </select>
-        </div>
+        <button class="next-image-btn btn btn-link btn-lg desktop-img-nav"><i class="fas fa-chevron-right"></i></button>
     </div>
 
-   <!-- Used to perform action on suggestion while using small screens -->
-    <div class="modal" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5>
-                        <a class="modal-label-link" target="_blank"></a>
-                        <span class="modal-item"></span>
-                        <span class="modal-confidence"></span>
-                    </h5>
-                    <i class="fa fa-times close-modal" aria-hidden="true"></i>
+    <div class="card mt-2 shadow-sm">
+        <div class="card-body p-3">
+            <div id="edit_image_info">
+                <div class="image-desc small">
+                    <p class="mb-1"><strong>{{ _('File') }}:</strong> <span id="image_name"></span></p>
+                    <p class="mb-1"><strong>{{ _('Description') }}:</strong> <span id="image_description"></span></p>
+                    <p class="mb-1"><strong>{{ _('Categories') }}:</strong> <span id="image_categories"></span></p>
+                    <p class="mb-0"><strong>{{ _('Camera Location') }}:</strong> <span id="image_camera_location"></span></p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary accept-depict-mobile">{{ _('Accept') }}</button>
-                    <button type="button" class="btn btn-danger reject-depict-mobile" data-dismiss="modal">{{ _('Reject') }}</button>
+                <div class="text-center mt-2">
+                    <button id="expand-meta-data" class="btn btn-sm btn-outline-primary border-0"><i class="fas fa-caret-down"></i> {{ _('show all metadata from Commons') }}</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="depict-tag-suggestions-container">
-        <div id="suggest-toggle">
-            <i id="toggle-indicator" class="fas fa-caret-up"></i>
-            <span id="toggle-label">{{ _('Hide Suggestions') }}</span>
-        </div>
-        <div class="depict-tag-suggestions">
-        </div>
-    </div>
-    <div class="depict-tag-group">
-        <!-- populated by JavaScript -->
-    </div>
-    <p class="small text-muted my-1 prom-help">{{ _('To mark the prominent elements in the image, click on the flag icon') }} <i class="fas fa-flag mr-2"></i></p>
-</div>
-{% endif %}
-
-{% if campaign.captions_metadata %}
-<div class="container edit-box">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <div class="edit-box-header">
-        <div class="edit-box-header-nav">
-            <h4>{{ _('Captions') }} <button type="button" class="btn btn-link py-0" data-container="body" title="{{_('Writing Captions')}}" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="{{_('Include any culturally specific, scientific or technical information that you can identify (e.g. the Ethiopian Coffee Ceremony or bunna maflat) to make the information richer.')}}"><i class="fas fa-question-circle"></i></button></h4>
-            <div edit-type="captions" class="edit-publish-btn-group text-right">
+    {% if campaign.depicts_metadata %}
+    <div class="edit-box shadow-sm">
+        <div class="edit-box-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">{{ _('Depicts') }}</h4>
+            <div edit-type="depicts" class="edit-publish-btn-group">
                 <button class="btn btn-sm btn-link cancel-edits-btn" disabled>{{ _('Cancel') }}</button>
-                <button type="submit" class="btn btn-sm btn-primary publish-edits-btn" disabled>{{ _('Save') }}</button>
+                <button class="btn btn-sm btn-primary publish-edits-btn" disabled>{{ _('Save') }}</button>
             </div>
         </div>
-        {% if username is none %}
-        <p class="text-danger small mb-1 text-right">{{_('Log in to publish changes')}}</p>
-        {% endif %}
-        <p>{{ _('Add a caption to better explain the image (max 255 characters)') }}</p>
-    </div>
-    <div class="caption-search"> {% for lang_code in caption_languages %}
-        <div class="input-group mb-3">
-            <div class="input-group-prepend"> <span class="input-group-text">{{lang_code}}</span> </div>
-            <input type="input" class="form-control caption-input" lang="{{lang_code}}" placeholder="{{ _('Briefly explain what you see in this image.') }}">
+        <p class="text-muted small mt-2">{{ _('Name the different elements that you can see in this image') }}</p>
+        
+        <div class="depicts-search mt-3">
+            <div class="input-group">
+                <div class="input-group-prepend"> <span class="input-group-text"><i class="fas fa-search"></i></span> </div>
+                <select id="depicts-select" class="form-control"></select>
+            </div>
         </div>
-        {% endfor %}
+
+        <div id="depict-tag-suggestions-container" class="mt-3 bg-light p-2 rounded">
+            <div id="suggest-toggle" style="cursor: pointer;">
+                <i id="toggle-indicator" class="fas fa-caret-up"></i>
+                <span id="toggle-label" class="font-weight-bold">{{ _('Hide Suggestions') }}</span>
+            </div>
+            <div class="depict-tag-suggestions mt-2"></div>
+        </div>
+        <div class="depict-tag-group mt-3 d-flex flex-wrap"></div>
     </div>
-    <p class="small text-muted my-1">{{ _('You can add captions in additional languages by selecting Language Preferences from the user menu') }}</p>
+    {% endif %}
+
+    {% if campaign.captions_metadata %}
+    <div class="edit-box shadow-sm">
+        <div class="edit-box-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">{{ _('Captions') }}</h4>
+            <div edit-type="captions" class="edit-publish-btn-group">
+                <button class="btn btn-sm btn-link cancel-edits-btn" disabled>{{ _('Cancel') }}</button>
+                <button class="btn btn-sm btn-primary publish-edits-btn" disabled>{{ _('Save') }}</button>
+            </div>
+        </div>
+        <div class="caption-search mt-3"> 
+            {% for lang_code in caption_languages %}
+            <div class="input-group mb-2">
+                <div class="input-group-prepend"> <span class="input-group-text font-weight-bold">{{lang_code}}</span> </div>
+                <input type="text" class="form-control caption-input" lang="{{lang_code}}" placeholder="{{ _('Briefly explain what you see...') }}">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
-{% endif %}
-<div class="participate-nav-footer container">
-    <div class="btn-group d-flex" role="group" aria-label="">
-        <button class="previous-image-btn btn btn-primary w-100"><i class="fas fa-chevron-left"></i>{{ _('PREV IMAGE') }}</button>
-        <button class="next-image-btn btn btn-primary w-100">{{ _('NEXT IMAGE') }}<i class="fas fa-chevron-right"></i></button>
+
+<div class="participate-nav-footer fixed-bottom bg-white border-top p-2 d-lg-none">
+    <div class="btn-group d-flex">
+        <button class="previous-image-btn btn btn-primary w-100"><i class="fas fa-chevron-left"></i></button>
+        <button class="next-image-btn btn btn-primary w-100"><i class="fas fa-chevron-right"></i></button>
     </div>
 </div>
 
@@ -157,7 +260,7 @@ body {padding-bottom: 50px}
         "Are you sure explanation for reject suggestion": {{ _('Only do this if you are sure the suggested tag does not appear in the image, or would be incorrect according to Wikimedia Commons guidelines. If several users reject the same suggestion, it will no longer be shown.')|tojson }}
     }
 </div>
-{% endblock content%}
+{% endblock content %}
 {% block scripts %}
 <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js"></script>
 <script src="{{url_for('static', filename='js/participate.js')}}"></script>

@@ -3,6 +3,7 @@ var webpack = require('webpack');
 
 module.exports = {
     entry: {
+        'base': './isa/src/participation-manager/base.js',
         'participate': './isa/src/participate.js',
         'campaign': './isa/src/campaign.js',
         'campaign-directory': './isa/src/campaign-directory.js',

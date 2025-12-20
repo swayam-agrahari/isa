@@ -1,16 +1,16 @@
 /*********** Participate page ***********/
 
-import {ParticipationManager} from './participation-manager';
-import {getUrlParameters, shuffle, flashMessage} from './utils';
-import {generateGuid} from './guid-generator.js';
+import { ParticipationManager } from './participation-manager';
+import { getUrlParameters, shuffle, flashMessage } from './utils';
+import { generateGuid } from './guid-generator.js';
 
-var i18nStrings = JSON.parse($('.hidden-i18n-text').text());
+var i18nStrings = window.ISA_I18N || {};
 
 var campaignId = getCampaignId(),
     wikiLovesCountry = getWikiLovesCountry(),
     isWikiLovesCampaign = !!wikiLovesCountry, // todo: this should be read from get-campaign-categories api call
     isUserLoggedIn = false,
-    csrf_token = "{{ csrf_token() }}",
+
     editSession;
 
 // Pagination state
@@ -19,70 +19,83 @@ const perPage = 10;
 let allLoadedImages = [];
 let hasMoreImages = true;
 
-// Helper to load images from backend
 function loadImages(page) {
-    console.log("called in here")
     let imagesUrl = `../../campaigns/${campaignId}/images?page=${page}&per_page=${perPage}`;
     if (isWikiLovesCampaign && wikiLovesCountry) {
-        imagesUrl += `/${encodeURIComponent(wikiLovesCountry)}`;
+        imagesUrl += `&country=${encodeURIComponent(wikiLovesCountry)}`;
     }
     return $.get(imagesUrl).then(data => {
-        // Support both old and new backend formats
+        // Support both array and object formats from backend
         if (Array.isArray(data)) {
             if (data.length < perPage) hasMoreImages = false;
             allLoadedImages = allLoadedImages.concat(data);
-        } else {
-            if (data.images) {
-                allLoadedImages = allLoadedImages.concat(data.images);
-                hasMoreImages = data.has_more;
-            }
+        } else if (data && data.images) {
+            allLoadedImages = allLoadedImages.concat(data.images);
+            hasMoreImages = data.has_more;
+        }
+
+        // Critical: If images exist, hide the loading spinner
+        if (allLoadedImages.length > 0) {
+            hideLoadingOverlay();
         }
     });
 }
+
+//helper to get csrf token
+function getCsrfToken() {
+    var el = document.querySelector('input[name="csrf_token"]');
+    return el ? el.value : null;
+}
+
 
 ///////// Campaign images /////////
 
 // Check if user is logged in
 $.getJSON('../../api/login-test')
-    .then(function(response) {
+    .then(function (response) {
         isUserLoggedIn = response.is_logged_in;
     })
     .then(function () {
         // Initial load
         loadImages(currentPage).then(() => {
-            shuffle(allLoadedImages);
-            editSession = new ParticipationManager(allLoadedImages, campaignId, wikiLovesCountry, isUserLoggedIn);
+            try {
+                shuffle(allLoadedImages);
+                editSession = new ParticipationManager(allLoadedImages, campaignId, wikiLovesCountry, isUserLoggedIn);
 
-            if (getUrlParameters().image) {
-                var image = Number.parseInt(getUrlParameters().image);
-                var imageIndex = allLoadedImages.indexOf(image);
-                if (imageIndex !== -1) {
-                    editSession.setImageIndex(imageIndex);
+                if (getUrlParameters().image) {
+                    var image = Number.parseInt(getUrlParameters().image);
+                    var imageIndex = allLoadedImages.indexOf(image);
+                    if (imageIndex !== -1) {
+                        editSession.setImageIndex(imageIndex);
+                    }
+                } else {
+                    editSession.imageChanged();
                 }
-            } else {
-                editSession.imageChanged();
-            }
 
-            if (allLoadedImages.length > 0) {
-                hideLoadingOverlay();
-            } else {
-                alert(i18nStrings["No images found for this campaign!"]);
-                window.location.href = '../' + campaignId;
+                if (allLoadedImages.length > 0) {
+                    hideLoadingOverlay();
+                } else {
+                    alert(i18nStrings["No images found for this campaign!"]);
+                    window.location.href = '../' + campaignId;
+                }
+            } catch (error) {
+                console.error("Initialization Failed:", e);
+                alert("Failed to load image session. Check console for details.");
             }
         });
     })
-    .fail(function(err) {
-        console.log("error retrieving campaign categories", err)
+    .fail(function (err) {
+        console.log("error retrieving campaign categories", err);
         alert(i18nStrings["Something went wrong getting campaign images"]);
         window.location.href = '../' + campaignId;
-    })
+    });
 
 
 ///////// Depicts search box /////////
 
 function searchResultsFormat(state) {
     if (!state.id) {
-      return state.text;
+        return state.text;
     }
     var $label = $("<span>")
         .addClass("search-result-label")
@@ -96,10 +109,10 @@ function searchResultsFormat(state) {
         $description
     );
     return $state;
-  }
+}
 
-(function setUpDepictsSearch(){
-    $( '#depicts-select' ).select2( {
+(function setUpDepictsSearch() {
+    $('#depicts-select').select2({
         placeholder: i18nStrings['Search for things you see in the image'],
         delay: 250,
         minimumResultsForSearch: 1,
@@ -107,21 +120,21 @@ function searchResultsFormat(state) {
         ajax: {
             type: 'GET',
             dataType: 'json',
-            url: function(t) {
+            url: function (t) {
                 return '../../api/search-depicts/' + campaignId;
             }
         },
         templateResult: searchResultsFormat,
     });
 
-    $('#depicts-select').on('select2:select', function(ev) {
+    $('#depicts-select').on('select2:select', function (ev) {
         // Add new depict statement to the UI when user selects result
         var selected = ev.params.data;
 
         // Generate a new unique statement ID
         var statementId = generateStatementId(editSession.imageMediaId);
 
-        editSession.addDepictStatement (
+        editSession.addDepictStatement(
             selected.id,
             selected.text,
             selected.description,
@@ -134,12 +147,12 @@ function searchResultsFormat(state) {
             editSession.renderDepictSuggestions();
         }
         $(this).val(null).trigger('change');
-    })
-  })();
+    });
+})();
 
 ///////// Rejecting statements /////////
 
-function rejectStatement(item, element){
+function rejectStatement(item, element) {
     var rejectedSuggestion = editSession.getDepictSuggestionByItem(item);
     var rejectedSuggestionData = JSON.stringify({
         file: editSession.imageFileName,
@@ -160,34 +173,35 @@ function rejectStatement(item, element){
             data: rejectedSuggestionData,
             contentType: 'application/json',
             headers: {
-                "X-CSRFToken": csrf_token,
+                "X-CSRFToken": getCsrfToken(),
             },
-        }).done(function(response) {
+        }).done(function (response) {
             // Contribution accepted by server, we can remove suggestion from list
             rejectedSuggestion.isRejectedByUser = true;
             editSession.renderDepictSuggestions();
             flashMessage('success', i18nStrings['Suggestion removed from list']);
-        }).fail( function(error) {
-            flashMessage('danger', i18nStrings['Oops! Suggestion might not have been removed'])
+        }).fail(function (error) {
+            flashMessage('danger', i18nStrings['Oops! Suggestion might not have been removed']);
         });
     }
 }
 
 ///////// Event handlers /////////
 
-$('#expand-meta-data').click(function() {
+$('#expand-meta-data').click(function () {
     $('.image-desc').toggleClass('expand');
 
     if ($('.image-desc').hasClass('expand')) {
         // expanded
-        var minimiseText = i18nStrings['minimise metadata from Commons'];
+        var minimiseText = i18nStrings['minimise metadata from Commons'] || 'Minimise metadata';
+
         $('#expand-meta-data').html('<i class="fas fa-caret-up"></i>&nbsp; ' + minimiseText);
     } else {
         // collpased
-        var maximiseText = i18nStrings['show all metadata from Commons'];
+        var maximiseText = i18nStrings['show all metadata from Commons'] || 'Show all metadata';
         $('#expand-meta-data').html('<i class="fas fa-caret-down"></i>&nbsp; ' + maximiseText);
     }
-})
+});
 
 $('.next-image-btn').click(function () {
     if (editSession.imageIndex >= allLoadedImages.length - 1 && hasMoreImages) {
@@ -201,16 +215,16 @@ $('.next-image-btn').click(function () {
     }
 });
 
-$('.previous-image-btn').click(function(ev) {
+$('.previous-image-btn').click(function (ev) {
     editSession.previousImage();
-})
+});
 
-$('.caption-input').on('input', function() {
+$('.caption-input').on('input', function () {
     editSession.captionDataChanged();
-})
+});
 
 // Click to remove depicts tags
-$('.depict-tag-group').on('click','.depict-tag-btn', function(ev) {
+$('.depict-tag-group').on('click', '.depict-tag-btn', function (ev) {
     if (editSession.machineVisionActive) {
         // Todo: move to new participation manager method
         var item = $(this).siblings('.label').children('.depict-tag-qvalue').text(); // todo: fix messy way to retreive item
@@ -219,34 +233,34 @@ $('.depict-tag-group').on('click','.depict-tag-btn', function(ev) {
     }
     $(this).parents('.depict-tag-item').remove();
     editSession.depictDataChanged();
-})
+});
 
 // Click to change isProminent for depicts tags
-$('.depict-tag-group').on('click','.prominent-btn', function(ev) {
+$('.depict-tag-group').on('click', '.prominent-btn', function (ev) {
     $(this).toggleClass('active');
     editSession.depictDataChanged();
-})
+});
 
-$('#depict-tag-suggestions-container').on('click', '.accept-depict', function() {
+$('#depict-tag-suggestions-container').on('click', '.accept-depict', function () {
     var item = $(this).siblings('.depict-tag-qvalue').text();
     editSession.addDepictBySuggestionItem(item);
 });
 
-function displayModal(item, label, confidence){
+function displayModal(item, label, confidence) {
     $('.modal-label-link').text(label);
     $('.modal-label-link').attr('href', 'https://www.wikidata.org/wiki/' + item);
     $('.modal-item').text(item);
     $('.modal-confidence').text(confidence);
     $('.modal').show();
-    $('#depict-tag-suggestions-container').addClass('blur')
+    $('#depict-tag-suggestions-container').addClass('blur');
 }
 
-function clearModal(){
+function clearModal() {
     $('.modal').hide();
     $('#depict-tag-suggestions-container').removeClass('blur');
 }
 
-$('.depict-tag-suggestions').on('click', '.depict-tag-suggestion', function(e){
+$('.depict-tag-suggestions').on('click', '.depict-tag-suggestion', function (e) {
     if (!editSession.isMobile) return;
     var suggestion = $(this);
     var item = suggestion.find('.depict-tag-qvalue').text();
@@ -255,36 +269,36 @@ $('.depict-tag-suggestions').on('click', '.depict-tag-suggestion', function(e){
     displayModal(item, label, confidence);
 });
 
-$('.modal').on('click', '.close-modal', function(){
-   clearModal();
+$('.modal').on('click', '.close-modal', function () {
+    clearModal();
 });
 
-function getItemFromModal(){
+function getItemFromModal() {
     return $('.modal-item').text();
 }
 
-$('.modal').on('click', '.accept-depict-mobile', function(){
+$('.modal').on('click', '.accept-depict-mobile', function () {
     var item = getItemFromModal();
     editSession.addDepictBySuggestionItem(item);
     clearModal();
 });
 
-$('.modal').on('click', '.reject-depict-mobile', function(){
+$('.modal').on('click', '.reject-depict-mobile', function () {
     var item = getItemFromModal();
     rejectStatement(item, $(this));
-    clearModal()
+    clearModal();
 });
 
-$('#depict-tag-suggestions-container').on('click', '.reject-depict', function() {
+$('#depict-tag-suggestions-container').on('click', '.reject-depict', function () {
     var item = $(this).siblings('.depict-tag-qvalue').text();
-    rejectStatement(item, $(this)); 
+    rejectStatement(item, $(this));
 });
 
 
-$('.edit-publish-btn-group').on('click', 'button', function() {
+$('.edit-publish-btn-group').on('click', 'button', function () {
     var editType = $(this).parent().attr('edit-type');
 
-    if ( $(this).hasClass('cancel-edits-btn') ) {
+    if ($(this).hasClass('cancel-edits-btn')) {
         if (editType === "depicts") {
             editSession.resetDepictStatements();
         }
@@ -293,18 +307,18 @@ $('.edit-publish-btn-group').on('click', 'button', function() {
         }
     }
 
-    if ( $(this).hasClass('publish-edits-btn') ) {
-        editSession.postContribution(editType)
+    if ($(this).hasClass('publish-edits-btn')) {
+        editSession.postContribution(editType);
     }
 
-})
+});
 
-function getCampaignId () {
+function getCampaignId() {
     var parts = window.location.pathname.split("/");
     return parseInt(parts[parts.length - 2]);
 }
 
-function getWikiLovesCountry () {
+function getWikiLovesCountry() {
     var country = getUrlParameters().country;
     return (country) ? decodeURIComponent(country) : '';
 }
@@ -315,11 +329,11 @@ function populateCaption(language, text) {
 }
 
 function getUserLanguages() {
-    var languages = []
-    $('.caption-input').each(function() {
-        languages.push( $(this).attr('lang'))
-    })
-    return languages
+    var languages = [];
+    $('.caption-input').each(function () {
+        languages.push($(this).attr('lang'));
+    });
+    return languages;
 }
 
 function generateStatementId(mediaId) {
@@ -339,13 +353,13 @@ $("#suggest-toggle").click(function () {
         showText = i18nStrings['Show Suggestions'];
 
     suggestionCntainer.toggleClass('collapsed');
-    if(suggestionCntainer.hasClass('collapsed')){
+    if (suggestionCntainer.hasClass('collapsed')) {
         toggleIndicator.removeClass('fa-caret-up');
         toggleIndicator.addClass('fa-caret-down');
-        toggleLabel.text(showText)
-    }else{
+        toggleLabel.text(showText);
+    } else {
         toggleIndicator.removeClass('fa-caret-down');
         toggleIndicator.addClass('fa-caret-up');
-        toggleLabel.text(hideText)
+        toggleLabel.text(hideText);
     }
 });
