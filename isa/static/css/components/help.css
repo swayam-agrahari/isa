@@ -635,11 +635,11 @@
     flex-wrap: wrap;
 }
 
-.btn-primary {
+.help-container .btn-primary {
     display: inline-flex;
     align-items: center;
     padding: 1rem 1.5rem;
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
     border: none;
     border-radius: 10px;
