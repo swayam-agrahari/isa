@@ -185,27 +185,12 @@
 
             <!-- Language Selector -->
             <div class="language-selector dropdown">
-              <button
-                class="language-btn dropdown-toggle"
-                type="button"
-                data-toggle="dropdown"
-              >
-                <i class="fas fa-globe"></i>
-                <span class="language-code"
-                  >{{ session_language[:2]|upper }}</span
-                >
-              </button>
-              <div class="dropdown-menu dropdown-menu-right">
+              <select id="language_select" class="custom-select">
                 {% for language in languages %}
-                <a
-                  class="dropdown-item language-option {% if session_language==language %}active{% endif %}"
-                  href="#"
-                  data-lang="{{ language }}"
-                >
-                  {{ language }}
-                </a>
+                <option value="{{ language }}" {% if session_language==language %}selected="selected"{% endif %}>{{ language }}</option>
                 {% endfor %}
-              </div>
+              </select>
+
             </div>
 
             <!-- User Profile -->
