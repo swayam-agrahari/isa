@@ -111,46 +111,57 @@ function searchResultsFormat(state) {
     return $state;
 }
 
-(function setUpDepictsSearch() {
-    $('#depicts-select').select2({
-        placeholder: i18nStrings['Search for things you see in the image'],
+$(document).ready(function () {
+    var $selectElement = $('#depicts-select');
+    $selectElement.select2({
+        placeholder: i18nStrings['Search for things you see in the image'] || "Search...",
         delay: 250,
-        minimumResultsForSearch: 1,
-        maximumSelectionLength: 4,
+        minimumInputLength: 1,
+        width: '100%',
         ajax: {
             type: 'GET',
             dataType: 'json',
-            url: function (t) {
-                return '../../api/search-depicts/' + campaignId;
-            }
+            url: function () {
+                var url = '/api/search-depicts/' + campaignId;
+                return url;
+            },
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                var results = data.results || [];
+                return {
+                    results: results.map(function (item) {
+                        return {
+                            id: item.id,
+                            text: item.text,
+                            description: item.description
+                        };
+                    })
+                };
+            },
+            cache: true
         },
         templateResult: searchResultsFormat,
     });
 
-    $('#depicts-select').on('select2:select', function (ev) {
-        // Add new depict statement to the UI when user selects result
+    $selectElement.on('select2:select', function (ev) {
         var selected = ev.params.data;
 
-        // Generate a new unique statement ID
         var statementId = generateStatementId(editSession.imageMediaId);
-
         editSession.addDepictStatement(
             selected.id,
             selected.text,
             selected.description,
-            false /* isProminent */,
+            false,
             statementId
         );
-        if (editSession.machineVisionActive) {
-            var suggestion = editSession.getDepictSuggestionByItem(selected.id);
-            if (suggestion) suggestion.isAccepted = true;
-            editSession.renderDepictSuggestions();
-        }
         $(this).val(null).trigger('change');
     });
-})();
+});
 
-///////// Rejecting statements /////////
 
 function rejectStatement(item, element) {
     var rejectedSuggestion = editSession.getDepictSuggestionByItem(item);

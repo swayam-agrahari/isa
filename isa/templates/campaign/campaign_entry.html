@@ -56,76 +56,123 @@
     .depicts-search {
         display: block !important;
         width: 100%;
-        margin: 20px 0;
+        margin: 20px 0px 0px 0px;
         position: relative;
-        z-index: 1050 !important; /* Ensures it is clickable and above other cards */
+        z-index: 1050 !important;
+    }
+    .input-group>.select2-container--default {
+        flex: 1 1 auto !important;
+        width: 1% !important;
+        position: relative;
     }
 
-    .select2-container {
-        width: 100% !important;
+    .input-group>.select2-container--default .select2-selection--single {
+        height: 100% !important;
+        min-height: 38px;
+        line-height: inherit;
+        border: 1px solid #ced4da;
+        border-radius: 0 0.25rem 0.25rem 0;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-selection__rendered {
+        padding-left: 0 !important;
+        /* Fix alignment */
+        line-height: normal !important;
+        color: #495057 !important;
+    }
+
+    .select2-selection__arrow {
+        height: 100% !important;
+        top: 0 !important;
     }
 
     .select2-container--open {
-        z-index: 1060 !important; /* Ensures dropdown appears above everything */
+        z-index: 9999 !important;
     }
 
     /* 5. Depicts Tags - Pretty Chip Cards */
     .depict-tag-group {
         display: flex;
         flex-wrap: wrap;
-        gap: 15px;
-        margin-top: 20px;
+        gap: 8px;
+        margin-top: 12px;
     }
 
     .depict-tag-item {
-        display: inline-flex;
-        flex-direction: column;
-        background: #ffffff;
-        border: 1px solid #dee2e6;
-        border-radius: 12px !important;
-        padding: 15px;
-        min-width: 200px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        transition: transform 0.2s ease;
+        display: inline-grid !important;
+        grid-auto-flow: column;
+        grid-auto-columns: max-content;
+        align-items: center;
+        column-gap: 6px;
+
+        padding: 4px 8px;
+        background-color: #0b6a8f;
+        color: #ffffff;
+        border-radius: 6px;
+
+        white-space: nowrap !important;
     }
 
-    .depict-tag-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    .depict-tag-label {
+        display: contents !important;
     }
 
-    .depict-tag-label-text {
-        font-weight: 700;
-        color: #007bff;
-        font-size: 1.1rem;
-        margin-bottom: 2px;
+    .depict-tag-item a {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #ffffff !important;
+        text-decoration: underline;
+        white-space: nowrap;
     }
 
     .depict-tag-qvalue {
-        font-size: 0.9rem;
-        color: #6c757d;
-        margin-bottom: 10px;
-    }
-    
-    /* Tag Action Icons (Flag/Trash) */
-    .tag-actions {
-        display: flex;
-        gap: 20px;
-        border-top: 1px solid #f1f1f1;
-        padding-top: 10px;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.8);
     }
 
-    .tag-actions i {
+
+    .depict-tag-label .label,
+    .depict-tag-label .label.btn-sm {
+        display: contents !important;
+    }
+
+    .prominent-btn,
+    .depict-tag-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        min-width: 22px;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 0.85rem;
+        line-height: 1;
+        border-radius: 4px;
+        border: none;
+        background: transparent;
         cursor: pointer;
-        font-size: 1.2rem;
-        transition: color 0.2s;
     }
 
-    .prominent-btn { color: #555; }
-    .prominent-btn.active { color: #ffc107; } /* Gold flag */
-    .depict-tag-btn { color: #007bff; } /* Match blue icon style */
-    .depict-tag-btn:hover { color: #dc3545; } /* Red on hover for delete */
+    .prominent-btn {
+        color: #ffffff;
+    }
 
+    .prominent-btn.active {
+        background-color: #ffcc00;
+    }
+
+    .depict-tag-btn {
+        color: #ffffff;
+        opacity: 0.85;
+    }
+
+    .depict-tag-btn:hover {
+        background-color: rgba(220, 53, 69, 0.3);
+    }
     /* 6. Footer Navigation */
     .participate-nav-footer {
         flex-shrink: 0;
@@ -143,8 +190,7 @@
     <img src="{{ url_for('static', filename='ISA-Structured-Data-logo_landscape_white.png') }}" height="50" class="mt-2">
 </div>
 
-<div class="isa-flash-message alert alert-success fade"></div>
-<div class="isa-flash-message alert alert-danger fade"></div>
+<div class="isa-flash-message alert alert-success alert-danger fade"></div>
 
 <div class="container mt-3">
     <a href="{{url_for('campaigns.getCampaignById', id=campaign.id ) }}" class="btn btn-outline-secondary btn-sm mb-3">
@@ -180,17 +226,16 @@
     </div>
 
     {% if campaign.depicts_metadata %}
-    <div class="edit-box shadow-sm">
+    <div class="edit-box">
         <div class="edit-box-header d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">{{ _('Depicts') }}</h4>
+            <h4 class="mt-2">{{ _('Depicts') }}</h4>
             <div edit-type="depicts" class="edit-publish-btn-group">
                 <button class="btn btn-sm btn-link cancel-edits-btn" disabled>{{ _('Cancel') }}</button>
                 <button class="btn btn-sm btn-primary publish-edits-btn" disabled>{{ _('Save') }}</button>
             </div>
         </div>
-        <p class="text-muted small mt-2">{{ _('Name the different elements that you can see in this image') }}</p>
-        
-        <div class="depicts-search mt-3">
+        <p class="text-muted small">{{ _('Name the different elements that you can see in this image') }}</p>
+         <div class="depicts-search mt-1">
             <div class="input-group">
                 <div class="input-group-prepend"> <span class="input-group-text"><i class="fas fa-search"></i></span> </div>
                 <select id="depicts-select" class="form-control"></select>
@@ -209,15 +254,15 @@
     {% endif %}
 
     {% if campaign.captions_metadata %}
-    <div class="edit-box shadow-sm">
+    <div class="edit-box ">
         <div class="edit-box-header d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">{{ _('Captions') }}</h4>
+            <h4 class="mt-2">{{ _('Captions') }}</h4>
             <div edit-type="captions" class="edit-publish-btn-group">
                 <button class="btn btn-sm btn-link cancel-edits-btn" disabled>{{ _('Cancel') }}</button>
                 <button class="btn btn-sm btn-primary publish-edits-btn" disabled>{{ _('Save') }}</button>
             </div>
         </div>
-        <div class="caption-search mt-3"> 
+        <div class="caption-search mt-1">
             {% for lang_code in caption_languages %}
             <div class="input-group mb-2">
                 <div class="input-group-prepend"> <span class="input-group-text font-weight-bold">{{lang_code}}</span> </div>
@@ -238,30 +283,39 @@
 
 <div class="hidden-i18n-text">
     {
-        "No images found for this campaign!": {{ _('No images found for this campaign!')|tojson }},
-        "Something went wrong getting campaign images": {{ _('Something went wrong getting campaign images')|tojson }},
-        "Search for things you see in the image": {{ _('Search for things you see in the image')|tojson }},
-        "minimise metadata from Commons": {{ _('minimise metadata from Commons')|tojson }},
-        "show all metadata from Commons": {{ _('show all metadata from Commons')|tojson }},
-        "Success! Depicted items saved to Wikimedia Commons": {{ _('Success! Depicted items saved to Wikimedia Commons')|tojson }},
-        "Success! Captions saved to Wikimedia Commons": {{ _('Success! Captions saved to Wikimedia Commons')|tojson }},
-        "Oops! Something went wrong, your edits have not been saved to Wikimedia Commons": {{ _('Oops! Something went wrong, your edits have not been saved to Wikimedia Commons')|tojson }},
-        "Are you sure you want to navigate to another image? You have unsaved changes which will be lost.": {{ _('Are you sure you want to navigate to another image? You have unsaved changes which will be lost.')|tojson }},
-        "Click 'OK' to proceed anyway, or 'Cancel' if you want to save changes first.": {{ _("Click 'OK' to proceed anyway, or 'Cancel' if you want to save changes first.")|tojson }},
-        "Remove this depicted item": {{ _('Remove this depicted item')|tojson }},
-        "Mark this depicted item as prominent": {{ _('Mark this depicted item as prominent')|tojson }},
-        "Mark this depicted item as NOT prominent": {{ _('Mark this depicted item as NOT prominent')|tojson }},
-        "Suggestion removed from list": {{ _('Suggestion removed from list')|tojson }},
-        "Please check that you are logged in": {{ _('Please check that you are logged in')|tojson }},
-        "Oops! Suggestion might not have been removed": {{ _('Oops! Suggestion might not have been removed')|tojson }},
-        "Hide Suggestions": {{ _('Hide Suggestions')|tojson }},
-        "Show Suggestions": {{ _('Show Suggestions')|tojson }},
-        "Are you sure you want to reject this suggestion?": {{ _('Are you sure you want to reject this suggestion?')|tojson }},
-        "Are you sure explanation for reject suggestion": {{ _('Only do this if you are sure the suggested tag does not appear in the image, or would be incorrect according to Wikimedia Commons guidelines. If several users reject the same suggestion, it will no longer be shown.')|tojson }}
+    "No images found for this campaign!": {{ _('No images found for this campaign!')|tojson }},
+    "Something went wrong getting campaign images": {{ _('Something went wrong getting campaign images')|tojson }},
+    "Search for things you see in the image": {{ _('Search for things you see in the image')|tojson }},
+    "minimise metadata from Commons": {{ _('minimise metadata from Commons')|tojson }},
+    "show all metadata from Commons": {{ _('show all metadata from Commons')|tojson }},
+    "Success! Depicted items saved to Wikimedia Commons": {{ _('Success! Depicted items saved to Wikimedia
+    Commons')|tojson }},
+    "Success! Captions saved to Wikimedia Commons": {{ _('Success! Captions saved to Wikimedia Commons')|tojson }},
+    "Oops! Something went wrong, your edits have not been saved to Wikimedia Commons": {{ _('Oops! Something went wrong,
+    your edits have not been saved to Wikimedia Commons')|tojson }},
+    "Are you sure you want to navigate to another image? You have unsaved changes which will be lost.": {{ _('Are you
+    sure you want to navigate to another image? You have unsaved changes which will be lost.')|tojson }},
+    "Click 'OK' to proceed anyway, or 'Cancel' if you want to save changes first.": {{ _("Click 'OK' to proceed anyway,
+    or 'Cancel' if you want to save changes first.")|tojson }},
+    "Remove this depicted item": {{ _('Remove this depicted item')|tojson }},
+    "Mark this depicted item as prominent": {{ _('Mark this depicted item as prominent')|tojson }},
+    "Mark this depicted item as NOT prominent": {{ _('Mark this depicted item as NOT prominent')|tojson }},
+    "Suggestion removed from list": {{ _('Suggestion removed from list')|tojson }},
+    "Please check that you are logged in": {{ _('Please check that you are logged in')|tojson }},
+    "Oops! Suggestion might not have been removed": {{ _('Oops! Suggestion might not have been removed')|tojson }},
+    "Hide Suggestions": {{ _('Hide Suggestions')|tojson }},
+    "Show Suggestions": {{ _('Show Suggestions')|tojson }},
+    "Are you sure you want to reject this suggestion?": {{ _('Are you sure you want to reject this suggestion?')|tojson
+    }},
+    "Are you sure explanation for reject suggestion": {{ _('Only do this if you are sure the suggested tag does not
+    appear in the image, or would be incorrect according to Wikimedia Commons guidelines. If several users reject the
+    same suggestion, it will no longer be shown.')|tojson }}
     }
 </div>
 {% endblock content %}
 {% block scripts %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js"></script>
 <script src="{{url_for('static', filename='js/participate.js')}}"></script>
 {% endblock scripts%}

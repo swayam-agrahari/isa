@@ -9,12 +9,8 @@
       <div class="col-lg-3 col-md-4 text-center mb-4 mb-md-0">
         {% if campaign_image is not none %}
         <div class="campaign-image-wrapper position-relative">
-          <img
-            class="campaign-image rounded-4 img-fluid shadow"
-            src="{{ campaign_image }}"
-            alt="{{ campaign.campaign_name }}"
-            style="max-height: 200px; object-fit: cover"
-          />
+          <img class="campaign-image rounded-4 img-fluid shadow" src="{{ campaign_image }}"
+            alt="{{ campaign.campaign_name }}" style="max-height: 200px; object-fit: cover" />
           {% if campaign.manager.username == username %}
           <div class="campaign-badge position-absolute top-0 end-0 mt-2 me-2">
             <span class="badge bg-info">Your Campaign</span>
@@ -31,17 +27,18 @@
             <h1 class="campaign-title mb-2 fw-bold text-primary">
               {{ campaign.campaign_name }}
             </h1>
-            <p class="lead text-muted mb-3">{{ campaign.short_description }}</p>
+            <p class="lead text-muted mb-3 text-break"
+              style="display: -webkit-box; line-clamp: 3; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+              {{ campaign.short_description }}
+            </p>
           </div>
 
           {% if campaign.manager.username == username or username in
           isa_superusers %}
           <div class="ms-3 flex-shrink-0 ">
-            <a
-              href="{{ url_for('campaigns.updateCampaign', id=campaign.id) }}"
+            <a href="{{ url_for('campaigns.updateCampaign', id=campaign.id) }}"
               class="btn btn-lg btn-outline-primary  rounded-1 px-3 py-1"
-              title="{{ _('Make changes to this campaign') }}"
-            >
+              title="{{ _('Make changes to this campaign') }}">
               <i class="fas fa-edit me-2 "></i>
               {{ _('Edit') }}
             </a>
@@ -57,12 +54,8 @@
                 <i class="fas fa-user-circle text-primary me-3 fs-5 mr-2"></i>
                 <h6 class="mb-0 text-secondary">{{ _('Campaign Manager') }}</h6>
               </div>
-              <a
-                href="https://commons.wikimedia.org/wiki/User:{{ campaign.manager.username }}"
-                target="_blank"
-                rel="noopener"
-                class="text-decoration-none fw-semibold text-dark"
-              >
+              <a href="https://commons.wikimedia.org/wiki/User:{{ campaign.manager.username }}" target="_blank"
+                rel="noopener" class="text-decoration-none fw-semibold text-dark">
                 {{ campaign.manager.username }}
               </a>
             </div>
@@ -125,11 +118,7 @@
           <span class="input-group-text bg-white">
             <i class="fas fa-globe me-2"></i>
           </span>
-          <select
-            id="campaign_countries"
-            class="form-select"
-            title="{{ _('Filter by country') }}"
-          >
+          <select id="campaign_countries" class="form-select" title="{{ _('Filter by country') }}">
             <option value="all">{{ _('All Countries') }}</option>
             {% for country in countries %}
             <option value="{{ country }}">{{ country }}</option>
@@ -140,12 +129,9 @@
       {% endif %}
 
       <div class="cta-buttons">
-        <a
-          id="get_started_btn"
-          href="{{ url_for('campaigns.contributeToCampaign', id=campaign.id) }}"
+        <a id="get_started_btn" href="{{ url_for('campaigns.contributeToCampaign', id=campaign.id) }}"
           class=" btn-lg px-5  py-3 fw-bold rounded-pill shadow-lg cta-button"
-          title="{{ _('Start contributing to this campaign') }}"
-        >
+          title="{{ _('Start contributing to this campaign') }}">
           <i class="fas fa-rocket me-2"></i>
           {{ _('Get Started Now') }}
         </a>
@@ -166,11 +152,8 @@
             {{ _('Campaign Progress') }}
           </h4>
           <div class="text-end">
-            <a
-              href="{{ url_for('campaigns.getCampaignStatsById', id=campaign.id) }}"
-              class="btn  shadow-sm btn-primary"
-              title="{{ _('View detailed statistics') }}"
-            >
+            <a href="{{ url_for('campaigns.getCampaignStatsById', id=campaign.id) }}" class="btn  shadow-sm btn-primary"
+              title="{{ _('View detailed statistics') }}">
               <i class="fas fa-chart-bar me-2 mr-1"></i>
               {{ _('Full Stats') }}
             </a>
@@ -180,11 +163,11 @@
         <!-- Quick Stats -->
         <div class="row g-4 mb-4">
           <div class="col-md-6">
-            <div
-              class="stat-box text-center p-4 rounded-4 shadow-sm border border-primary"
-            >
+            <div class="stat-box text-center p-4 rounded-4 shadow-sm border border-primary">
               <div class="stat-icon mb-3">
-                <div class="icon-circle bg-primary bg-opacity-10 rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                <div
+                  class="icon-circle bg-primary bg-opacity-10 rounded-circle mx-auto d-flex align-items-center justify-content-center"
+                  style="width: 70px; height: 70px;">
                   <i class="fas fa-images fa-2x "></i>
                 </div>
               </div>
@@ -194,11 +177,11 @@
           </div>
 
           <div class="col-md-6">
-            <div
-              class="stat-box text-center p-4 rounded-4 shadow-sm border border-success"
-            >
+            <div class="stat-box text-center p-4 rounded-4 shadow-sm border border-success">
               <div class="stat-icon mb-3">
-                <div class="icon-circle bg-success bg-opacity-10 rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                <div
+                  class="icon-circle bg-success bg-opacity-10 rounded-circle mx-auto d-flex align-items-center justify-content-center"
+                  style="width: 70px; height: 70px;">
                   <i class="fas fa-users fa-2x "></i>
                 </div>
               </div>
@@ -224,40 +207,25 @@
         </h4>
 
         {% if username != 'Guest' and username != None %}
-        <div
-          class="user-rank-card text-center p-4 mb-4 rounded-4 shadow-sm border"
-        >
-          <div
-            class="rank-badge position-relative d-inline-flex align-items-center justify-content-center mb-3"
-          >
+        <div class="user-rank-card text-center p-4 mb-4 rounded-4 shadow-sm border">
+          <div class="rank-badge position-relative d-inline-flex align-items-center justify-content-center mb-3">
             <!-- Crown container - positioned above the rank circle -->
-            <div
-              class="crown-container position-absolute top-0 translate-middle"
-              style="z-index: 10; {% if current_user_rank > 3 %}display: none;{% endif %}"
-            >
+            <div class="crown-container position-absolute top-0 translate-middle"
+              style="z-index: 10; {% if current_user_rank > 3 %}display: none;{% endif %}">
               {% if current_user_rank == 1 %}
-              <i
-                class="fas fa-crown text-warning fa-2x"
-                style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))"
-              ></i>
+              <i class="fas fa-crown text-warning fa-2x" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))"></i>
               {% elif current_user_rank == 2 %}
-              <i
-                class="fas fa-crown text-secondary fa-2x"
-                style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))"
-              ></i>
+              <i class="fas fa-crown text-secondary fa-2x"
+                style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))"></i>
               {% elif current_user_rank == 3 %}
-              <i
-                class="fas fa-crown text-danger fa-2x"
-                style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))"
-              ></i>
+              <i class="fas fa-crown text-danger fa-2x" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))"></i>
               {% endif %}
             </div>
 
             <!-- Rank circle with rank number -->
             <div
               class="rank-circle bg-info text-white rounded-circle d-flex align-items-center justify-content-center position-relative shadow"
-              style="width: 80px; height: 80px; margin-top: {% if current_user_rank <= 3 %}15px{% else %}0{% endif %};"
-            >
+              style="width: 80px; height: 80px; margin-top: {% if current_user_rank <= 3 %}15px{% else %}0{% endif %};">
               <h2 class="mb-0 fw-bold" style="position: relative; z-index: 5">
                 {% if current_user_rank > 0 %} #{{ current_user_rank }} {% else
                 %} - {% endif %}
@@ -265,93 +233,85 @@
             </div>
 
             <!-- Medal for top 3 ranks -->
-            {% if current_user_rank <= 3 %}
-            <div
-              class="medal-effect position-absolute top-50 start-50 translate-middle"
-            >
-               
-            </div>
-            {% endif %}
+            {% if current_user_rank <= 3 %} <div
+              class="medal-effect position-absolute top-50 start-50 translate-middle">
+
           </div>
+          {% endif %}
+        </div>
 
-          <h3 class="fw-bold mb-2 text-dark">{{ current_user_images_improved }}</h3>
-          <p class="text-muted mb-3 fw-semibold">{{ _('Contributions Made') }}</p>
+        <h3 class="fw-bold mb-2 text-dark">{{ current_user_images_improved }}</h3>
+        <p class="text-muted mb-3 fw-semibold">{{ _('Contributions Made') }}</p>
 
-          <!-- Rank label -->
-          <div class="rank-label mt-2">
-            {% if current_user_rank == 1 %}
-            <span class="badge bg-warning text-dark px-3 py-2 fs-6">
-              <i class="fas fa-trophy me-2"></i> {{ _('1st Place') }}
-            </span>
-            {% elif current_user_rank == 2 %}
-            <span class="badge bg-secondary px-3 py-2 fs-6">
-              <i class="fas fa-trophy me-2"></i> {{ _('2nd Place') }}
-            </span>
-            {% elif current_user_rank == 3 %}
-            <span class="badge bg-danger px-3 py-2 fs-6">
-              <i class="fas fa-trophy me-2"></i> {{ _('3rd Place') }}
-            </span>
-            {% elif current_user_rank > 3 and current_user_rank <= 10 %}
-            <span class="badge bg-primary px-3 py-2 fs-6">
-              <i class="fas fa-medal me-2"></i> {{ _('Top 10') }}
+        <!-- Rank label -->
+        <div class="rank-label mt-2">
+          {% if current_user_rank == 1 %}
+          <span class="badge bg-warning text-dark px-3 py-2 fs-6">
+            <i class="fas fa-trophy me-2"></i> {{ _('1st Place') }}
+          </span>
+          {% elif current_user_rank == 2 %}
+          <span class="badge bg-secondary px-3 py-2 fs-6">
+            <i class="fas fa-trophy me-2"></i> {{ _('2nd Place') }}
+          </span>
+          {% elif current_user_rank == 3 %}
+          <span class="badge bg-danger px-3 py-2 fs-6">
+            <i class="fas fa-trophy me-2"></i> {{ _('3rd Place') }}
+          </span>
+          {% elif current_user_rank > 3 and current_user_rank <= 10 %} <span class="badge bg-primary px-3 py-2 fs-6">
+            <i class="fas fa-medal me-2"></i> {{ _('Top 10') }}
             </span>
             {% elif current_user_rank > 10 %}
             <span class="badge bg-info px-3 py-2 fs-6">
               <i class="fas fa-star me-2"></i> {{ _('Contributor') }}
             </span>
             {% endif %}
-          </div>
         </div>
-
-        <div class="progress-section p-3 bg-light rounded-3">
-          <div class="d-flex justify-content-between mb-3">
-            <span class="fw-bold text-dark">{{ _('Your Progress') }}</span>
-            <span >
-              {% if table_data.total > 0 %} {{ ((current_user_images_improved /
-              table_data.total) * 100) | round(1) }}% {% else %} 0% {% endif %}
-            </span>
-          </div>
-          <div class="progress" style="height: 12px">
-            <div
-              class="progress-bar bg-info"
-              role="progressbar"
-              style="width: {% if table_data.total > 0 %}{{ (current_user_images_improved / table_data.total) * 100 }}{% else %}0{% endif %}%"
-              aria-valuenow="{{ current_user_images_improved }}"
-              aria-valuemin="0"
-              aria-valuemax="{{ table_data.total }}"
-            ></div>
-          </div>
-
-          <!-- Progress details -->
-          <div class="mt-3 text-muted small fw-semibold">
-            <i class="fas fa-chart-line me-2"></i>
-            {{ current_user_images_improved }} / {{ table_data.total }} {{
-            _('total contributions') }}
-          </div>
-        </div>
-        {% else %}
-        <div class="text-center py-5">
-          <div class="mb-4">
-            <div class="login-icon-circle bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
-              <i class="fas fa-user-lock fa-3x text-muted"></i>
-            </div>
-          </div>
-          <h5 class="mb-3 fw-bold">{{ _('Login to Track Your Progress') }}</h5>
-          <p class="text-muted mb-4">
-            {{ _('Sign in to see your ranking and contribution history') }}
-          </p>
-          <a
-            href="{{ url_for('users.login') }}"
-            class="btn btn-primary rounded-pill px-4 py-2 shadow"
-          >
-            <i class="fas fa-sign-in-alt me-2"></i>
-            {{ _('Sign In') }}
-          </a>
-        </div>
-        {% endif %}
       </div>
+
+      <div class="progress-section p-3 bg-light rounded-3">
+        <div class="d-flex justify-content-between mb-3">
+          <span class="fw-bold text-dark">{{ _('Your Progress') }}</span>
+          <span>
+            {% if table_data.total > 0 %} {{ ((current_user_images_improved /
+            table_data.total) * 100) | round(1) }}% {% else %} 0% {% endif %}
+          </span>
+        </div>
+        <div class="progress" style="height: 12px">
+          <div class="progress-bar bg-info" role="progressbar"
+            style="width: {% if table_data.total > 0 %}{{ (current_user_images_improved / table_data.total) * 100 }}{% else %}0{% endif %}%"
+            aria-valuenow="{{ current_user_images_improved }}" aria-valuemin="0" aria-valuemax="{{ table_data.total }}">
+          </div>
+        </div>
+
+        <!-- Progress details -->
+        <div class="mt-3 text-muted small fw-semibold">
+          <i class="fas fa-chart-line me-2"></i>
+          {{ current_user_images_improved }} / {{ table_data.total }} {{
+          _('total contributions') }}
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <div
+            class="login-icon-circle bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center"
+            style="width: 100px; height: 100px;">
+            <i class="fas fa-user-lock fa-3x text-muted"></i>
+          </div>
+        </div>
+        <h5 class="mb-3 fw-bold">{{ _('Login to Track Your Progress') }}</h5>
+        <p class="text-muted mb-4">
+          {{ _('Sign in to see your ranking and contribution history') }}
+        </p>
+        <a href="{{ url_for('users.login') }}" class="btn btn-primary rounded-pill px-4 py-2 shadow">
+          <i class="fas fa-sign-in-alt me-2"></i>
+          {{ _('Sign In') }}
+        </a>
+      </div>
+      {% endif %}
     </div>
   </div>
+</div>
 </div>
 
 <!-- Hidden i18n -->
@@ -359,71 +319,68 @@
   { "Unknown country": {{ _('Unknown country') | tojson }} }
 </div>
 
-{% endblock content %} 
+{% endblock content %}
 {% block styles %}
-<link
-  rel="stylesheet"
-  href="{{ url_for('static', filename='css/campaign-detail.css') }}"
->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/campaign-detail.css') }}">
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/campaign.js') }}"></script>
 <script>
-    // Add interactivity for country filter
-    document.addEventListener("DOMContentLoaded", function () {
-      const countrySelect = document.getElementById("campaign_countries");
-      if (countrySelect) {
-        countrySelect.addEventListener("change", function () {
-          const country = this.value;
-          // Add animation for selection change
-          this.style.transform = "scale(1.05)";
-          setTimeout(() => {
-            this.style.transform = "scale(1)";
-          }, 200);
+  // Add interactivity for country filter
+  document.addEventListener("DOMContentLoaded", function () {
+    const countrySelect = document.getElementById("campaign_countries");
+    if (countrySelect) {
+      countrySelect.addEventListener("change", function () {
+        const country = this.value;
+        // Add animation for selection change
+        this.style.transform = "scale(1.05)";
+        setTimeout(() => {
+          this.style.transform = "scale(1)";
+        }, 200);
 
-          // Here you would typically filter the displayed data
-          console.log("Country selected:", country);
-        });
-      }
+        // Here you would typically filter the displayed data
+        console.log("Country selected:", country);
+      });
+    }
 
-      // Add smooth scrolling for anchor links
-      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-        anchor.addEventListener("click", function (e) {
-          e.preventDefault();
-          const target = document.querySelector(this.getAttribute("href"));
-          if (target) {
-            target.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            });
-          }
-        });
+    // Add smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute("href"));
+        if (target) {
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
       });
     });
+  });
 
-    // Add rank-specific colors dynamically
-  document.addEventListener('DOMContentLoaded', function() {
+  // Add rank-specific colors dynamically
+  document.addEventListener('DOMContentLoaded', function () {
     const rankCircle = document.querySelector('.rank-circle');
     const userRank = {% if current_user_rank %}{{ current_user_rank }}{% else %}0{% endif %};
 
-    if (rankCircle) {
-      rankCircle.setAttribute('data-rank', userRank);
+  if (rankCircle) {
+    rankCircle.setAttribute('data-rank', userRank);
 
-      // Add rank-specific colors
-      if (userRank === 1) {
-        rankCircle.classList.remove('bg-info');
-        rankCircle.style.background = 'linear-gradient(135deg, #FFD700, #FFED4E)';
-        rankCircle.style.borderColor = '#FFD700';
-      } else if (userRank === 2) {
-        rankCircle.classList.remove('bg-info');
-        rankCircle.style.background = 'linear-gradient(135deg, #C0C0C0, #E8E8E8)';
-        rankCircle.style.borderColor = '#C0C0C0';
-      } else if (userRank === 3) {
-        rankCircle.classList.remove('bg-info');
-        rankCircle.style.background = 'linear-gradient(135deg, #CD7F32, #E59866)';
-        rankCircle.style.borderColor = '#CD7F32';
-      }
+    // Add rank-specific colors
+    if (userRank === 1) {
+      rankCircle.classList.remove('bg-info');
+      rankCircle.style.background = 'linear-gradient(135deg, #FFD700, #FFED4E)';
+      rankCircle.style.borderColor = '#FFD700';
+    } else if (userRank === 2) {
+      rankCircle.classList.remove('bg-info');
+      rankCircle.style.background = 'linear-gradient(135deg, #C0C0C0, #E8E8E8)';
+      rankCircle.style.borderColor = '#C0C0C0';
+    } else if (userRank === 3) {
+      rankCircle.classList.remove('bg-info');
+      rankCircle.style.background = 'linear-gradient(135deg, #CD7F32, #E59866)';
+      rankCircle.style.borderColor = '#CD7F32';
     }
+  }
   });
 </script>
 {% endblock scripts %}
