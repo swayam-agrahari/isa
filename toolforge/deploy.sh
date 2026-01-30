@@ -94,7 +94,7 @@ run rm -r isa/static/js/
 run npm run build
 
 # Start Celery worker
-run 'toolforge-jobs run --continuous --image python3.11 --command "~/www/python/src/toolforge/start-celery.sh" celery-worker'
+run 'toolforge-jobs run --continuous --image python3.13 --command "~/www/python/src/toolforge/start-celery.sh" celery-worker'
 
 # Start webservice
 run webservice start
