@@ -207,7 +207,7 @@ class ImageUpdater:
         """
         Commit images to database
         """
-        self._campaign.campaign_images = len(self._campaign.images)
+        self._campaign.campaign_images = Image.query.filter_by(campaign_id=self._campaign.id).count()
         if not commit_changes_to_db():
             raise UpdateImageException("Committing to database failed.")
 
