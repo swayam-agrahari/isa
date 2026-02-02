@@ -19,8 +19,10 @@ const perPage = 10;
 let allLoadedImages = [];
 let hasMoreImages = true;
 
+const sessionSeed = Math.floor(Math.random() * 1000000);
+
 function loadImages(page) {
-    let imagesUrl = `../../campaigns/${campaignId}/images?page=${page}&per_page=${perPage}`;
+    let imagesUrl = `../../campaigns/${campaignId}/images?page=${page}&per_page=${perPage}&seed=${sessionSeed}`;
     if (isWikiLovesCampaign && wikiLovesCountry) {
         imagesUrl += `&country=${encodeURIComponent(wikiLovesCountry)}`;
     }

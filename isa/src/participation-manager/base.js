@@ -97,6 +97,18 @@ export function ParticipationManager(images, campaignId, wikiLovesCountry, isUse
     }
 
     this.addDepictStatement = function(item, label, description, isProminent, statementId) {
+        var alreadyExists = false;
+        if ($('.depict-tag-item').length > 0) {
+            $('.depict-tag-item').each(function(index, element) {
+                var existingItem = $(element).find('.depict-tag-qvalue').text();
+                if (existingItem === item) {
+                    alreadyExists = true;
+                    return false; // break loop
+                }
+            });
+        }
+        if (alreadyExists) {
+            return}; // do not add duplicate items
         var $statement = this.getStatement(
             item,
             label,
@@ -104,6 +116,7 @@ export function ParticipationManager(images, campaignId, wikiLovesCountry, isUse
             isProminent,
             statementId
         );
+
         $('.depict-tag-group').append($statement);
         this.depictDataChanged();
     }
