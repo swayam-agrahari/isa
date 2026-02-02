@@ -1068,6 +1068,9 @@ def get_images(campaign_id, country_name):
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
+    # check for session seed
+    seed = request.args.get('seed', None, type=int)
+
     # Start a query on the Image table directly
     query = Image.query.filter(Image.campaign_id == campaign_id)
 
@@ -1078,8 +1081,19 @@ def get_images(campaign_id, country_name):
         query = query.filter(Image.country_id == country.id)
 
     total_count = query.count()
-    
-    paginated_results = query.order_by(Image.page_id).offset((page - 1) * per_page).limit(per_page).all()
+
+    if seed is not None:
+        # we get a random "Seed" number from the browser once when the user loads the page.
+        # We use the same seed for every page request (Page 1, Page 2, Page 3...) all being unique images in one session
+        if db.engine.dialect.name == 'postgresql':
+            seed_float = (seed % 2000000) / 1000000.0 - 1.0 # seed between -1.0 and 1.0
+            db.session.execute(func.setseed(seed_float))
+            paginated_results = query.order_by(func.random()).offset((page - 1) * per_page).limit(per_page).all()
+        else:
+            # for mysql and mariadb 
+            paginated_results = query.order_by(func.rand(seed)).offset((page - 1) * per_page).limit(per_page).all()
+    else:
+        paginated_results = query.order_by(Image.page_id).offset((page - 1) * per_page).limit(per_page).all()
     
     # Extract the IDs
     paginated_images = [img.page_id for img in paginated_results]
